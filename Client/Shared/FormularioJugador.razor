@@ -1,0 +1,128 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+@inject IJSRuntime ijsruntime
+
+
+@if (oJugadorCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    <EditForm Model="@oJugadorCLS" OnValidSubmit="GuardarDatos">
+
+        <DataAnnotationsValidator />
+        @*<ValidationSummary />*@
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Nombre *</label>
+            <InputText class="form form-control" @bind-Value="oJugadorCLS.nombre" />
+            <ValidationMessage For="@(()=>oJugadorCLS.nombre)" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Apellido Paterno *</label>
+            <InputText class="form form-control" @bind-Value="oJugadorCLS.appaterno" />
+            <ValidationMessage For="@(()=>oJugadorCLS.appaterno)" />
+        </div>
+
+        <div class="form-group">
+            <label class="font-weight-bold">Apellido Materno</label>
+            <InputText class="form form-control" @bind-Value="oJugadorCLS.apmaterno" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Fecha de Nacimiento *</label>
+            <InputDate class="form form-control" @bind-Value="oJugadorCLS.fnacimiento" />
+            <ValidationMessage For="@(()=>oJugadorCLS.fnacimiento)" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Equipos *</label>
+            <InputSelect @bind-Value="oJugadorCLS.idequipo" class="form form-control">
+                <option value="">--- Seleccione ---</option>
+                @foreach (EquipoCLS oEquipoCLS in listaEquipos)
+                    {
+                    <option value="@oEquipoCLS.idequipo">@oEquipoCLS.nombre</option>
+                    }
+            </InputSelect>
+            <ValidationMessage For="@(()=>oJugadorCLS.idequipo)" />
+        </div>
+
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-2"></div>
+}
+
+
+@code {
+
+    [Parameter]
+    public JugadorCLS oJugadorCLS { get; set; } = new JugadorCLS();
+
+    [Parameter]
+    public List<EquipoCLS> listaEquipos { get; set; }
+
+    public string ruta { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+   
+    protected override async Task OnInitializedAsync()
+    {
+        string paginaEnviar = "ListaJugador";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+
+    public async Task<bool> GuardarDatos()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        oJugadorCLS.idtorneo = int.Parse(claims[2].Value);
+
+        oJugadorCLS.torneo = torneo;
+
+        var resultado = await http.PostAsJsonAsync("api/Jugador/GuardarDatosJugador", oJugadorCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENTE      3 = ESE NOMBRE DE JUGADOR YA EXISTE
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE GUARDARON LOS DATOS", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+                break;
+            case 3:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ESE NOMBRE DE JUGADOR YA EXISTE", "warning");
+                break;
+            default:
+                break;
+        }
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+
+        return await Task.FromResult(true);
+    }
+}
+

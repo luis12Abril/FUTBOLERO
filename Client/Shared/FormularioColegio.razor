@@ -1,0 +1,121 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+@if (oColegioCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    <EditForm Model="@oColegioCLS" OnValidSubmit="GuardarDatos">
+
+        <DataAnnotationsValidator />
+        @*<ValidationSummary />*@
+
+        @if (semodifica)
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Nombre *</label>
+                <InputText class="form form-control" @bind-Value="oColegioCLS.nombre" />
+                <ValidationMessage For="@(() => oColegioCLS.nombre)" />
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Nombre del Colegio</label>
+                <InputText class="form form-control" @bind-Value="oColegioCLS.nombre" readOnly />
+            </div>
+        }
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Presidentes*</label>
+          @*<InputSelect class="form-control" ValueChanged="@((string idMunicipio)=>CambiaMunicipio(idMunicipio))"     ValueExpression="@(()=>idMunicipio)" Value="@idMunicipio">*@
+            <InputSelect class="form form-control" @bind-Value="oColegioCLS.idpresidente">
+                <option value="">--- Seleccione ---</option>
+                @foreach (PresidenteCLS oPresidenteCLS in listaPresidentes)
+                    {
+                    <option value="@oPresidenteCLS.idpresidente">@oPresidenteCLS.usuario</option>
+                    }
+            </InputSelect>
+            <ValidationMessage For="@(()=>oColegioCLS.idpresidente)" />
+        </div>
+
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-2"></div>
+}
+
+
+@code {
+    [Parameter]
+    public bool semodifica { get; set; } = true;
+
+    [Parameter]
+    public ColegioCLS oColegioCLS { get; set; } = new ColegioCLS();
+
+    [Parameter]
+    public List<PresidenteCLS> listaPresidentes { get; set; }
+
+    public string ruta { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        string paginaEnviar = "ListaColegio";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+
+    }
+
+
+    public async Task<bool> GuardarDatos()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        //oColegioCLS.nombreusu =
+
+        var resultado = await http.PostAsJsonAsync("api/Colegio/GuardarDatosColegio", oColegioCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENT       3 = ESE NOMBRE DE ESTADO YA EXISTE
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE GUARDARON LOS DATOS", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+                break;
+            case 3:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ESE NOMBRE DE COLEGIO YA EXISTE", "warning");
+                break;
+            default:
+                break;
+        }
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+
+        return await Task.FromResult(true);
+    }
+}
+

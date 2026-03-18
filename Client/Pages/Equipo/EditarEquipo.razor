@@ -1,0 +1,43 @@
+﻿@page "/editarEquipo/{idEquipo}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioEquipo oEquipoCLS="oEquipoCLS" oJuegosdelequipoCLS="oJuegosdelequipoCLS" />
+
+@code {
+    public int yaentro = 0;
+    [Parameter]
+    public string idEquipo { get; set; }
+
+    public EquipoCLS oEquipoCLS = new EquipoCLS();
+    public List<JuegosdelequipoCLS> oJuegosdelequipoCLS = new List<JuegosdelequipoCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    public string idtorneoseleccionado;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+        }
+    }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oEquipoCLS = await http.GetFromJsonAsync<EquipoCLS>("api/Equipo/RecuperarInformacionEquipo/" + idEquipo);
+
+        oJuegosdelequipoCLS = await http.GetFromJsonAsync<List<JuegosdelequipoCLS>>("api/Equipo/RecuperarJuegosEquipo/" + idEquipo + "/" + idtorneoseleccionado);
+    }
+}
+

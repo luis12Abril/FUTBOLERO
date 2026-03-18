@@ -1,0 +1,139 @@
+﻿@page "/ListaLiga/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Liga", "Municipio", };
+
+    // ESTAS PROPIEDADES TIENEN QUE SER IGUAL A LAS QUE ESTAN EN EL CONTROLADOR
+    string[] propiedades = { "nombre", "municipio" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoLiga
+                  type="combobox" button=false label="Seleccione un Municipio"
+                  combobox="oMunicipioCLS" displayMember="nombre" valueMember="idmunicipio"
+                  eventBusqueda="BuscarListaLiga"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarLiga"
+                  permitirEditar=@permitirEditar rutaEditar="EditarLiga"
+                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaLiga"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de Ligas" />
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    public string mensaje;
+
+    public string idtorneoseleccionado;
+
+    public string torneoMensaje { get; set; }
+
+    public LigaCLS[] listadoLiga;
+
+    public LigaCLS oLigaCLSBorrar = new LigaCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DE LA LIGA Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    public MunicipioCLS[] oMunicipioCLS;      // ESTO ES PORQUE SE VA HACER UNA BUSQUEDA POR COMBOBOX
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listadoLiga = await http.GetFromJsonAsync<LigaCLS[]>("api/Liga/ListarLiga");
+            oMunicipioCLS = await http.GetFromJsonAsync<MunicipioCLS[]>("api/Municipio/ListarMunicipio");    // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO BUSQUEDA DE ESTADOS
+
+            if (user.Identity.IsAuthenticated)
+            {
+                //listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                //  ESTO LO HAGO PORQUE SI ES UN ADMINISTRADOR Y NO TIENE DERECHO A ADMINISTRAR EL TORNEO SELECCIONADO TENDRA QUE VERLO COMO INVITADO
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones2/" + user.Identity.Name + "/" + Id + "/" + idtorneoseleccionado);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaLiga(string buscarNombreLiga)
+    {
+        if (buscarNombreLiga == null || buscarNombreLiga == "")
+        {
+            listadoLiga = await http.GetFromJsonAsync<LigaCLS[]>("api/Liga/ListarLiga/" + idtorneoseleccionado);
+        }
+        else
+        {
+            listadoLiga = await http.GetFromJsonAsync<LigaCLS[]>("api/Liga/FiltrarLiga/" + buscarNombreLiga );
+        }
+    }
+
+
+    public async Task EliminarListaLiga(string idliga)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+        oLigaCLSBorrar = await http.GetFromJsonAsync<LigaCLS>("api/Liga/RecuperarInformacionLiga/" + idliga);
+
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oLigaCLSBorrar.nombre, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/Liga/EliminarLiga/" + idliga + "/" + idtorneoseleccionado);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO ON     2 = HAY LIGAS EN ESE MUNICIPIO
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR, NO SE PUDO DAR DE BAJA", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, LA LIGA SE ELIMINO", "success", 2000);
+                    listadoLiga = await http.GetFromJsonAsync<LigaCLS[]>("api/Liga/ListarLiga/" + idtorneoseleccionado);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+

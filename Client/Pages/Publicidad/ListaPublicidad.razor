@@ -1,0 +1,128 @@
+﻿@page "/ListaPublicidad/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "ID","Torneo", "OrdenFoto" };
+    string[] propiedades = { "idpublicidad", "torneo", "orden" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoPublicidad
+                  type="text" button=false label="Nombre del Torneo"
+                  eventBusqueda="BuscarListaPublicidad"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarPublicidad"
+                  permitirEditar=@permitirEditar rutaEditar="EditarPublicidad"
+                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaPublicidad"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de Publicidad" />
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    public string idtorneoseleccionado;
+
+    public string torneoMensaje { get; set; }
+
+    public PublicidadCLS[] listadoPublicidad;
+
+    public PublicidadCLS oPublicidadCLSBorrar = new PublicidadCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE  Y ORDEN DE LA PUBLICIDAD PARA MANDARLO COMO PARAMETRO AL BORRAR
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listadoPublicidad = await http.GetFromJsonAsync<PublicidadCLS[]>("api/Publicidad/ListarPublicidad");
+
+            if (user.Identity.IsAuthenticated)
+            {
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaPublicidad(string buscarNombrePublicidad)
+    {
+        if (buscarNombrePublicidad == null || buscarNombrePublicidad == "")
+        {
+            listadoPublicidad = await http.GetFromJsonAsync<PublicidadCLS[]>("api/Publicidad/ListarPublicidad");
+        }
+        else
+        {
+            listadoPublicidad = await http.GetFromJsonAsync<PublicidadCLS[]>("api/Publicidad/FiltrarPublicidad/" + buscarNombrePublicidad);
+        }
+    }
+
+
+    public async Task EliminarListaPublicidad(string idPublicidad)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+        oPublicidadCLSBorrar = await http.GetFromJsonAsync<PublicidadCLS>("api/Publicidad/RecuperarInformacionPublicidad/" + idPublicidad);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oPublicidadCLSBorrar.torneo + " Orden de la Foto " + 
+            oPublicidadCLSBorrar.orden.ToString(), "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/Publicidad/EliminarPublicidad/" + idPublicidad);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO CORRECTAMENTE     2
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, LA PUBLICIDAD SE ELIMINO", "success", 2000);
+                    listadoPublicidad = await http.GetFromJsonAsync<PublicidadCLS[]>("api/Publicidad/ListarPublicidad");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+
+

@@ -1,0 +1,80 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+
+
+@if (oPaginaCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    <EditForm Model="@oPaginaCLS" OnValidSubmit="GuardarPaginaFormulario">
+        <DataAnnotationsValidator />
+        @*<ValidationSummary />*@
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Id Página</label>
+            <InputNumber readOnly @bind-Value="@oPaginaCLS.idpagina" class="form form-control" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Mensaje *</label>
+            <InputText @bind-Value="@oPaginaCLS.mensaje" class="form form-control" />
+            <ValidationMessage For="@(()=>oPaginaCLS.mensaje)" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Acción *</label>
+            <InputText @bind-Value="@oPaginaCLS.accion" class="form form-control" />
+            <ValidationMessage For="@(()=>oPaginaCLS.accion)" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Orden en el Menu *</label>
+            <InputNumber @bind-Value="@oPaginaCLS.ordenmenu" class="form form-control" min="1" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Visible</label>
+            <InputCheckbox @bind-Value="@oPaginaCLS.visible" class="form form-control" />
+        </div>
+
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-2"></div>
+}
+
+@code {
+    [Parameter]
+    public PaginaCLS oPaginaCLS { get; set; } = new PaginaCLS();
+
+    public string ruta { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        string paginaEnviar = "ListaPagina";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+    public async Task GuardarPaginaFormulario()
+    {
+        var resultado = await http.PostAsJsonAsync("api/Pagina/GuardarDatosPagina", oPaginaCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+    }
+}
+

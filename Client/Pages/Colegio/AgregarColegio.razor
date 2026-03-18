@@ -1,0 +1,36 @@
+﻿@page "/agregarColegio"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<AuthorizeView>
+    <Authorized>
+        <FormularioColegio listaPresidentes=listaPresidente/>
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    public string idtorneoseleccionado;
+
+    public List<PresidenteCLS> listaPresidente = new List<PresidenteCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            listaPresidente = await http.GetFromJsonAsync<List<PresidenteCLS>>("api/Colegio/ListarPresidentes");
+        }
+    }
+}

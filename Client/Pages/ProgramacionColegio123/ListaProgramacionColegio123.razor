@@ -1,0 +1,130 @@
+﻿@page "/ListaProgramacionColegio123/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Arbitro", "Campo", "Equipo 01", "Equipo 02", "Horario", "Cedula" };
+
+    // ESTAS PROPIEDADES TIENEN QUE SER IGUAL A LAS QUE ESTAN EN EL CONTROLADOR
+    string[] propiedades = { "nombrecompleto", "campocadena", "equipo01cadena", "equipo02cadena", "fhorariocadena", "comentariojuego" };
+}
+
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoProgramacionColegio123
+                  type="combobox" button=false label="Seleccione un colegio"
+                  combobox="oColegioCLS" displayMember="nombre" valueMember="idcolegio" tieneseleccione="true"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregaProgramacionColegio123"
+                  permitirEditar=@permitirEditar rutaEditar="EditarProgramacionColegio123"
+                 
+                  eventBusqueda="BuscarListaProgramacionColegio123"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de Juegos" />
+    </Authorized>
+</AuthorizeView>
+
+@code {
+
+    public string idtorneoseleccionado;
+    public string idcolegio = "1";
+
+    public string torneoMensaje { get; set; }
+
+    public ProgramacionColegio123CLS[] listadoProgramacionColegio123;
+
+    public ColegioCLS[] oColegioCLS;      // ESTO ES PORQUE SE VA HACER UNA BUSQUEDA POR COMBOBOX
+    public UsuarioCLS oUsuarioCLS = new UsuarioCLS();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+            var idusuariologueado = claims[0].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            oColegioCLS = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio");  // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO DE COLEGIO                                                                                                                   
+
+            torneoMensaje = torneo;
+
+
+            int idcolegio = await http.GetFromJsonAsync<int>("api/Colegio/RegresaIdColegio/" + idusuariologueado);
+            int tipousuario = await http.GetFromJsonAsync<int>("api/Usuario/RegresaIdTipoUsuario/" + idusuariologueado);
+
+
+            //// EL TIPO USUARIO 4 ES UN ARBITRO
+            //if (tipousuario == 4)
+            //{
+            //    oUsuarioCLS = await http.GetFromJsonAsync<UsuarioCLS>("api/Usuario/RecuperarInformacionUsuario/" + idusuariologueado);
+            //    int idarbitro = await http.GetFromJsonAsync<int>("api/Arbitro/RegresaUsuario/" + oUsuarioCLS.nombre);
+            //    listadoProgramacionColegio = await http.GetFromJsonAsync<ProgramacionColegioCLS[]>("api/ProgramacionColegio/ListarProgramacionColegio2/" + idarbitro);
+            //}
+            //else
+            //{
+            //    listadoProgramacionColegio = await http.GetFromJsonAsync<ProgramacionColegioCLS[]>("api/ProgramacionColegio/ListarProgramacionColegio/" + idcolegio);
+            //}
+
+
+            listadoProgramacionColegio123 = await http.GetFromJsonAsync<ProgramacionColegio123CLS[]>("api/ProgramacionColegio/ListarProgramacionColegio123");
+
+            if (user.Identity.IsAuthenticated)
+            {
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaProgramacionColegio123(string buscar)
+    {
+        if (buscar == null || buscar == "--- Seleccione ---")
+        {
+            // AQUI NO VA ENTRAR NUNCA
+            listadoProgramacionColegio123 = await http.GetFromJsonAsync<ProgramacionColegio123CLS[]>("api/ProgramacionColegio/ListarProgramacionColegio123");
+        }
+        else
+        {
+            listadoProgramacionColegio123 = await http.GetFromJsonAsync<ProgramacionColegio123CLS[]>("api/ProgramacionColegio/FiltrarProgramacionColegio/" + buscar);
+        }
+    }
+
+
+}

@@ -1,0 +1,19 @@
+﻿@page "/editarArbitro/{idArbitro}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioArbitro oArbitroCLS="oArbitroCLS" />
+
+@code {
+    [Parameter]
+    public string idArbitro { get; set; }
+
+    public ArbitroCLS oArbitroCLS = new ArbitroCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oArbitroCLS = await http.GetFromJsonAsync<ArbitroCLS>("api/Arbitro/RecuperarInformacionArbitro/" + idArbitro);
+
+    }
+
+}

@@ -1,0 +1,26 @@
+﻿<div class="modal fade bd-example-modal-sm" tabindex="1" role="dialog" aria-labelledby="mysmallLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content p-2">
+            <h5 style="display: flex; align-items: center;">Desea eliminar Id @id</h5>
+            <div style="display:flex; justify-content:space-around; align-items:center;">
+                <button class="btn btn-primary" data-dismiss="modal" @onclick="Eliminar">Aceptar</button>
+                <button class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    [Parameter]
+    public string id { get; set; }
+
+    [Parameter]
+    public EventCallback<string> eventEliminar { get; set; }
+
+    public void Eliminar()
+    {
+        eventEliminar.InvokeAsync(id);
+    }
+}
+

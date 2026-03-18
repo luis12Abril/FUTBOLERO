@@ -1,0 +1,100 @@
+﻿@page "/agregarEquipoColegio"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<AuthorizeView>
+    <Authorized>
+        <FormularioEquipoColegio listaColegios="listaColegio" />
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    public string idtorneoseleccionado;
+    public UsuarioCLS oUsuarioCLS = new UsuarioCLS();
+
+    public List<ColegioCLS> listaColegio = new List<ColegioCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    //public string torneoMensaje { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+            var idusuariologueado = claims[0].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            //torneoMensaje = torneo;
+
+            //listaColegio = await http.GetFromJsonAsync<List<ColegioCLS>>("api/Colegio/ListarColegio2/" + idusuariologueado);
+
+            oUsuarioCLS = await http.GetFromJsonAsync<UsuarioCLS>("api/Usuario/RecuperarInformacionUsuario/" + idusuariologueado);
+            if (int.Parse(oUsuarioCLS.idtipousuario) == 5)
+            {
+                listaColegio = await http.GetFromJsonAsync<List<ColegioCLS>>("api/Colegio/ListarColegio2/" + oUsuarioCLS.idarbitrocolegio);
+            }
+
+            if (int.Parse(oUsuarioCLS.idtipousuario) == 1)
+            {
+                listaColegio = await http.GetFromJsonAsync<List<ColegioCLS>>("api/Colegio/ListarColegio");
+            }
+        }
+    }
+}
+
+
+
+
+@*@page "/agregarTorneoColegio"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<AuthorizeView>
+    <Authorized>
+        <FormularioTorneoColegio listaLigas="listaLiga" />
+    </Authorized>
+</AuthorizeView>
+
+
+
+
+@code {
+    public string idtorneoseleccionado;
+
+    public List<LigaColegioCLS> listaLiga = new List<LigaColegioCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    public string torneoMensaje { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listaLiga = await http.GetFromJsonAsync<List<LigaColegioCLS>>("api/LigaColegio/ListaLigaColegio");
+        }
+    }
+}*@
+

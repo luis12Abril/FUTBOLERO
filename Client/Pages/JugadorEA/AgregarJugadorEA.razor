@@ -1,0 +1,72 @@
+﻿@page "/agregarJugadorEA"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<AuthorizeView>
+    <Authorized>
+        <FormularioJugadorEA listaEquipos="listaEquipo" />
+    </Authorized>
+</AuthorizeView>
+
+
+
+@code {
+    public string idtorneoseleccionado;
+
+    public List<EquipoCLS> listaEquipo = new List<EquipoCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    public string torneoMensaje { get; set; }
+
+    public UsuarioEACLS listadousuario;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var idusuariologueado = claims[0].Value;
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            // ESTA LINEA LA TUVE QUE CAMBIAR DE CONTROLADOR PORQUE EN EL DE USUARIO NO FUNCIONABA, NO SE PORQUE
+            listadousuario = await http.GetFromJsonAsync<UsuarioEACLS>("api/Jugador/RecEA/" + idusuariologueado);
+
+            // DEBO SACAR DE LA TABLA EQUIPO EL IDEQUIPO, TENGO EL USUARIO LOGUEADO ENTONCES LO BIUSCO EN EL CONTROLADOR EQUIPO
+            int idequipo = await http.GetFromJsonAsync<int>("api/Equipo/RegresaIdEquipo/" + listadousuario.usuequipo);
+            listaEquipo = await http.GetFromJsonAsync<List<EquipoCLS>>("api/Equipo/ListarEquipoAdminEquipo/" + idequipo);
+
+            // if (listadousuario.idtipousuario == 6)
+            // {
+
+            //     // DEBO SACAR DE LA TABLA EQUIPO EL IDEQUIPO, TENGO EL USUARIO LOGUEADO ENTONCES LO BIUSCO EN EL CONTROLADOR EQUIPO
+            //     int idequipo = await http.GetFromJsonAsync<int>("api/Equipo/RegresaIdEquipo/" + listadousuario.usuequipo);
+
+            //     //listadoJugador = await http.GetFromJsonAsync<JugadorCLS[]>("api/Jugador/ListarJugadorEquipo/" + idequipo);  // AQUI OCUPO EL IDEQUIPO
+
+            //     listaEquipo = await http.GetFromJsonAsync<List<EquipoCLS>>("api/Equipo/ListarEquipoAdminEquipo/" + idequipo);    // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO BUSQUEDA DE EQUIPOS
+
+            //     //listaEquipo = await http.GetFromJsonAsync<List<EquipoCLS>>("api/Equipo/ListarEquiposParticipantes/" + idtorneoseleccionado);
+            // }
+            // else
+            // {
+
+            //     //listadoJugador = await http.GetFromJsonAsync<JugadorCLS[]>("api/Jugador/ListarJugador/" + idtorneoseleccionado);
+            //     //oEquipoCLS = await http.GetFromJsonAsync<EquipoCLS[]>("api/Equipo/ListarEquipoTodos/" + idtorneoseleccionado);    // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO BUSQUEDA DE EQUIPOS
+
+            //     listaEquipo = await http.GetFromJsonAsync<List<EquipoCLS>>("api/Equipo/ListarEquiposParticipantes/" + idtorneoseleccionado);
+            // }
+
+
+        }
+    }
+}

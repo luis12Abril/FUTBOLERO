@@ -1,0 +1,136 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+@if (oComunicadoCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    <EditForm Model="@oComunicadoCLS" OnValidSubmit="GuardarDatos">
+
+        <DataAnnotationsValidator />
+        @*<ValidationSummary />*@
+        @if (puedeadministrar)
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Fecha del Comunicado *</label>
+                <InputDate class="form form-control" @bind-Value="oComunicadoCLS.fechacomunicado" />
+                <ValidationMessage For="@(()=>oComunicadoCLS.fechacomunicado)" />
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Fecha del Comunicado</label>
+                <InputDate class="form form-control" @bind-Value="oComunicadoCLS.fechacomunicado" readOnly />
+                <ValidationMessage For="@(()=>oComunicadoCLS.fechacomunicado)" />
+            </div>
+        }
+
+        @if (puedeadministrar)
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Encabezado *</label>
+                <InputText class="form form-control" @bind-Value="oComunicadoCLS.comunicadocorto" />
+                <ValidationMessage For="@(() => oComunicadoCLS.comunicadocorto)" />
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Encabezado</label>
+                <InputText class="form form-control" @bind-Value="oComunicadoCLS.comunicadocorto" readOnly />
+                <ValidationMessage For="@(() => oComunicadoCLS.comunicadocorto)" />
+            </div>
+        }
+
+        @if (puedeadministrar)
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Comunicado *</label>
+                <InputTextArea class="form form-control" @bind-Value="oComunicadoCLS.comunicadolargo" />
+                <ValidationMessage For="@(() => oComunicadoCLS.comunicadolargo)" />
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Comunicado</label>
+                <InputTextArea class="form form-control" @bind-Value="oComunicadoCLS.comunicadolargo" readOnly />
+                <ValidationMessage For="@(() => oComunicadoCLS.comunicadolargo)" />
+            </div>
+        }
+
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-2"></div>
+}
+
+
+@code {
+    [Parameter]
+    public bool puedeadministrar { get; set; } = true;
+
+    [Parameter]
+    public ComunicadoCLS oComunicadoCLS { get; set; } = new ComunicadoCLS();
+
+    public string ruta { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string paginaEnviar = "ListaComunicado";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+    public async Task<bool> GuardarDatos()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        oComunicadoCLS.idtorneo = int.Parse(claims[2].Value);
+
+        var resultado = await http.PostAsJsonAsync("api/Comunicado/GuardarDatosComunicado", oComunicadoCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENTE  2 = EL ENCABEZADO DEL COMUNICADO YA EXISTE
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE GUARDARON LOS DATOS", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+                break;
+            case 2:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "EL DEL ENCABEZADO YA EXISTE", "warning");
+                break;
+            default:
+                break;
+        }
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+
+        return await Task.FromResult(true);
+    }
+}

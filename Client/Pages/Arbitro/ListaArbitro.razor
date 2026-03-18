@@ -1,0 +1,135 @@
+﻿@page "/ListaArbitro/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Nombre" };
+    string[] propiedades = { "nombrecompleto" };
+
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoArbitro
+                  type="text" button=false label="Nombre del Arbitro"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarArbitro"
+                  permitirEditar=@permitirEditar rutaEditar="EditarArbitro"
+                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaArbitro"
+                  eventBusqueda="BuscarListaArbitro"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de Arbitros" />
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    public string idtorneoseleccionado;
+
+    public string torneoMensaje { get; set; }
+
+    public ArbitroCLS[] listadoArbitro;
+
+    public ArbitroCLS oArbitroCLSBorrar = new ArbitroCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DEL ARBITRO Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listadoArbitro = await http.GetFromJsonAsync<ArbitroCLS[]>("api/Arbitro/ListarArbitro/" + idtorneoseleccionado);
+
+            if (user.Identity.IsAuthenticated)
+            {
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }        
+        }
+
+    }
+
+
+    public async Task BuscarListaArbitro(string buscarNombreArbitro)
+    {
+        if (buscarNombreArbitro == null || buscarNombreArbitro == "")
+        {
+            listadoArbitro = await http.GetFromJsonAsync<ArbitroCLS[]>("api/Arbitro/ListarArbitro/" + idtorneoseleccionado);
+        }
+        else
+        {
+            listadoArbitro = await http.GetFromJsonAsync<ArbitroCLS[]>("api/Arbitro/FiltrarArbitro/" + buscarNombreArbitro + "/" + idtorneoseleccionado);
+        }
+    }
+
+
+    public async Task EliminarListaArbitro(string idArbitro)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+        oArbitroCLSBorrar = await http.GetFromJsonAsync<ArbitroCLS>("api/Arbitro/RecuperarInformacionArbitro/" + idArbitro);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oArbitroCLSBorrar.nombre, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/Arbitro/EliminarArbitro/" + idArbitro);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO CORRECTAMENTE     2 = HAY JUEGOS CON ESE ARBITRO     3 = ES UN ARBITRO CON NOMBRE PENDIENTE(NO SE PUEDE BORAR)
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, EL ARBITRO SE ELIMINO", "success", 2000); ;
+                    listadoArbitro = await http.GetFromJsonAsync<ArbitroCLS[]>("api/Arbitro/ListarArbitro/" + idtorneoseleccionado);
+                    break;
+                case 2:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "NO SE PUEDE BORRAR, HAY JUEGOS CON ESE ARBITRO", "warning");
+                    break;
+                case 3:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "EL ARBITRO CON NOMBRE PENDIENTE NO SE DEBE BORRAR", "warning");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+}

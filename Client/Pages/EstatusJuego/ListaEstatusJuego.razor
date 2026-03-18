@@ -1,0 +1,135 @@
+﻿@page "/ListaEstatusJuego/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Nombre" };
+    string[] propiedades = { "nombre" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoEstatusJuego
+                  type="text" button=false label="Estatus"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarEstatusJuego"
+                  permitirEditar=@permitirEditar rutaEditar="EditarEstatusJuego"
+                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaEstatusJuego"
+                  eventBusqueda="BuscarListaEstatusJuego"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listados de Estatus del Juego" />
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    //public string mensaje;
+    public string idtorneoseleccionado;
+
+    public string torneoMensaje { get; set; }
+
+    public EstatusJuegoCLS[] listadoEstatusJuego;
+
+    public EstatusJuegoCLS oEstatusJuegoCLSBorrar = new EstatusJuegoCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DEL ESTATUS Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listadoEstatusJuego = await http.GetFromJsonAsync<EstatusJuegoCLS[]>("api/EstatusJuego/ListarEstatusJuego/" + idtorneoseleccionado);
+
+            if (user.Identity.IsAuthenticated)
+            {
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaEstatusJuego(string buscarNombreEstatusJuego)
+    {
+        if (buscarNombreEstatusJuego == null || buscarNombreEstatusJuego == "")
+        {
+            listadoEstatusJuego = await http.GetFromJsonAsync<EstatusJuegoCLS[]>("api/EstatusJuego/ListarEstatusJuego/" + idtorneoseleccionado);
+        }
+        else
+        {
+            listadoEstatusJuego = await http.GetFromJsonAsync<EstatusJuegoCLS[]>("api/EstatusJuego/FiltrarEstatusJuego/" + buscarNombreEstatusJuego + "/" + idtorneoseleccionado);
+        }
+    }
+
+
+    public async Task EliminarListaEstatusJuego(string idEstatusJuego)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+        oEstatusJuegoCLSBorrar = await http.GetFromJsonAsync<EstatusJuegoCLS>("api/EstatusJuego/RecuperarInformacionEstatusJuego/" + idEstatusJuego);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oEstatusJuegoCLSBorrar.nombre, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/EstatusJuego/EliminarEstatusJuego/" + idEstatusJuego);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO CORRECTAMENTE     2 = HAY JUEGOS CON ESE ESTATUS     3 Y 4 = ES UN ESTATUS CON NOMBRE PENDIENTE O JUGADO(NO SE PUEDE BORAR)
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, EL ESTATUS SE ELIMINO", "success", 2000); ;
+                    listadoEstatusJuego = await http.GetFromJsonAsync<EstatusJuegoCLS[]>("api/EstatusJuego/ListarEstatusJuego/" + idtorneoseleccionado);
+                    break;
+                case 2:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "NO SE PUEDE BORRAR, HAY JUEGOS CON ESE ESTATUS", "warning");
+                    break;
+                case 3:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "PENDIENTE NO SE DEBE BORRAR", "warning");
+                    break;
+                case 4:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "JUGADO NO SE DEBE BORRAR", "warning");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+

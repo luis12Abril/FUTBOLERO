@@ -1,0 +1,144 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+
+@if (oPublicidadCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    string archivoFoto = oPublicidadCLS.foto;
+
+<EditForm Model="@oPublicidadCLS" OnValidSubmit="GuardarDatos">
+    <input type="submit" value="Guardar" class="btn btn-success" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Regresar" class="btn btn-info" />
+    </NavLink>
+    <div class="mb-4"></div>
+
+    <DataAnnotationsValidator />
+    @*<ValidationSummary />*@
+
+    <div class="form-group row">
+        <label class="col-md-2 col-form-label font-weight-bold">Torneo</label>
+        <div class="col-lg-10">
+            <InputSelect @bind-Value="oPublicidadCLS.idtorneo" class="form-control">
+                <option value="">--- Seleccione ---</option>
+                @foreach (TorneoCLS oTorneoCLS in listaTorneos)
+                    {
+                    <option value="@oTorneoCLS.idtorneo">@oTorneoCLS.nombre</option>
+                    }
+            </InputSelect>
+        </div>
+    </div>
+
+
+    <div style="display:flex; justify-content:center; flex-direction:column; align-items:center;">
+        <label class="font-weight-bold">Foto de la Publicidad</label>
+        <img class="mb-1" width="450" height="300" style="display: block; box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);
+        border: 3px solid gold;" id="idImgFoto" src="@archivoFoto" />
+
+        <input class="mb-2" type="file" id="idInputFoto" accept="image/png,image/jpg,image/jpeg" @onchange="previewImagen" />
+    </div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Orden en que se mostrara *</label>
+        <InputNumber class="form-control font-weight-bold" @bind-Value="oPublicidadCLS.orden" min="1" />
+    </div>
+
+
+    <input type="submit" value="Guardar" class="btn btn-success" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Regresar" class="btn btn-info" />
+    </NavLink>
+
+</EditForm>
+    <div class="mb-2"></div>
+}
+
+
+
+@code {
+
+    [Parameter]
+    public PublicidadCLS oPublicidadCLS { get; set; } = new PublicidadCLS();
+
+    [Parameter]
+    public List<TorneoCLS> listaTorneos { get; set; }
+
+    public string ruta { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string paginaEnviar = "ListaPublicidad";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+
+    public async Task<bool> GuardarDatos()
+    {
+        string imgData = await ijsruntime.InvokeAsync<string>("obtenerImagen");
+        if (imgData.Length < 80)
+        {
+            oPublicidadCLS.foto = "";
+        }
+        else
+        {
+            oPublicidadCLS.foto = imgData;
+        }
+
+
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        oPublicidadCLS.torneo = torneo;
+
+        //oPublicidadCLS.idtorneo = int.Parse(claims[2].Value);
+
+        var resultado = await http.PostAsJsonAsync("api/Publicidad/GuardarDatosPublicidad", oPublicidadCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENTE      3 = ESE NOMBRE DE EQUIPO YA EXISTE
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE GUARDARON LOS DATOS", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+                break;
+            default:
+                break;
+        }
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+
+        return await Task.FromResult(true);
+    }
+
+
+    public async Task previewImagen()
+    {
+        //ESTAMOS LLAMANDO UNA FUNCION DE JAVASCRIPT DESDE BLAZOR
+        await ijsruntime.InvokeVoidAsync("previewDataImagen");
+    }
+}
+

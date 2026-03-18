@@ -1,0 +1,30 @@
+﻿@page "/editarComunicado/{idComunicado}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioComunicado oComunicadoCLS="oComunicadoCLS" puedeadministrar="@puedeadmin" />
+
+@code {
+    [CascadingParameter]
+    public MisValoresCascada misvalorescascada { get; set; }
+
+    [Parameter]
+    public string idComunicado { get; set; }
+
+    public ComunicadoCLS oComunicadoCLS = new ComunicadoCLS();
+
+    [CascadingParameter]
+    public int idtipousuario { get; set; }
+
+    public bool puedeadmin = true;
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oComunicadoCLS = await http.GetFromJsonAsync<ComunicadoCLS>("api/Comunicado/RecuperarInformacionComunicado/" + idComunicado);
+
+        if (misvalorescascada.idtipousuariocascada == 2)
+        {
+            puedeadmin = false;
+        }
+    }
+}

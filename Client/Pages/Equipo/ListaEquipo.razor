@@ -1,0 +1,151 @@
+﻿@page "/ListaEquipo/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Nombre", "Representante", "Puntos" };
+    string[] propiedades = { "nombre", "representante", "puntos" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <div class="mt-3">
+            <div style="background:linear-gradient(180deg, #eff6ff 0%, #eef2ff 100%); border:1px solid #dbeafe; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;">
+                <h3 style="margin:0; color:#1d4ed8; font-weight:700;">Equipos del Torneo</h3>
+                <span style="color:#475569; font-size:14px;">Consulta y administra los equipos registrados en esta competición.</span>
+            </div>
+
+            @if (listadoEquipo == null)
+            {
+                <div class="text-center mt-4">
+                    <button class="btn btn-primary" style="min-width:170px; border-radius:8px;">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Cargando equipos...
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div style="background-color:white; border-radius:12px; padding:0.5rem; box-shadow:0 12px 26px rgba(0,0,0,0.08);">
+                    <Listados cabeceras=cabeceras
+                              nombrePropiedadesMostrar=propiedades
+                              lista=listadoEquipo
+                              type="text" button=false label="Nombre del Equipo"
+                              eventBusqueda="BuscarListaEquipo"
+                              permitirAgregar=@permitirAgregar rutaAgregar="AgregarEquipo"
+                              permitirEditar=@permitirEditar rutaEditar="EditarEquipo"
+                              permitirEliminar=@permitirEliminar eventEliminar="EliminarListaEquipo"
+                              permitirExportarExcel=@permitirExportarExcel
+                              permitirExportarWord=@permitirExportarWord
+                              permitirExportarPdf=@permitirExportarPDF
+                              tituloReporte="Listado de Equipos" />
+                </div>
+            }
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    public string idtorneoseleccionado;
+
+    public string torneoMensaje { get; set; }
+
+    public EquipoCLS[] listadoEquipo;
+
+    public EquipoCLS oEquipoCLSBorrar = new EquipoCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DEL EQUIPO Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listadoEquipo = await http.GetFromJsonAsync<EquipoCLS[]>("api/Equipo/ListarEquipo/" + idtorneoseleccionado);
+
+            if (user.Identity.IsAuthenticated)
+            {
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaEquipo(string buscarNombreEquipo)
+    {
+        if (buscarNombreEquipo == null || buscarNombreEquipo == "")
+        {
+            listadoEquipo = await http.GetFromJsonAsync<EquipoCLS[]>("api/Equipo/ListarEquipo/" + idtorneoseleccionado);
+        }
+        else
+        {
+            listadoEquipo = await http.GetFromJsonAsync<EquipoCLS[]>("api/Equipo/FiltrarEquipo/" + buscarNombreEquipo + "/" + idtorneoseleccionado);
+        }
+    }
+
+
+    public async Task EliminarListaEquipo(string idEquipo)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+        oEquipoCLSBorrar = await http.GetFromJsonAsync<EquipoCLS>("api/Equipo/RecuperarInformacionEquipo/" + idEquipo);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oEquipoCLSBorrar.nombre, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/Equipo/EliminarEquipo/" + idEquipo);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO CORRECTAMENTE     2 = HAY JUEGOS CON ESE EQUIPO
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, EL EQUIPO SE ELIMINO", "success", 2000);
+                    listadoEquipo = await http.GetFromJsonAsync<EquipoCLS[]>("api/Equipo/ListarEquipo/" + idtorneoseleccionado);
+                    break;
+                case 2:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "NO SE PUEDE BORRAR, HAY JUEGOS CON ESE EQUIPO", "warning");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+
+

@@ -1,0 +1,147 @@
+﻿@page "/ListaComunicado/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Fecha", "Comunicado" };
+    string[] propiedades = { "fechacomunicadocadena", "comunicadocorto" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoComunicado
+                  type="text" button=false label="Encabezado"
+                  eventBusqueda="BuscarListaComunicado"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarComunicado"
+                  permitirEditar=@permitirEditar rutaEditar="EditarComunicado"
+                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaComunicado"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de Jornadas"
+                  botoneditinvitado=@esinvitado />
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    public bool esinvitado = false;
+
+    public string idtorneoseleccionado;
+
+    public int idtipousuario { get; set; } = 2;
+
+    public string torneoMensaje { get; set; }
+
+    public ComunicadoCLS[] listadoComunicado;
+
+    public ComunicadoCLS oComunicadoCLSBorrar = new ComunicadoCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DEL COMUNICADO Y MANDARLA COMO PARAMETRO AL BORRAR
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [CascadingParameter]
+    public MisValoresCascada misvalorescascada { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+
+            // AQUI ESTOY RECIBIENDO EN CADENA EL ID DEL TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            listadoComunicado = await http.GetFromJsonAsync<ComunicadoCLS[]>("api/Comunicado/ListarComunicado/" + idtorneoseleccionado);
+
+            if (user.Identity.IsAuthenticated)
+            {
+                int tipousu = misvalorescascada.idtipousuariocascada;
+
+                idtipousuario = await http.GetFromJsonAsync<int>("api/PaginaTipoUsuario/puedeadministrar/" + user.Identity.Name + "/" + idtorneoseleccionado);
+
+                misvalorescascada.idtipousuariocascada = idtipousuario;
+
+                // 2 ES UN TIPOUSUARIO INVITADO, ES PARA CAMBIAR EL ENCABEZADO DE LA LISTA
+                if (idtipousuario == 2)
+                {
+                    esinvitado = true;
+                }
+
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones3/" + idtipousuario + "/" + Id);
+
+                //listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaComunicado(string buscarNombreComunicado)
+    {
+        if (buscarNombreComunicado == null || buscarNombreComunicado == "")
+        {
+            listadoComunicado = await http.GetFromJsonAsync<ComunicadoCLS[]>("api/Comunicado/ListarComunicado/" + idtorneoseleccionado);
+        }
+        else
+        {
+            listadoComunicado = await http.GetFromJsonAsync<ComunicadoCLS[]>("api/Comunicado/FiltrarComunicado/" + buscarNombreComunicado + "/" + idtorneoseleccionado);
+        }
+    }
+
+
+    public async Task EliminarListaComunicado(string idComunicado)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+
+        oComunicadoCLSBorrar = await http.GetFromJsonAsync<ComunicadoCLS>("api/Comunicado/RecuperarInformacionComunicado/" + idComunicado);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oComunicadoCLSBorrar.comunicadocorto, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/Comunicado/EliminarComunicado/" + idComunicado);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO CORRECTAMENTE
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, LA JORNADA SE ELIMINO", "success", 2000);
+                    listadoComunicado = await http.GetFromJsonAsync<ComunicadoCLS[]>("api/Comunicado/ListarComunicado/" + idtorneoseleccionado);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+}
+
+

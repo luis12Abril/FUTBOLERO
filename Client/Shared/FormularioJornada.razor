@@ -1,0 +1,102 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+
+@if (oJornadaCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+
+    <EditForm Model="@oJornadaCLS" OnValidSubmit="GuardarDatos">
+
+        <DataAnnotationsValidator />
+        @*<ValidationSummary />*@
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Nombre *</label>
+            <InputText class="form form-control" @bind-Value="oJornadaCLS.nombre" />
+            <ValidationMessage For="@(()=>oJornadaCLS.nombre)" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Fecha de la Jornada *</label>
+            <InputDate class="form form-control" @bind-Value="oJornadaCLS.finiciojornada" />
+            <ValidationMessage For="@(()=>oJornadaCLS.finiciojornada)" />
+        </div>
+
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-2"></div>
+}
+
+
+@code {
+
+    [Parameter]
+    public JornadaCLS oJornadaCLS { get; set; } = new JornadaCLS();
+
+    public string ruta { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string paginaEnviar = "ListaJornada";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+
+    public async Task<bool> GuardarDatos()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        oJornadaCLS.torneo = torneo;
+
+        oJornadaCLS.idtorneo = int.Parse(claims[2].Value);
+
+        var resultado = await http.PostAsJsonAsync("api/Jornada/GuardarDatosJornada", oJornadaCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE BORRO ON     2 = HAY JUEGOS CON ESA JORNADA
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE GUARDARON LOS DATOS", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+
+                break;
+            case 2:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ESE NOMBRE DE JORNADA YA EXISTE", "warning");
+                break;
+            default:
+                break;
+        }
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+
+        return await Task.FromResult(true);
+    }
+}

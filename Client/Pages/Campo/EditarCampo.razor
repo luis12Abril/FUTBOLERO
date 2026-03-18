@@ -1,0 +1,17 @@
+﻿@page "/editarCampo/{idCampo}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioCampo oCampoCLS="oCampoCLS" />
+
+@code {
+    [Parameter]
+    public string idCampo { get; set; }
+
+    public CampoCLS oCampoCLS = new CampoCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oCampoCLS = await http.GetFromJsonAsync<CampoCLS>("api/Campo/RecuperarInformacionCampo/" + idCampo);
+    }
+}

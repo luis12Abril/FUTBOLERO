@@ -1,0 +1,40 @@
+﻿@layout LoginLayout
+
+@using FUTBOLERO.Shared;
+@using FUTBOLERO.Client.Service;
+@using FUTBOLERO.Client.Helpers;
+@inject NavigationManager navigate;
+@inject AuthenticationStateProvider auth;
+@inject HttpClient http;
+@*ESTO ES NUEVO*@
+@using static FUTBOLERO.Client.Shared.MainLayout;
+
+
+<div class="form-group mb-5">
+    <label class=" font-weight-bold">Municipio</label>
+    <InputSelect @bind-Value="oTorneoSeleccionadoCLS.idmunicipio" class="form-control">
+        <option value="">--- Seleccione ---</option>
+        @foreach (MunicipioCLS oMunicipioCLS in listaMunicipio)
+        {
+            <option value="@oMunicipioCLS.idmunicipio">@oMunicipioCLS.nombre</option>
+            @*if (oMunicipioCLS.idestado == oTorneoSeleccionadoCLS.idestado)
+                {
+                <option value="@oMunicipioCLS.idmunicipio">@oMunicipioCLS.nombre</option>
+                }*@
+        }
+    </InputSelect>
+    <ValidationMessage For="@(()=>oTorneoSeleccionadoCLS.idmunicipio)" />
+
+</div>
+
+
+@code {
+    [Parameter]
+    public List<MunicipioCLS> listaMunicipio { get; set; }
+
+    //[Parameter]
+    //public List<MunicipioCLS> listaMunicipio { get; set; }
+
+    public TorneoSeleccionadoCLS oTorneoSeleccionadoCLS { get; set; } = new TorneoSeleccionadoCLS();
+
+}

@@ -1,0 +1,138 @@
+﻿@page "/ListaTorneo/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+@*<h1>@mensaje</h1>*@
+
+@{
+    string[] cabeceras = { "Nombre", "Orden", "Visible", "Visitas" };
+    string[] propiedades = { "nombre", "ordentorneo", "torneovisible", "visitas" };
+}
+
+@*UN TORNEO NO LO VOY A ELIMINAR, SI NO LO QUIERO SOLO LO PONDRE NO VISIBLE, POR ESO QUITO EL PARAMETRO DE ELIMINAR*@
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoTorneo
+                  type="text" button=false label="Nombre del Torneo"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarTorneo"
+                  permitirEditar=@permitirEditar rutaEditar="EditarTorneo"
+                  eventBusqueda="BuscarListaTorneo"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de Torneos" />
+        <h3>Total de Visitas: @visitastotales</h3>
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    public string idtorneoseleccionado;
+
+    public string torneoMensaje { get; set; }
+
+    public TorneoCLS[] listadoTorneo;
+
+    public TorneoCLS oTorneoCLSBorrar = new TorneoCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DEL TORNEO Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+    public int visitastotales = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listadoTorneo = await http.GetFromJsonAsync<TorneoCLS[]>("api/Torneo/ListarTorneo");
+            visitastotales = await http.GetFromJsonAsync<int>("api/Torneo/TotalVisitasTorneos");
+
+            if (user.Identity.IsAuthenticated)
+            {
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaTorneo(string buscarNombreTorneo)
+    {
+        if (buscarNombreTorneo == null || buscarNombreTorneo == "")
+        {
+            listadoTorneo = await http.GetFromJsonAsync<TorneoCLS[]>("api/Torneo/ListarTorneo");
+        }
+        else
+        {
+            listadoTorneo = await http.GetFromJsonAsync<TorneoCLS[]>("api/Torneo/FiltrarTorneo/" + buscarNombreTorneo);
+        }
+    }
+
+
+    // ESTE METODO NO SE VA A USUAR PORQUE NO SE VA HA BORRAR NINGUN TORNEO
+    public async Task EliminarListaTorneo(string idTorneo)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+        oTorneoCLSBorrar = await http.GetFromJsonAsync<TorneoCLS>("api/Torneo/RecuperarInformacionTorneo/" + idTorneo);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A : " + oTorneoCLSBorrar.nombre, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/Torneo/EliminarTorneo/" + idTorneo);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO ON     2 = HAY JUEGOS CON ESE Torneo
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "PENDIENTE NO SE DEBE BORRAR", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, EL TORNEO SE ELIMINO", "success", 2000);
+                    //await ijsruntime.InvokeVoidAsync("MostrarMensaje", "El Torneo se borro correctamente");
+                    listadoTorneo = await http.GetFromJsonAsync<TorneoCLS[]>("api/Torneo/ListarTorneo");
+                    break;
+                case 2:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "NO SE PUEDE BORRAR, HAY JUEGOS EN ESE TORNEO", "error");
+                    break;
+                case 100:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+

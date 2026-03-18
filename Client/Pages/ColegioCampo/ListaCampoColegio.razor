@@ -1,0 +1,161 @@
+﻿@page "/ListaCampoColegio/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Campo", "Ubicación", };
+
+    // ESTAS PROPIEDADES TIENEN QUE SER IGUAL A LAS QUE ESTAN EN EL CONTROLADOR
+    string[] propiedades = { "nombre", "ubicacion" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoCampoColegio
+                  type="combobox" button=false label="Seleccione un colegio"
+                  combobox="oColegioCLS" displayMember="nombre" valueMember="idcolegio" tieneseleccione="false"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarCampoColegio"
+                  permitirEditar=@permitirEditar rutaEditar="EditarCampoColegio"
+                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaCampoColegio"
+                  eventBusqueda="BuscarListaCampoColegio"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de los campos deportivos" />
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+
+    public string idtorneoseleccionado;
+    public string idcolegio = "1";
+
+    public CampoColegioCLS[] listadoCampoColegio;
+
+    public CampoColegioCLS oCampoColegioCLSBorrar = new CampoColegioCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DEL CAMPO Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    public ColegioCLS[] oColegioCLS;      // ESTO ES PORQUE SE VA HACER UNA BUSQUEDA POR COMBOBOX
+    public UsuarioCLS oUsuarioCLS = new UsuarioCLS();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+            var idusuariologueado = claims[0].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            //oColegioCLS = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio2/" + idusuariologueado);
+
+            oUsuarioCLS = await http.GetFromJsonAsync<UsuarioCLS>("api/Usuario/RecuperarInformacionUsuario/" + idusuariologueado);
+            int tipousuario = int.Parse(oUsuarioCLS.idtipousuario);   //        await http.GetFromJsonAsync<int>("api/Usuario/RegresaIdTipoUsuario/" + idusuariologueado);
+                                                                      // SOLO LOS PRESIDENTES DE LOS ARBITROS Y EL ADMINISTRADOR TOTAL ENTRAN A ESTA PAGINA
+            if (tipousuario == 5)           // el idusuariologueado 5 es el del presidente
+            {
+                // oUsuarioCLS.idarbitrocolegio si es un presidente en este valor esta el nombre de torneo que administra
+                oColegioCLS = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio2/" + oUsuarioCLS.idarbitrocolegio);
+                listadoCampoColegio = await http.GetFromJsonAsync<CampoColegioCLS[]>("api/CampoColegio/ListarCampoColegio/" + oUsuarioCLS.idarbitrocolegio);
+            }
+
+            if (tipousuario == 1)           // el idusuariologueado 1 es el del administrador total
+            {
+                oColegioCLS = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio");
+                listadoCampoColegio = await http.GetFromJsonAsync<CampoColegioCLS[]>("api/CampoColegio/ListarCampoColegio1");
+                //listadoEquipoColegio = await http.GetFromJsonAsync<EquipoColegioCLS[]>("api/EquipoColegio/ListaEquipoColegio1");
+            }
+
+
+            //int idcolegio = await http.GetFromJsonAsync<int>("api/Colegio/RegresaIdColegio/" + idusuariologueado);
+
+
+            //oColegioCLS = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio");    // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO BUSQUEDA DE ESTADOS
+
+            if (user.Identity.IsAuthenticated)
+            {
+                //listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                //  ESTO LO HAGO PORQUE SI ES UN ADMINISTRADOR Y NO TIENE DERECHO A ADMINISTRAR EL TORNEO SELECCIONADO TENDRA QUE VERLO COMO INVITADO
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones2/" + user.Identity.Name + "/" + Id + "/" + idtorneoseleccionado);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaCampoColegio(string buscar)
+    {
+        if (buscar == null || buscar == "--- Seleccione ---")
+        {
+            listadoCampoColegio = await http.GetFromJsonAsync<CampoColegioCLS[]>("api/CampoColegio/ListarCampoColegio/" + idcolegio);
+        }
+        else
+        {
+            listadoCampoColegio = await http.GetFromJsonAsync<CampoColegioCLS[]>("api/CampoColegio/FiltrarCampoColegio/" + buscar);
+        }
+    }
+
+
+    public async Task EliminarListaCampoColegio(string idCampoColegio)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+        oCampoColegioCLSBorrar = await http.GetFromJsonAsync<CampoColegioCLS>("api/CampoColegio/RecuperarInformacionCampoColegio/" + idCampoColegio);
+
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oCampoColegioCLSBorrar.nombre, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/CampoColegio/EliminarCampoColegio/" + idCampoColegio);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO ON     2 = HAY LIGAS EN ESE MUNICIPIO
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR, NO SE PUDO DAR DE BAJA", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, EL CAMPO SE ELIMINO", "success", 2000);
+                    listadoCampoColegio = await http.GetFromJsonAsync<CampoColegioCLS[]>("api/CampoColegio/ListarCampoColegio");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+
+
+

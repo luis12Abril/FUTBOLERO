@@ -1,0 +1,50 @@
+﻿@using FUTBOLERO.Shared
+
+
+<div class="mb-4"></div>
+<h5 style="text-align:center; font-weight:bolder; color:darkblue;">@oJuegoCLS.equipo01cadena</h5>
+<table class="table table-sm table-bordered table-hover thead-light">
+    <thead class="thead-dark">
+        <tr>
+            <th style="width:10%">Goles</th>
+            <th style="width:90%">Jugador</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (JugadorGolesCLS oJugador01CLS in oJuegoCLS.ListaJugadorGoles01)
+        {
+            <tr>
+                <td style="width:10%"><InputNumber class=" font-weight-bold col-md-12" @bind-Value="@oJugador01CLS.goles" min="0" /></td>
+                <td style="width:90%">@oJugador01CLS.nombrecompleto</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="mb-4"></div>
+
+<h5 style="text-align:center; font-weight:bolder; color:darkblue;">@oJuegoCLS.equipo02cadena</h5>
+<table class="table table-sm table-bordered table-hover">
+    <thead class="thead-dark">
+        <tr>
+            <th style="width:10%">Goles</th>
+            <th style="width:90%">Jugador</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (JugadorGolesCLS oJugador02CLS in oJuegoCLS.ListaJugadorGoles02)
+        {
+            <tr>
+                <td style="width:10%"><InputNumber class="font-weight-bold col-md-12" @bind-Value="@oJugador02CLS.goles" min="0" /></td>
+                <td style="width:90%">@oJugador02CLS.nombrecompleto</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public JuegoCLS oJuegoCLS { get; set; }
+}

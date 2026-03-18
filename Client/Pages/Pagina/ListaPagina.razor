@@ -1,0 +1,101 @@
+﻿ @page "/ListaPagina/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Orden", "Mensaje", "Acción", "Visible?" };
+    string[] propiedades = { "ordenmenu", "mensaje", "accion", "nombrevisible" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoPagina
+                  type="text" button=false label="Nombre Página"
+                  permitirAgregar=@permitirAgregar rutaAgregar="agregarPagina"
+                  permitirEditar=@permitirEditar rutaEditar="editarPagina"
+                  permitirEliminar=@permitirEliminar eventEliminar="eliminarListaPagina"
+                  eventBusqueda="buscarListaPagina"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de Personas" />
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    public PaginaCLS oPaginaCLSBorrar = new PaginaCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DE LA PAGINA Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    List<int> listaBotones = new List<int>();
+
+    public PaginaCLS[] listadoPagina;
+
+    protected override async Task OnInitializedAsync()
+    {
+        listadoPagina = await http.GetFromJsonAsync<PaginaCLS[]>("api/pagina/listarPagina");
+
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+            if (listaBotones.Count() > 0)
+            {
+                if (listaBotones.Contains(1)) permitirAgregar = true;
+                if (listaBotones.Contains(2)) permitirEditar = true;
+                if (listaBotones.Contains(3)) permitirEliminar = true;
+                if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                if (listaBotones.Contains(5)) permitirExportarWord = true;
+                if (listaBotones.Contains(6)) permitirExportarPDF = true;
+            }
+        }
+    }
+
+
+    public async Task eliminarListaPagina(string idPagina)
+    {
+        oPaginaCLSBorrar = await http.GetFromJsonAsync<PaginaCLS>("api/Pagina/RecuperarInformacionPagina/" + idPagina);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "Vas a borrar a: " + oPaginaCLSBorrar.mensaje, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/pagina/eliminarPagina/" + idPagina);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO ON
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "Ocurrio un error, no se pudo borrar", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "Ok, la página se elimino", "success", 2000);
+                    listadoPagina = await http.GetFromJsonAsync<PaginaCLS[]>("api/pagina/listarPagina");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+
+    public async Task buscarListaPagina(string mensaje)
+    {
+        listadoPagina = await http.GetFromJsonAsync<PaginaCLS[]>("api/pagina/filtrarPagina/" + mensaje);
+    }
+}

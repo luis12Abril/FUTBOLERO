@@ -1,0 +1,102 @@
+﻿@page "/ListaTipoUsuario/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Nombre", "Descripción" };
+    string[] propiedades = { "nombre", "descripcion" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoTipoUsuario
+                  type="text" button=false label="Nombre Tipo Usuario"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarTipoUsuario"
+                  permitirEditar=@permitirEditar rutaEditar="EditarTipoUsuario"
+                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaTipoUsuario"
+                  eventBusqueda="BuscarListaTipoUsuario"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de tipos de usuarios" />
+    </Authorized>
+</AuthorizeView>
+
+@code {
+
+    public TipoUsuarioCLS[] listadoTipoUsuario;
+
+    public TipoUsuarioCLS oTipoUsuarioCLSBorrar = new TipoUsuarioCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DEL TIPOUSUARIO Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        listadoTipoUsuario = await http.GetFromJsonAsync<TipoUsuarioCLS[]>("api/TipoUsuario/listarTipoUsuario");
+
+        var authuser = await auth;
+        var user = authuser.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+            //listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name);
+            //listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + 4 + "/" + 1);
+
+            if (listaBotones.Count() > 0)
+            {
+                if (listaBotones.Contains(1)) permitirAgregar = true;
+                if (listaBotones.Contains(2)) permitirEditar = true;
+                if (listaBotones.Contains(3)) permitirEliminar = true;
+                if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                if (listaBotones.Contains(5)) permitirExportarWord = true;
+                if (listaBotones.Contains(6)) permitirExportarPDF = true;
+            }
+        }
+    }
+
+    public async Task BuscarListaTipoUsuario(string buscarNombreTipoUsuario)
+    {
+        listadoTipoUsuario = await http.GetFromJsonAsync<TipoUsuarioCLS[]>("api/TipoUsuario/FiltrarTipoUsuario/" + buscarNombreTipoUsuario);
+    }
+
+    public async Task EliminarListaTipoUsuario(string iidTipoUsuario)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+        oTipoUsuarioCLSBorrar = await http.GetFromJsonAsync<TipoUsuarioCLS>("api/TipoUsuario/RecuperarPaginasTipoUsuario/" + iidTipoUsuario);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oTipoUsuarioCLSBorrar.nombre, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/TipoUsuario/EliminarTipoUsuario/" + iidTipoUsuario);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO ON
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, EL TIPO USUARIO SE ELIMINO", "success", 2000);
+                    listadoTipoUsuario = await http.GetFromJsonAsync<TipoUsuarioCLS[]>("api/TipoUsuario/listarTipoUsuario");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+

@@ -1,0 +1,117 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+
+@if (oEstatusJuegoCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+
+    <EditForm Model="@oEstatusJuegoCLS" OnValidSubmit="GuardarDatos">
+
+        <DataAnnotationsValidator />
+        @*<ValidationSummary />*@
+
+        @if (semodifica)
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Estatus del Juego *</label>
+                <InputText class="form form-control" @bind-Value="oEstatusJuegoCLS.nombre" />
+                <ValidationMessage For="@(() => oEstatusJuegoCLS.nombre)" />
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Estatus del Juego</label>
+                <InputText class="form form-control" @bind-Value="oEstatusJuegoCLS.nombre" readOnly />
+                <ValidationMessage For="@(() => oEstatusJuegoCLS.nombre)" />
+            </div>
+        }
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-2"></div>
+}
+
+
+@code {
+    [Parameter]
+    public bool semodifica { get; set; } = true;
+
+    [Parameter]
+    public EstatusJuegoCLS oEstatusJuegoCLS { get; set; } = new EstatusJuegoCLS();
+
+    public string ruta { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        string paginaEnviar = "ListaEstatusJuego";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+
+        if (oEstatusJuegoCLS.idestatusjuego > 0)
+        {
+            if (oEstatusJuegoCLS.nombre.Trim().Equals("PENDIENTE") || oEstatusJuegoCLS.nombre.Trim().Equals("JUGADO"))
+            {
+                semodifica = false;
+            }
+        }
+    }
+
+
+    public async Task<bool> GuardarDatos()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        oEstatusJuegoCLS.torneo = torneo;
+
+        oEstatusJuegoCLS.idtorneo = int.Parse(claims[2].Value);
+
+        var resultado = await http.PostAsJsonAsync("api/EstatusJuego/GuardarDatosEstatusJuego", oEstatusJuegoCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENTE      3 = ESE NOMBRE DE ESTATUS YA EXISTE
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE GUARDARON LOS DATOS", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+                break;
+            case 3:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ESE NOMBRE DE ESTATUS YA EXISTE", "warning");
+                break;
+            default:
+                break;
+        }
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+
+        return await Task.FromResult(true);
+    }
+}
+

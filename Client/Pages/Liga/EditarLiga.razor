@@ -1,0 +1,40 @@
+﻿@page "/editarLiga/{idLiga}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioLiga oLigaCLS="oLigaCLS" listaMunicipios="listaMunicipio" />
+
+@code {
+    public string idtorneoseleccionado;
+
+    [Parameter]
+    public string idLiga { get; set; }
+
+    public LigaCLS oLigaCLS = new LigaCLS();
+    public List<MunicipioCLS> listaMunicipio = new List<MunicipioCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    public string torneoMensaje { get; set; }
+
+    //protected async override Task OnInitializedAsync()
+    protected async override Task OnParametersSetAsync()  
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+        idtorneoseleccionado = claims[2].Value;
+
+        torneoMensaje = torneo;
+
+        oLigaCLS = await http.GetFromJsonAsync<LigaCLS>("api/Liga/RecuperarInformacionLiga/" + idLiga);
+
+        listaMunicipio = await http.GetFromJsonAsync<List<MunicipioCLS>>("api/Municipio/ListarMunicipio");
+    }
+}
+

@@ -1,0 +1,267 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+@if (oProgramacionColegio123CLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+
+    <EditForm Model="@oProgramacionColegio123CLS">
+        <DataAnnotationsValidator />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+        <div class="mb-4"></div>
+
+
+        @*<div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Colegio</label>
+                <div class="col-lg-10">
+                    <InputText readOnly class="form form-control" @bind-Value="oProgramacionColegioCLS.nombrecompleto" />
+                </div>
+
+            </div>*@
+
+        @if (semodifica)
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Colegio *</label>
+                <div class="col-lg-10">
+
+                    <InputSelect @bind-Value="oProgramacionColegio123CLS.idcolegio" class="form-control">
+                        <option value="">--- Seleccione ---</option>
+                        @foreach (ColegioCLS oColegioCLS in listaColegio)
+                                {
+                            <option value="@oColegioCLS.idcolegio">@oColegioCLS.nombre</option>
+                                }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => oProgramacionColegio123CLS.idcolegio)" />
+
+
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Colegio de Arbitros</label>
+                <div class="col-lg-10">
+                    <InputText class="form-control" readOnly @bind-Value="oProgramacionColegio123CLS.nombrecolegio" />
+                </div>
+            </div>
+        }
+
+        @if (semodifica)
+        {
+            <div class="form-group row">
+
+                <label class="col-md-2 col-form-label font-weight-bold">Arbitro *</label>
+                <div class="col-lg-10">
+
+                    <InputSelect @bind-Value="oProgramacionColegio123CLS.idarbitrocolegio" class="form-control">
+                        <option value="">--- Seleccione ---</option>
+                        @foreach (ArbitroColegioCLS oArbitroCLS in listaArbitroColegio)
+                                {
+                            <option value="@oArbitroCLS.idarbitrocolegio">@oArbitroCLS.nombrecompleto</option>
+                                }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => oProgramacionColegio123CLS.idarbitrocolegio)" />
+
+
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Arbitro</label>
+                <div class="col-lg-10">
+                    <InputText class="form-control" readOnly @bind-Value="oProgramacionColegio123CLS.nombrecompleto" />
+                </div>
+            </div>
+        }
+               
+        @if (semodifica)
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Equipo 01 *</label>
+                <div class="col-lg-10">
+
+                    <InputSelect @bind-Value="oProgramacionColegio123CLS.idequipo01" class="form-control">
+                        <option value="">--- Seleccione ---</option>
+                        @foreach (EquipoColegioCLS oEquipo01CLS in listaEquipo01Colegio)
+                                {
+                            <option value="@oEquipo01CLS.idequipocolegio">@oEquipo01CLS.nombre</option>
+                                }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => oProgramacionColegio123CLS.idequipo01)" />
+
+
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Equipo 01</label>
+                <div class="col-lg-10">
+                    <InputText class="form-control" readOnly @bind-Value="oProgramacionColegio123CLS.equipo01cadena" />
+                </div>
+            </div>
+        }
+
+
+        @if (semodifica)
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Equipo 02 *</label>
+                <div class="col-lg-10">
+
+                    <InputSelect @bind-Value="oProgramacionColegio123CLS.idequipo02" class="form-control">
+                        <option value="">--- Seleccione ---</option>
+                        @foreach (EquipoColegioCLS oEquipo02CLS in listaEquipo02Colegio)
+                                {
+                            <option value="@oEquipo02CLS.idequipocolegio">@oEquipo02CLS.nombre</option>
+                                }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => oProgramacionColegio123CLS.idequipo02)" />
+
+
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Equipo 02</label>
+                <div class="col-lg-10">
+                    <InputText class="form-control" readOnly @bind-Value="oProgramacionColegio123CLS.equipo02cadena" />
+                </div>
+            </div>
+        }
+
+
+        @if (semodifica)
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Campo *</label>
+                <div class="col-lg-10">
+
+                    <InputSelect @bind-Value="oProgramacionColegio123CLS.idcampocolegio" class="form-control">
+                        <option value="">--- Seleccione ---</option>
+                        @foreach (CampoColegioCLS oCampoCLS in listaCampoColegio)
+                                {
+                            <option value="@oCampoCLS.idcampocolegio">@oCampoCLS.nombre</option>
+                                }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => oProgramacionColegio123CLS.idcampocolegio)" />
+
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Campo</label>
+                <div class="col-lg-10">
+                    <InputText class="form-control" readOnly @bind-Value="oProgramacionColegio123CLS.campocadena" />
+                </div>
+            </div>
+        }
+
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Horario *</label>
+            <div class="col-lg-10">
+                @if (semodifica)
+                {
+                    <input type="datetime-local" @bind="horario" @bind:format="yyyy-MM-ddTHH:mm" class="form-control" />
+                }
+                else
+                {
+                    <input type="datetime-local" @bind="horario" @bind:format="yyyy-MM-ddTHH:mm" class="form-control" readonly />
+                }
+
+                @*<InputDate type="datetime-local" class="form-control" @bind-Value="oJuegoCLS.fhorario" />*@
+                @*<InputDate class="form-control" @bind-Value="oJuegoCLS.fhorario" @bind:format="dd/MM/yyyy" />
+                    <InputDate class="form-control" @bind-Value="oJuegoCLS.fhorario" format-Value="dd/MM/yyyy hh:mm" />*@
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Comentarios *</label>
+            <InputTextArea class="form form-control" @bind-Value="oProgramacionColegio123CLS.comentariocolegio" readOnly/>
+            <ValidationMessage For="@(() => oProgramacionColegio123CLS.comentariocolegio)" />
+        </div>
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-4"></div>
+}
+
+
+
+@code {
+    [Parameter]
+    public bool semodifica { get; set; } = true;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public ProgramacionColegio123CLS oProgramacionColegio123CLS { get; set; } = new ProgramacionColegio123CLS();
+
+    //[Parameter]
+    //public ComentarioCLS[] oComentarioCLS { get; set; }
+
+    [Parameter]
+    public DateTime horario { get; set; } = DateTime.Now;
+       
+    // AQUI VAN LOS PARAMETROS DE LOS COMBOS DEL FORMULARIO
+    [Parameter]
+    public List<ColegioCLS> listaColegio { get; set; }
+    [Parameter]
+    public List<ArbitroColegioCLS> listaArbitroColegio { get; set; }
+    //[Parameter]
+    //public List<LigaColegioCLS> listaLigaColegio { get; set; }
+    //[Parameter]
+    //public List<TorneoColegioCLS> listaTorneoColegio { get; set; }
+    [Parameter]
+    public List<EquipoColegioCLS> listaEquipo01Colegio { get; set; }
+    [Parameter]
+    public List<EquipoColegioCLS> listaEquipo02Colegio { get; set; }
+    [Parameter]
+    public List<CampoColegioCLS> listaCampoColegio { get; set; }
+
+
+    // ESTA VARIABLE ES PARA QUE MUESTRE EL CONTROL DE LOS GOLES EN CASO DE SER UN EDITAR
+    [Parameter]
+    public bool visiblegolesequipo { get; set; } = false;
+
+    public string ruta { get; set; }
+
+
+    protected async override Task OnParametersSetAsync()
+    {
+        string paginaEnviar = "ListaProgramacionColegio123";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+
+    }
+    
+
+
+}
+
+

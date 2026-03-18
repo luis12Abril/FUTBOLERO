@@ -1,0 +1,17 @@
+﻿@page "/EditarTipoUsuario/{id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioTipoUsuario oTipoUsuarioCLS=oTipoUsuarioCLS />
+
+@code {
+    [Parameter]
+    public string id { get; set; }
+
+    public TipoUsuarioCLS oTipoUsuarioCLS = new TipoUsuarioCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oTipoUsuarioCLS = await http.GetFromJsonAsync<TipoUsuarioCLS>("api/TipoUsuario/RecuperarPaginasTipoUsuario/" + id);
+    }
+}

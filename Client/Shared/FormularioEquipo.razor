@@ -1,0 +1,198 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+
+@if (oEquipoCLS == null)
+{
+    <div class="text-center mt-4">
+        <button class="btn btn-primary" style="min-width:170px; border-radius:8px;">
+            <span class="spinner-border spinner-border-sm"></span>
+            Cargando...
+        </button>
+    </div>
+}
+else
+{
+    string archivoFoto = oEquipoCLS.fotoequipo;
+
+    <div style="background-color:white; border-radius:14px; padding:1.25rem; box-shadow:0 12px 28px rgba(0,0,0,0.10);">
+    <h3 style="color:#1d4ed8; font-weight:700; margin-bottom:1rem;">Datos del Equipo</h3>
+
+    <EditForm Model="@oEquipoCLS" OnValidSubmit="GuardarDatos">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:1rem;">
+            <input type="submit" value="Guardar" class="btn btn-success" style="min-width:130px; border-radius:8px;" />
+
+            <NavLink href="@ruta" class="text-decoration-none">
+                <input type="button" value="Regresar" class="btn btn-info" style="min-width:130px; border-radius:8px;" />
+            </NavLink>
+        </div>
+        <div class="mb-4"></div>
+
+        <DataAnnotationsValidator />
+        @*<ValidationSummary />*@
+
+        <div class="form-group row align-items-center">
+            <label class="col-lg-2 col-form-label font-weight-bold" style="color:#1e3a8a;">Nombre *</label>
+            <div class="col-lg-10">
+                <InputText class="form-control" style="border-radius:8px;" @bind-Value="oEquipoCLS.nombre" />
+                <ValidationMessage For="@(()=>oEquipoCLS.nombre)" />
+            </div>
+        </div>
+
+
+        @*<div class="mb-4"></div>*@
+
+        <div class="form-group row align-items-center">
+            <label class="col-md-2 col-form-label font-weight-bold" style="color:#1e3a8a;">Representante</label>
+            <div class="col-lg-10">
+                <InputText class="form-control" style="border-radius:8px;" @bind-Value="oEquipoCLS.representante" />
+            </div>
+
+        </div>
+
+        <div class="form-group row align-items-center">
+            <label class="col-md-2 col-form-label font-weight-bold" style="color:#1e3a8a;">.....  Usuario equipo</label>
+            <div class="col-lg-10">
+                <InputText class="form-control" style="border-radius:8px;" @bind-Value="oEquipoCLS.usuequipo" />
+            </div>
+        </div>
+
+        <div class="form-group row align-items-center">
+            <label class="col-md-2 col-form-label font-weight-bold" style="color:#1e3a8a;">.....  Clave</label>
+            <div class="col-lg-10">
+                <InputText type="password" class="form-control" style="border-radius:8px;" @bind-Value="oEquipoCLS.codigo" />
+            </div>
+        </div>
+
+        <div class="form-group row align-items-center">
+            <label class="col-md-2 col-form-label font-weight-bold" style="color:#1e3a8a;">.....  Vigencia</label>
+           <div class= "col-lg-10">
+                <InputDate class="form form-control" style="border-radius:8px;" @bind-Value="oEquipoCLS.vigencia" />
+           </div>
+           
+           
+        </div>
+
+        <div class="form-group row align-items-center">
+            <label class="col-md-2 col-form-label font-weight-bold" style="color:#1e3a8a;">Promedio de Edad:</label>
+            <div class="col-lg-10">
+                @{promedioedad = oEquipoCLS.años + " Años " + oEquipoCLS.meses + " Meses";}
+                <input type="text" class="form-control font-weight-bold" style="border-radius:8px;" readOnly Value="@promedioedad" />
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:center; flex-direction:column; align-items:center; background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:1rem;">
+            <label class="font-weight-bold">Foto del Equipo</label>
+            <img class="mb-2" width="450" height="300" style="display:block; border-radius:10px; box-shadow:0 12px 24px rgba(0,0,0,0.20); border:2px solid #facc15;" id="idImgFoto" src="@archivoFoto" />
+
+            <input class="mb-2" type="file" style="max-width:350px;" id="idInputFoto" accept="image/png,image/jpg,image/jpeg" @onchange="previewImagen" />
+        </div>
+
+        <ListadoJugadoresEquipo oEquipoCLS="oEquipoCLS" />
+        <ListadoJuegosdelEquipo oJuegosdelequipoCLS="oJuegosdelequipoCLS" />
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:1rem;">
+            <input type="submit" value="Guardar" class="btn btn-success" style="min-width:130px; border-radius:8px;" />
+
+            <NavLink href="@ruta" class="text-decoration-none">
+                <input type="button" value="Regresar" class="btn btn-info" style="min-width:130px; border-radius:8px;" />
+            </NavLink>
+        </div>
+
+    </EditForm>
+    </div>
+    <div class="mb-2"></div>
+}
+
+
+
+@code {
+    string promedioedad { get; set; } = "";
+
+    [Parameter]
+    public EquipoCLS oEquipoCLS { get; set; } = new EquipoCLS();
+
+    [Parameter]
+    public List<JuegosdelequipoCLS> oJuegosdelequipoCLS { get; set; } = new List<JuegosdelequipoCLS>();
+
+    public string ruta { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string paginaEnviar = "ListaEquipo";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+
+    public async Task<bool> GuardarDatos()
+    {
+        string imgData = await ijsruntime.InvokeAsync<string>("obtenerImagen");
+        if(imgData.Length < 80)
+        {
+            oEquipoCLS.fotoequipo = "";
+        }
+        else
+        {
+            oEquipoCLS.fotoequipo = imgData;
+        }
+
+
+
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        oEquipoCLS.torneo = torneo;
+        oEquipoCLS.ListaJugadorEquipo = null;
+
+        oEquipoCLS.idtorneo = int.Parse(claims[2].Value);
+
+        var resultado = await http.PostAsJsonAsync("api/Equipo/GuardarDatosEquipo", oEquipoCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENTE      3 = ESE NOMBRE DE EQUIPO YA EXISTE
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE GUARDARON LOS DATOS", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+                break;
+            case 2:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "ESE NOMBRE DE USUARIO YA EXISTE", "warning");
+                break;
+            case 3:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ESE NOMBRE DE EQUIPO YA EXISTE", "warning");
+                break;
+            case 4:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "PUSISTE UN USUARIO PERO NO ASIGNASTE UNA CLAVE", "warning");
+                break;
+            default:
+                break;
+        }
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+
+        return await Task.FromResult(true);
+    }
+
+
+    public async Task previewImagen()
+    {
+        //ESTAMOS LLAMANDO UNA FUNCION DE JAVASCRIPT DESDE BLAZOR
+        await ijsruntime.InvokeVoidAsync("previewDataImagen");
+    }
+}
+

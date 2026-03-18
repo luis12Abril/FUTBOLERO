@@ -1,0 +1,38 @@
+﻿@page "/editarTorneoColegio/{idTorneoColegio}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioTorneoColegio oTorneoColegioCLS="oTorneoColegioCLS" listaLigas = "listaLigas" />
+
+@code {
+    public string idtorneoseleccionado;
+
+    [Parameter]
+    public string idTorneoColegio { get; set; }
+
+    public TorneoColegioCLS oTorneoColegioCLS = new TorneoColegioCLS();
+    public List<LigaColegioCLS> listaLigas = new List<LigaColegioCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    public string torneoMensaje { get; set; }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+        idtorneoseleccionado = claims[2].Value;
+
+        torneoMensaje = torneo;
+
+        oTorneoColegioCLS = await http.GetFromJsonAsync<TorneoColegioCLS>("api/TorneoColegio/RecuperarInformacionTorneoColegio/" + idTorneoColegio);
+
+        listaLigas = await http.GetFromJsonAsync<List<LigaColegioCLS>>("api/LigaColegio/ListaLigaColegio");
+    }
+}

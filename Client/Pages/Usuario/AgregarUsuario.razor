@@ -1,0 +1,20 @@
+﻿@page "/agregarUsuario"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<AuthorizeView>
+    <Authorized>
+        <FormularioUsuario listaTipoUsuario="listaTipoUsuario" semodifica=true />
+    </Authorized>
+</AuthorizeView>
+
+
+
+@code {
+    public List<TipoUsuarioCLS> listaTipoUsuario = new List<TipoUsuarioCLS>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaTipoUsuario = await http.GetFromJsonAsync<List<TipoUsuarioCLS>>("api/TipoUsuario/listarTipoUsuario");
+    }
+}

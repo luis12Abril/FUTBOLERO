@@ -1,0 +1,92 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navegarA
+@inject IJSRuntime ijsruntime
+@*ES DE PRUEBA, NO QUIERO QUE ME PINTE EL MENU LATERAL*@
+@*@layout LoginLayout*@
+
+@if (oNuevoUsuarioCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    <div style="display:grid; justify-items:center; align-items:center; min-height:100vh; min-width:100vh; background-color:lavender;">
+        <div class="col-md-6 m-auto">
+            <div style="display: block; box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);  padding:20px; background-color:lightseagreen;">
+                <EditForm Model="@oNuevoUsuarioCLS" OnValidSubmit="GuardarDatosFormulario">
+                    <DataAnnotationsValidator />
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Usuario *</label>
+                        <InputText class="form form-control" @bind-Value="oNuevoUsuarioCLS.nombreusuario" />
+                        <ValidationMessage For="@(() => oNuevoUsuarioCLS.nombreusuario)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Contraseña *</label>
+                        <InputText type="password" class="form form-control" @bind-Value="oNuevoUsuarioCLS.contra" />
+                        <ValidationMessage For="@(() => oNuevoUsuarioCLS.contra)" />
+                    </div>
+
+                    <input type="submit" value="Guardar" class="btn btn-success" />
+
+                    <NavLink href="/">
+                        <input type="button" value="Regresar" class="btn btn-info" />
+                    </NavLink>
+
+                </EditForm>
+            </div>
+        </div>
+
+    </div>
+    <div class="mb-2"></div>
+}
+
+
+@code {
+
+    [Parameter]
+    public NuevoUsuarioCLS oNuevoUsuarioCLS { get; set; } = new NuevoUsuarioCLS();
+
+    public async Task<bool> GuardarDatosFormulario()
+    {
+        var resultado = await http.PostAsJsonAsync("api/Usuario/GuardarDatosNuevoUsuario", oNuevoUsuarioCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "Error, NO se pudo registrar", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "Ok, Registro aceptado", "success", 2000);
+
+                //AQUI LE DIGO A QUE PAGINA DEBE IR CUANDO LA CLAVE Y CONTRASEÑA SEAN CORRECTAS
+                //string paginaEnviar = "SeleccioneTorneo";
+
+
+                //AQUI VOY Y BUSCO EN EL CONTROLADO LA PAGINA DESEADA Y EL ME REGRESARA EL IDPAGINA QUE TENGA EN LA TABLA
+                ////int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+
+                // AQUI ARMO LA RUTA A LA QUE VA A NAVEGAR EJ. navigate.NavigateTo("SeleccioneTorneo/3")
+                ////string ruta = paginaEnviar + "/" + idPag;
+                navegarA.NavigateTo("/");
+
+                //navigation.NavigateTo("/");
+                break;
+            case 2:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "El usuario " + oNuevoUsuarioCLS.nombreusuario + " ya esta registrado", "error");
+                break;
+            default:
+                break;
+        }
+
+        return await Task.FromResult(true);
+    }
+}
+

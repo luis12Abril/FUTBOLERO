@@ -1,0 +1,23 @@
+﻿@page "/editarPublicidad/{idPublicidad}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioPublicidad oPublicidadCLS="oPublicidadCLS" listaTorneos="listaTorneo"  />
+
+@code {
+    [Parameter]
+    public string idPublicidad { get; set; }
+
+    public PublicidadCLS oPublicidadCLS = new PublicidadCLS();
+
+    public List<TorneoCLS> listaTorneo = new List<TorneoCLS>();
+
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oPublicidadCLS = await http.GetFromJsonAsync<PublicidadCLS>("api/Publicidad/RecuperarInformacionPublicidad/" + idPublicidad);
+        listaTorneo = await http.GetFromJsonAsync<List<TorneoCLS>>("api/Torneo/ListarTorneo");
+    }
+}
+
+

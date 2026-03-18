@@ -1,0 +1,17 @@
+﻿@page "/editarPagina/{idPagina}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioPagina oPaginaCLS="oPaginaCLS" />
+
+@code {
+    [Parameter]
+    public string idPagina { get; set; }
+
+    public PaginaCLS oPaginaCLS = new PaginaCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oPaginaCLS = await http.GetFromJsonAsync<PaginaCLS>("api/Pagina/RecuperarInformacionPagina/" + idPagina);
+    }
+}

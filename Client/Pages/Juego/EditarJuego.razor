@@ -1,0 +1,43 @@
+﻿@page "/editarJuego/{idJuego}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioJuego oJuegoCLS="oJuegoCLS" listaJornadas="listaJornada" listaCampos="listaCampos" listaArbitros="listaArbitros"
+                 listaEstatusJuegos="listaEstatusJuego" listaEquipo01="listaEquipo01" listaEquipo02="listaEquipo02"
+                 visiblegolesequipo=true horario="oJuegoCLS.fhorario"
+                 oComentarioCLS="oComentarioCLS" />
+
+@code {
+    [Parameter]
+    public string idJuego { get; set; }
+
+    public JuegoCLS oJuegoCLS = new JuegoCLS();
+    public ComentarioCLS[] oComentarioCLS;
+
+    public List<JornadaCLS> listaJornada = new List<JornadaCLS>();
+    public List<EquipoCLS> listaEquipo01 = new List<EquipoCLS>();
+    public List<EquipoCLS> listaEquipo02 = new List<EquipoCLS>();
+    public List<CampoCLS> listaCampos = new List<CampoCLS>();
+    public List<ArbitroCLS> listaArbitros = new List<ArbitroCLS>();
+    public List<EstatusJuegoCLS> listaEstatusJuego = new List<EstatusJuegoCLS>();
+
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oJuegoCLS = await http.GetFromJsonAsync<JuegoCLS>("api/Juego/RecuperarInformacionJuego/" + idJuego);
+
+        // LA VARIABLE idJuego CAMBIA EL VALOR, ARRIBA TIENE UN VALOR Y AL USARLO ABAJO ME DA OTRO, POR ESO PUSE oJuegoCLS.idjuego Y ASI ES EL MISMO VALOR
+        oComentarioCLS = await http.GetFromJsonAsync<ComentarioCLS[]>("api/Comentario/RecuperarTodosComentario/" + oJuegoCLS.idjuego);
+
+        string idtorneoseleccionado = oJuegoCLS.idtorneo.ToString();
+
+        listaJornada = await http.GetFromJsonAsync<List<JornadaCLS>>("api/Jornada/ListarJornada/" + idtorneoseleccionado);
+        listaEquipo01 = await http.GetFromJsonAsync<List<EquipoCLS>>("api/Equipo/ListarEquiporalfabetico/" + idtorneoseleccionado);
+        listaEquipo02 = await http.GetFromJsonAsync<List<EquipoCLS>>("api/Equipo/ListarEquiporalfabetico/" + idtorneoseleccionado);
+        listaCampos = await http.GetFromJsonAsync<List<CampoCLS>>("api/Campo/ListarCampo/" + idtorneoseleccionado);
+        listaArbitros = await http.GetFromJsonAsync<List<ArbitroCLS>>("api/Arbitro/ListarArbitro/" + idtorneoseleccionado);
+        listaEstatusJuego = await http.GetFromJsonAsync<List<EstatusJuegoCLS>>("api/EstatusJuego/ListarEstatusJuego/" + idtorneoseleccionado);
+    }
+}
+
+

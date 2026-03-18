@@ -1,0 +1,56 @@
+﻿@page "/agregarJuego"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+
+<AuthorizeView>
+    <Authorized>
+        <FormularioJuego listaJornadas="listaJornada" listaEquipo01="listaEquipo01" listaEquipo02="listaEquipo02" listaCampos="listaCampos"
+                         listaArbitros="listaArbitros" listaEstatusJuegos="listaEstatusJuego" />
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+
+    public List<JornadaCLS> listaJornada = new List<JornadaCLS>();
+    public List<EquipoCLS> listaEquipo01 = new List<EquipoCLS>();
+    public List<EquipoCLS> listaEquipo02 = new List<EquipoCLS>();
+    public List<CampoCLS> listaCampos = new List<CampoCLS>();
+    public List<ArbitroCLS> listaArbitros = new List<ArbitroCLS>();
+    public List<EstatusJuegoCLS> listaEstatusJuego = new List<EstatusJuegoCLS>();
+
+    public string torneoMensaje { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        string idtorneoseleccionado;
+
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listaJornada = await http.GetFromJsonAsync<List<JornadaCLS>>("api/Jornada/ListarJornada/" + idtorneoseleccionado);
+            listaEquipo01 = await http.GetFromJsonAsync<List<EquipoCLS>>("api/Equipo/ListarEquiporalfabetico/" + idtorneoseleccionado);
+            listaEquipo02 = await http.GetFromJsonAsync<List<EquipoCLS>>("api/Equipo/ListarEquiporalfabetico/" + idtorneoseleccionado);
+            listaCampos = await http.GetFromJsonAsync<List<CampoCLS>>("api/Campo/ListarCampo/" + idtorneoseleccionado);
+            listaArbitros = await http.GetFromJsonAsync<List<ArbitroCLS>>("api/Arbitro/ListarArbitro/" + idtorneoseleccionado);
+            listaEstatusJuego = await http.GetFromJsonAsync<List<EstatusJuegoCLS>>("api/EstatusJuego/ListarEstatusJuego/" + idtorneoseleccionado);
+        }
+    }
+}
+
+

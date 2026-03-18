@@ -1,0 +1,104 @@
+﻿@page "/ListaJuegoInvitado/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Jornada", "Equipo 01", "Goles", "Equipo 02", "Goles", "Horario", "Estatus" };
+
+    // ESTAS PROPIEDADES TIENEN QUE SER IGUAL A LAS QUE ESTAN EN EL CONTROLADOR
+    string[] propiedades = { "jornadacadena", "equipo01cadena", "golesequipo01", "equipo02cadena", "golesequipo02", "fhorariocadena", "estatusjuegocadena" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoJuegoInvitado
+                  type="combobox" button=false label="Seleccione una jornada"
+                  combobox="oJornadaCLS" displayMember="nombre" valueMember="idjornada"
+                  permitirEditar=@permitirEditar rutaEditar="EditarJuegoInvitado"
+                  eventBusqueda="BuscarListaJuegoInvitado" botoneditinvitado=true />
+    </Authorized>
+</AuthorizeView>
+
+
+
+@code {
+    public string idtorneoseleccionado;
+
+    public string torneoMensaje { get; set; }
+
+    public JuegoCLS[] listadoJuegoInvitado;
+
+    public JornadaCLS[] oJornadaCLS;      // ESTO ES PORQUE SE VA HACER UNA BUSQUEDA POR COMBOBOX
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listadoJuegoInvitado = await http.GetFromJsonAsync<JuegoCLS[]>("api/JuegoInvitado/ListarJuegoInvitado/" + idtorneoseleccionado);
+            oJornadaCLS = await http.GetFromJsonAsync<JornadaCLS[]>("api/Jornada/ListarJornada/" + idtorneoseleccionado);   // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO DE JORNADAS
+
+            if (user.Identity.IsAuthenticated)
+            {
+                //listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                //  ESTO LO HAGO PORQUE SI ES UN ADMINISTRADOR Y NO TIENE DERECHO A ADMINISTRAR EL TORNEO SELECCIONADO TENDRA QUE VERLO COMO INVITADO
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones2/" + user.Identity.Name + "/" + Id + "/" + idtorneoseleccionado);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaJuegoInvitado(string buscarJornadaJuegoInvitado)
+    {
+        if (buscarJornadaJuegoInvitado == null || buscarJornadaJuegoInvitado == "")
+        {
+            listadoJuegoInvitado = await http.GetFromJsonAsync<JuegoCLS[]>("api/JuegoInvitado/ListarJuegoInvitado/" + idtorneoseleccionado);
+        }
+        else
+        {
+            listadoJuegoInvitado = await http.GetFromJsonAsync<JuegoCLS[]>("api/JuegoInvitado/FiltrarJuegoInvitado/" + buscarJornadaJuegoInvitado + "/" + idtorneoseleccionado);
+        }
+    }
+}
+
+

@@ -1,0 +1,262 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+@if (oJuegoInvitadoCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+
+    <EditForm Model="@oJuegoInvitadoCLS" class="font-weight-bold" OnValidSubmit="GuardarDatosJuegoInvitado">
+        <DataAnnotationsValidator />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+        <div class="mb-4"></div>
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Jornada</label>
+            <div class="col-lg-10">
+                <InputText class="form-control font-weight-bold" readOnly @bind-Value="oJuegoInvitadoCLS.jornadacadena" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Equipo 01</label>
+            <div class="col-lg-5">
+                <InputText class="form-control font-weight-bold" readOnly @bind-Value="oJuegoInvitadoCLS.equipo01cadena" />
+            </div>
+
+            <div class="col-lg-2" style="display:flex; justify-content:space-between;">
+                <div>
+                    <label class="col-form-label font-weight-bold">G</label>
+                    <input class="font-weight-bold" type="radio" disabled name="final01" id="G01" />
+                </div>
+                <div>
+                    <label class="col-form-label font-weight-bold">E</label>
+                    <input type="radio" disabled name="final01" id="E01" />
+                </div>
+                <div>
+                    <label class="col-form-label font-weight-bold">P</label>
+                    <input type="radio" disabled name="final01" id="P01" />
+                </div>
+                <div>
+                    <label class="col-form-label font-weight-bold">GP</label>
+                    <input type="radio" disabled name="final01" id="GP01" />
+                </div>
+                <div>
+                    <label class="col-form-label font-weight-bold">GA</label>
+                    <input type="radio" disabled name="final01" id="GA01" />
+                </div>
+            </div>
+
+
+            <div>
+                <label class="col-md-1 col-form-label font-weight-bold">Goles</label>
+            </div>
+            <div class="col-md-1">
+                <InputText class="form-control font-weight-bold" style="text-align:center" readOnly @bind-Value="oJuegoInvitadoCLS.golesequipo01" />
+            </div>
+
+
+            @* PUNTOS EXTRAS *@
+            <div>
+                <label class="col-md-1 col-form-label font-weight-bold">PE</label>
+            </div>
+            <div class="col-md-1">
+                <InputNumber class="form-control font-weight-bold" style="text-align:center" readOnly @bind-Value="oJuegoInvitadoCLS.peequipo01" min="0" />
+            </div>
+
+        </div>
+
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Equipo 02</label>
+            <div class="col-lg-5">
+                <InputText class="form-control font-weight-bold" readOnly @bind-Value="oJuegoInvitadoCLS.equipo02cadena" />
+            </div>
+
+            <div class="col-lg-2" style="display:flex; justify-content:space-between;">
+                <div>
+                    <label class="col-form-label font-weight-bold">G</label>
+                    <input class="font-weight-bold" type="radio" disabled name="final02" id="G02" />
+                </div>
+                <div>
+                    <label class="col-form-label font-weight-bold">E</label>
+                    <input type="radio" disabled name="final02" id="E02" />
+                </div>
+                <div>
+                    <label class="col-form-label font-weight-bold">P</label>
+                    <input type="radio" disabled name="final02" id="P02" />
+                </div>
+                <div>
+                    <label class="col-form-label font-weight-bold">GP</label>
+                    <input type="radio" disabled name="final02" id="GP02" />
+                </div>
+                <div>
+                    <label class="col-form-label font-weight-bold">GA</label>
+                    <input type="radio" disabled name="final02" id="GA02" />
+                </div>
+            </div>
+
+            <div>
+                <label class="col-md-1 col-form-label font-weight-bold">Goles</label>
+            </div>
+            <div class="col-md-1">
+                <InputText class="form-control font-weight-bold" style="text-align:center" readOnly @bind-Value="oJuegoInvitadoCLS.golesequipo02" />
+            </div>
+
+
+            @* PUNTOS EXTRAS *@
+            <div>
+                <label class="col-md-1 col-form-label font-weight-bold">PE</label>
+            </div>
+            <div class="col-md-1">
+                <InputNumber class="form-control font-weight-bold" style="text-align:center" readOnly @bind-Value="oJuegoInvitadoCLS.peequipo02" min="0" />
+            </div>
+
+
+        </div>
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Campo</label>
+            <div class="col-lg-10">
+                <InputText class="form-control font-weight-bold" readOnly @bind-Value="oJuegoInvitadoCLS.campocadena" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Arbitro</label>
+            <div class="col-lg-10">
+                <InputText class="form-control font-weight-bold" readOnly @bind-Value="oJuegoInvitadoCLS.arbitrocadena" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Horario</label>
+            <div class="col-lg-10">
+                <InputText class="form-control font-weight-bold" readOnly @bind-Value="oJuegoInvitadoCLS.fhorariocadena" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Estatus</label>
+            <div class="col-lg-10">
+                <InputText class="form-control font-weight-bold" readOnly @bind-Value="oJuegoInvitadoCLS.estatusjuegocadena" />
+            </div>
+        </div>
+
+        <ListadoJugadoresGolesInvitado oJuegoInvitadoCLS="oJuegoInvitadoCLS" />
+
+        <div class="form-group row" style="margin-top:20px;">
+            <label class="col-md-2 col-form-label font-weight-bold">Nuevo Comentario</label>
+            <div class="col-lg-10">
+                <InputTextArea class="form form-control" @bind-Value="oJuegoInvitadoCLS.comentario" />
+                <ValidationMessage For="@(() => oJuegoInvitadoCLS.comentario)" />
+            </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-end;">
+            <input type="submit" value="Enviar Comentario" class="btn btn-success" />
+        </div>
+
+        <ListadoComentario oComentarioCLS="oComentarioCLS" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+
+    <div class="mb-4"></div>
+}
+
+
+@code {
+    public int yaentro = 0;
+
+    [Parameter]
+    public JuegoInvitadoCLS oJuegoInvitadoCLS { get; set; } = new JuegoInvitadoCLS();
+
+    [Parameter]
+    public ComentarioCLS[] oComentarioCLS { get; set; }
+
+    public string cometariojuego { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    // AQUI VAN LOS PARAMETROS DE LOS COMBOS DEL FORMULARIO
+
+    // ESTA VARIABLE ES PARA QUE MUESTRE EL CONTROL DE LOS GOLES EN CASO DE SER UN EDITAR
+
+    public string ruta { get; set; }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        string paginaEnviar = "ListaJuegoInvitado";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+
+        // ESTE IF ES PORQUE CUANDO ES NUEVO NO ESTAN ACTIVADOS LOS RADIOS Y POR ESO NO DEBE ENTRAR
+        if (oJuegoInvitadoCLS.idjuego != 0 && oJuegoInvitadoCLS != null)
+        {
+            // ESTE IF ES PORQUE CUANDO LE DOY CLICK EN CERRAR SESION ME DA UN ERROR DE RELOAD PORQUE VUELVE A ENTRAR, NO LO PUDE ARREGLAR DE OTRO MODO
+            if (yaentro == 0)
+            {
+                string valid01 = oJuegoInvitadoCLS.resequipo01.Trim() + "01";
+                string valid02 = oJuegoInvitadoCLS.resequipo02.Trim() + "02";
+
+                await ijsruntime.InvokeVoidAsync("PonChecked", valid01, valid02);
+                yaentro = yaentro + 1;
+            }
+        }
+    }
+
+    public async Task<bool> GuardarDatosJuegoInvitado()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        oJuegoInvitadoCLS.idusuario = int.Parse(user.Identity.Name);
+
+        var resultado = await http.PostAsJsonAsync("api/Comentario/GuardarComentarioJuegoInvitado", oJuegoInvitadoCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENTE     2 = EXCEDIO EL NUMERO DE COMENTARIOS PARA ESE JUEGO (50)
+        // 3 = EL COMENTARIO ESTA VACIO Y NO SE GRABO
+
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, EL COMENTARIO NO SE GUARDO", "error");
+                break;
+            case 1:
+                //await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, EL COMENTARIO SE HA ENVIADO", "success");
+                oJuegoInvitadoCLS.comentario = "";
+                oComentarioCLS = await http.GetFromJsonAsync<ComentarioCLS[]>("api/Comentario/RecuperarTodosComentario/" + oJuegoInvitadoCLS.idjuego);
+                break;
+            case 2:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "SE HA EXCEDIDO EL NUMERO MAXIMO DE COMENTARIOS PERMITIDOS", "warning");
+                break;
+            case 3:
+                break;
+            default:
+                break;
+        }
+
+        return await Task.FromResult(true);
+    }
+}
+

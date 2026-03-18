@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Futboleando...</title>
+    <link rel="icon" href="images/Balon.png" />
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
+
+</head>
+
+<body>
+    <app>Loading...</app>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+</body>
+
+</html>
+
+<script>
+
+    
+    function descargarPdf(pdf) {
+        var a = document.createElement("a");
+        a.href = pdf;
+        a.download = "PdfReporte.pdf";
+        a.click();
+    }
+
+    function previewDataImagen() {
+        //PERMITE LEER CUALQUIER ARCHIVO
+        var reader = new FileReader();
+
+        // ESTO ES PARA COMENZAR A LEER, ES UN METODO ASINCRONO
+        reader.readAsDataURL(document.getElementById("idInputFoto").files[0]);
+
+        // CUANDO TERMINE DE CARGAR VA HA PINTAR LA IMAGEN
+        reader.onloadend = function () {
+            document.getElementById("idImgFoto").src = reader.result;
+        }
+    }
+
+    function muestrafotoarbitro() {
+        a = 1;
+        b = 2;
+        //PERMITE LEER CUALQUIER ARCHIVO
+        var reader = new FileReader();
+
+        // ESTO ES PARA COMENZAR A LEER, ES UN METODO ASINCRONO
+        reader.readAsDataURL(document.getElementById("idfotoarbitrocolegio").files[0]);
+
+        // CUANDO TERMINE DE CARGAR VA HA PINTAR LA IMAGEN
+        reader.onloadend = function () {
+            document.getElementById("idImgFotoArbito").src = reader.result;
+        }
+    }
+
+
+    function previewDataPdf() {
+        //PERMITE LEER CUALQUIER ARCHIVO
+        var reader = new FileReader();
+
+        // ESTO ES PARA COMENZAR A LEER, ES UN METODO ASINCRONO
+        reader.readAsDataURL(document.getElementById("idInputPdf").files[0]);
+
+        // CUANDO TERMINE DE CARGAR VA HA PINTAR LA IMAGEN
+        reader.onloadend = function () {
+            document.getElementById("idIframePdf").src = reader.result;
+        }
+    }
+
+    function obtenerImagen() {
+
+        return document.getElementById("idImgFoto").src;
+    }
+
+    function obtenerPdf() {
+        return document.getElementById("idIframePdf").src;
+    }
+
+
+
+    function MostrarMensaje(mensaje) {
+        Swal.fire(mensaje);
+    }
+
+    function MostrarMensajeAlerta(mensaje, tipoalerta) {
+        Swal.fire({
+            title: mensaje,
+            icon: tipoalerta
+            //title: titulo,
+            //text: mensaje,
+            //icon: Tipo,
+            //showCancelButton: true,
+            //confirmButtonColor: '#3085d6',
+            //cancelButtonColor: '#d33',
+            //confirmButtonText: 'Confirmar'
+            //footer:'<span class="rojo">Esta información es importante!</span>
+            //width:'50%'
+            //padding:'2rem'
+            //background:'#000'
+            //grow:'row'   o   'column'  o  'fullscreen'
+            //backdrop: true o false
+            //timer:5000
+            //timerProgressBar:true
+
+            //toast:true
+            //position:'top' o 'bottom' o 'bottom-end'      //
+            //allowOutsideClick:
+            //allowEscapeKey:
+            //alowwEnterKey
+            //stopKeydownPropagation:
+
+            //input:'text' o 'select'
+            //inputPlaceholder:'Pais'
+            //inputValue:''
+            //inputOptions: {mexico:'Mexico', españa:'España'}
+        });
+    }
+
+    function MostrarMensajetime(mensaje, tipoalerta, time) {
+        Swal.fire({
+            title: mensaje,
+            icon: tipoalerta,
+            timer: time,
+            timerProgressBar: true,
+            showConfirmButton: false
+
+        });
+    }
+
+    function MostrarMensajeGuardar(mensaje, tipoalerta) {
+        Swal.fire({
+            title: mensaje,
+            icon: tipoalerta,
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false
+
+        });
+    }
+
+    function MostrarMensajeBorrar(titulo, mensaje, tipo) {
+        Swal.fire(mensaje);
+    }
+
+    function PonChecked(idradio01, idradio02) {
+        document.getElementById(idradio01).checked = true;
+        document.getElementById(idradio02).checked = true;
+    }
+
+    function ConfirmarBorrar(titulo, mensaje, Tipo) {
+        return new Promise((resolve) => {
+            Swal.fire({
+                title: titulo,
+                text: mensaje,
+                icon: Tipo,
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Confirmar'
+            }).then((result) => {
+                if (result.value) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    function focusById(elementoId) {
+        //alert("Hola1" + elementoId);
+        var elemento = document.getElementById(elementoId);
+        if (elemento) {
+            //alert("Hola2" + elementoId);
+            elemento.focus();
+        }
+    }
+
+
+</script>
+
+
+<style>
+
+
+    .grid-contenedor {
+        /*        width: 80%;
+        max-width:1000px;*/
+        margin: auto;
+        /* font-size: 50px;
+        line-height: 50px;*/
+        text-align: center;
+        display: grid;
+        grid-template-columns: 70%;
+        grid-auto-rows: 150px;
+        /*  align-items:center;*/
+        justify-content: center;
+        /*grid-template-rows: 200px;*/
+        /*grid-template-rows: 200px 200px;*/
+        grid-gap: 40px;
+    }
+
+        .grid-contenedor > div {
+            display: block;
+            justify-content: center;
+            /* padding: 20px;*/
+            color: blue;
+            background-color: lavender;
+            border: 2px solid gold;
+            box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);
+        }
+
+
+    .torneo {
+        display: block;
+        justify-content: center;
+        /*  padding: 20px;*/
+        color: blue;
+        background-color: lavender;
+        /* box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5)*/
+    }
+
+    /*    input[type=text] {
+        background-color: blue;
+        color: red;
+        box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);
+    }*/
+
+    .contacto {
+        background-color: #5fa6f3;
+        padding: 5px;
+        width: 100%;
+        border-radius: 5px;
+        color: black;
+        box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);
+    }
+</style>

@@ -1,0 +1,127 @@
+﻿@page "/ListaColegio/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Nombre de Colegio" };
+    string[] propiedades = { "nombre" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoColegio
+                  type="text" button=false label="Nombre del Colegio"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarColegio"
+                  permitirEditar=@permitirEditar rutaEditar="EditarColegio"
+                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaColegio"
+                  eventBusqueda="BuscarListaColegio"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de Colegios de Arbitros" />
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    public string idtorneoseleccionado;
+
+    public string torneoMensaje { get; set; }
+
+    public ColegioCLS[] listadoColegio;
+
+    public ColegioCLS oColegioCLSBorrar = new ColegioCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DEL CAMPO Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listadoColegio = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio/");
+
+            if (user.Identity.IsAuthenticated)
+            {
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaColegio(string buscarNombreColegio)
+    {
+        if (buscarNombreColegio == null || buscarNombreColegio == "")
+        {
+            listadoColegio = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio/" + idtorneoseleccionado);
+        }
+        else
+        {
+            listadoColegio = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/FiltrarColegio/" + buscarNombreColegio + "/" + idtorneoseleccionado);
+        }
+    }
+
+
+    public async Task EliminarListaColegio(string idColegio)       // LO PONGO COMO STRING PORQUE EN EL LISTADOS ESTA COMO STRING
+    {
+        oColegioCLSBorrar = await http.GetFromJsonAsync<ColegioCLS>("api/Colegio/RecuperarInformacionColegio/" + idColegio);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oColegioCLSBorrar.nombre, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/Colegio/EliminarColegio/" + idColegio);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO CORRECTAMENTE     2 = HAY JUEGOS CON ESE CAMPO     3 = ES UN CAMPO CON NOMBRE PENDIENTE(NO SE PUEDE BORAR)
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, EL COLEGIO SE ELIMINO", "success", 2000);
+                    listadoColegio = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio/");
+                    break;
+                case 2:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "NO SE PUEDE BORRAR, HAY JUEGOS EN ESE COLEGIO", "warning");
+                    break;
+            }
+        }
+    }
+
+}
+

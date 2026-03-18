@@ -1,0 +1,58 @@
+﻿@page "/EditarArbitroColegio/{idArbitroColegio}"         
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioArbitroColegio oArbitroColegioCLS="oArbitroColegioCLS" listaColegios="listaColegio" />
+
+@code {
+    [Parameter]
+    public string idArbitroColegio { get; set; }
+    public UsuarioCLS oUsuarioCLS = new UsuarioCLS();
+
+    public ArbitroColegioCLS oArbitroColegioCLS = new ArbitroColegioCLS();
+    public List<ColegioCLS> listaColegio = new List<ColegioCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    public string idtorneoseleccionado;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+            var idusuariologueado = claims[0].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            oArbitroColegioCLS = await http.GetFromJsonAsync<ArbitroColegioCLS>("api/ArbitroColegio/RecuperarInformacionArbitroColegio/" + idArbitroColegio);
+
+            oUsuarioCLS = await http.GetFromJsonAsync<UsuarioCLS>("api/Usuario/RecuperarInformacionUsuario/" + idusuariologueado);
+            if (int.Parse(oUsuarioCLS.idtipousuario) == 5)
+            {
+                listaColegio = await http.GetFromJsonAsync<List<ColegioCLS>>("api/Colegio/ListarColegio2/" + oUsuarioCLS.idarbitrocolegio);
+            }
+
+            if (int.Parse(oUsuarioCLS.idtipousuario) == 1)
+            {
+                //listaColegio = await http.GetFromJsonAsync<List<ColegioCLS>>("api/Colegio/ListarColegio2/" + oEquipoColegioCLS.idcolegio);
+            }
+            //listaColegio = await http.GetFromJsonAsync<List<ColegioCLS>>("api/Colegio/ListarColegio2/" + idusuariologueado);
+        }
+    }
+
+    //protected async override Task OnParametersSetAsync()
+    //{
+
+    //    //oArbitroColegioCLS = await http.GetFromJsonAsync<ArbitroColegioCLS>("api/ArbitroColegio/RecuperarInformacionArbitroColegio/" + idArbitroColegio);
+    //    //listaColegio = await http.GetFromJsonAsync<List<ColegioCLS>>("api/Colegio/ListarColegio");
+    //}
+}
+

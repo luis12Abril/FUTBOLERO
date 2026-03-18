@@ -1,0 +1,150 @@
+﻿@page "/ListaEstado/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Estado" };
+    string[] propiedades = { "nombre" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <div class="mt-3">
+            <div style="background:linear-gradient(180deg, #eff6ff 0%, #eef2ff 100%); border:1px solid #dbeafe; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;">
+                <h3 style="margin:0; color:#1d4ed8; font-weight:700;">Estados Participantes</h3>
+                <span style="color:#475569; font-size:14px;">Administra los estados disponibles para el torneo.</span>
+            </div>
+
+            @if (listadoEstado == null)
+            {
+                <div class="text-center mt-4">
+                    <button class="btn btn-primary" style="min-width:170px; border-radius:8px;">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Cargando estados...
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div style="background-color:white; border-radius:12px; padding:0.5rem; box-shadow:0 12px 26px rgba(0,0,0,0.08);">
+                    <Listados cabeceras=cabeceras
+                              nombrePropiedadesMostrar=propiedades
+                              lista=listadoEstado
+                              type="text" button=false label="Estado"
+                              permitirAgregar=@permitirAgregar rutaAgregar="AgregarEstado"
+                              permitirEditar=@permitirEditar rutaEditar="EditarEstado"
+                              permitirEliminar=@permitirEliminar eventEliminar="EliminarListaEstado"
+                              eventBusqueda="BuscarListaEstado"
+                              permitirExportarExcel=@permitirExportarExcel
+                              permitirExportarWord=@permitirExportarWord
+                              permitirExportarPdf=@permitirExportarPDF
+                              tituloReporte="Listado de Estados participantes" />
+                </div>
+            }
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    //public string mensaje;
+    public string idtorneoseleccionado;
+
+    public string torneoMensaje { get; set; }
+
+    public EstadoCLS[] listadoEstado;
+
+    public EstadoCLS oEstadoCLSBorrar = new EstadoCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DEL ESTADO Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+
+            listadoEstado = await http.GetFromJsonAsync<EstadoCLS[]>("api/Estado/ListarEstado");
+
+            if (user.Identity.IsAuthenticated)
+            {
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaEstado(string buscarNombreEstado)
+    {
+        if (buscarNombreEstado == null || buscarNombreEstado == "")
+        {
+            listadoEstado = await http.GetFromJsonAsync<EstadoCLS[]>("api/Estado/ListarEstado");
+        }
+        else
+        {
+            listadoEstado = await http.GetFromJsonAsync<EstadoCLS[]>("api/Estado/FiltrarEstado/" + buscarNombreEstado + "/" + idtorneoseleccionado);
+        }
+    }
+
+
+    public async Task EliminarListaEstado(string idEstado)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+        oEstadoCLSBorrar = await http.GetFromJsonAsync<EstadoCLS>("api/Estado/RecuperarInformacionEstado/" + idEstado);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oEstadoCLSBorrar.nombre, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/Estado/EliminarEstado/" + idEstado);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO CORRECTAMENTE     2 = HAY JUEGOS CON ESE ESTADO    
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, EL ESTADO SE ELIMINO", "success", 2000); ;
+                    listadoEstado = await http.GetFromJsonAsync<EstadoCLS[]>("api/Estado/ListarEstado");
+                    break;
+                case 2:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "NO SE PUEDE BORRAR, HAY JUEGOS EN ESE ESTADO", "warning");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+

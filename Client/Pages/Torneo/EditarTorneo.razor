@@ -1,0 +1,20 @@
+﻿@page "/editarTorneo/{idTorneo}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioTorneo oTorneoCLS="oTorneoCLS" listaLigas="listaLiga" />
+
+@code {
+    [Parameter]
+    public string idTorneo { get; set; }
+
+    public TorneoCLS oTorneoCLS = new TorneoCLS();
+
+    public List<LigaCLS> listaLiga = new List<LigaCLS>();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oTorneoCLS = await http.GetFromJsonAsync<TorneoCLS>("api/Torneo/RecuperarInformacionTorneo/" + idTorneo);
+        listaLiga = await http.GetFromJsonAsync<List<LigaCLS>>("api/Liga/ListarLiga");
+    }
+}

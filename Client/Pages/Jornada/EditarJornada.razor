@@ -1,0 +1,18 @@
+﻿@page "/editarJornada/{idJornada}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioJornada oJornadaCLS="oJornadaCLS" />
+
+@code {
+    [Parameter]
+    public string idJornada { get; set; }
+
+    public JornadaCLS oJornadaCLS = new JornadaCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oJornadaCLS = await http.GetFromJsonAsync<JornadaCLS>("api/Jornada/RecuperarInformacionJornada/" + idJornada);
+    }
+}
+

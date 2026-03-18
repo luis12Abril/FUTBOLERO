@@ -1,0 +1,191 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+
+@if (oUsuarioCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    <EditForm Model="@oUsuarioCLS" OnValidSubmit="GuardarDatos">
+        <DataAnnotationsValidator />
+
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+        <div class="mb-4"></div>
+
+        @if (semodifica)
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Nombre usuario *</label>
+                <InputText class="form form-control" @bind-Value="oUsuarioCLS.nombre" />
+                <ValidationMessage For="@(() => oUsuarioCLS.nombre)" />
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Nombre usuario</label>
+                <InputText class="form form-control" @bind-Value="oUsuarioCLS.nombre" readOnly />
+                <ValidationMessage For="@(() => oUsuarioCLS.nombre)" />
+            </div>
+        }
+
+        @if (semodifica)
+        {
+            <div class="form-group">
+                <label class=" font-weight-bold">Contraseña *</label>
+                <InputText type="password" class="form form-control" @bind-Value="oUsuarioCLS.contraseña" />
+                <ValidationMessage For="@(() => oUsuarioCLS.contraseña)" />
+            </div>
+        }
+        else
+        {
+            
+            <div class="form-group">
+                <label class=" font-weight-bold">Contraseña</label>
+                <InputText type="password" class="form form-control" @bind-Value="oUsuarioCLS.contraseña" />       @*QUITE EL READONLY PORQUE QUIERO MODIFICAR EL PASSWORD*@
+                <ValidationMessage For="@(() => oUsuarioCLS.contraseña)" />
+            </div>
+        }
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Tipo usuario *</label>
+            <InputSelect @bind-Value="oUsuarioCLS.idtipousuario" class="form form-control">
+                <option value="">--- Seleccione ---</option>
+                @foreach (TipoUsuarioCLS oTipoUsuarioCLS in listaTipoUsuario)
+                    {
+                    <option value="@oTipoUsuarioCLS.iidTipoUsuario">@oTipoUsuarioCLS.nombre</option>
+                    }
+            </InputSelect>
+            <ValidationMessage For="@(()=>oUsuarioCLS.idtipousuario)" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Seleccione los torneos que administrara el usuario</label>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <td>Opción</td>
+                        <td>Nombre Torneo</td>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (TorneoCLS oTorneoCLS in listaTorneo)
+                    {
+                        <tr>
+                            <td>
+
+                                @if (oUsuarioCLS.listaidtorneo.Contains(oTorneoCLS.idtorneo))
+                                {
+                                    <input type="checkbox" checked @onchange="@(()=>CambiarValor(oTorneoCLS.idtorneo))" />
+                                }
+                                else
+                                {
+                                    <input type="checkbox" @onchange="@(()=>CambiarValor(oTorneoCLS.idtorneo))" />
+                                }
+
+                            </td>
+                            <td>
+                                @oTorneoCLS.nombre
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-2"></div>
+}
+
+@code {
+    [Parameter]
+    public bool semodifica { get; set; } = true;
+
+    [Parameter]
+    public UsuarioCLS oUsuarioCLS { get; set; } = new UsuarioCLS();
+
+    public List<TorneoCLS> listaTorneo = new List<TorneoCLS>();
+
+    [Parameter]
+    public List<TipoUsuarioCLS> listaTipoUsuario { get; set; }
+
+    public string ruta { get; set; }
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        listaTorneo = await http.GetFromJsonAsync<List<TorneoCLS>>("api/Torneo/ListarTorneo");
+
+        string paginaEnviar = "Listausuario";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+
+    public async Task<bool> GuardarDatos()
+    {
+        // CUANDO SE DA GUARDAR EN UN EDITAR LA CONTRAEÑA QUE REGRESA  [Route("api/Usuario/RecuperarInformacionUsuario/{idusuario}")] ES SIEMPRE 12345678*
+        // ENTONCES, ESTA OPCION SOLO LA UTILIZARE CUANDO QUIERA CAMBIAR MI CLAVE DE ADMINISTRADOR TOTAL O LA DE UN ADMINISTRADOR POR A ESOS YO SOY EL 
+        // QUE LES DARA EN NOMBRE DE USUARIO Y CLAVE Y ESAS CLAVES LAS VOY A TENER REGISTRADAS EN UNA HOJA DE EXCEL, A UN USUARIO INVITADO, SOLO LES 
+        // CAMBIARE SU CLAVE SI ELLOS ME LO SOLICITAN POR MEDIO DE UN CORREO Y QUIERAN CONSERVAR SU MISMO USUARIO, SI UN USUARIO INVITADO, QUIERE SER ADMINISTRADOR
+        // SE LE TENDRA QUE ASIGNAR UN NOMBRE DE USUARIO NUEVO Y CLAVE NUEVA ASIGNADA POR EL ADMINISTRADOR TOTAL, Y PODRA SEGUIR USANDO SU CLAVE DE INVITADO
+        // SI ASI LO DESEA.
+
+
+
+        var resultado = await http.PostAsJsonAsync("api/Usuario/GuardarDatosUsuario", oUsuarioCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "Error, NO se pudo registrar", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "Ok, Registro aceptado", "success", 2000);
+                navigation.NavigateTo(ruta);
+                break;
+            case 2:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "El usuario " + oUsuarioCLS.nombre + " ya esta registrado", "error");
+                break;
+            default:
+                break;
+        }
+
+        return await Task.FromResult(true);
+    }
+
+
+    public void CambiarValor(int idtorneo)
+    {
+        if (oUsuarioCLS.listaidtorneo.Contains(idtorneo))
+        {
+            oUsuarioCLS.listaidtorneo.Remove(idtorneo);
+        }
+        else
+        {
+            oUsuarioCLS.listaidtorneo.Add(idtorneo);
+        }
+    }
+}
+

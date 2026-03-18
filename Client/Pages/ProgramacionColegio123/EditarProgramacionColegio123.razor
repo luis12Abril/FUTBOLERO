@@ -1,0 +1,77 @@
+﻿@page "/editarProgramacionColegio123/{idProgramacionColegio}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@*<FormularioJuego oJuegoCLS="oJuegoCLS" listaJornadas="listaJornada" listaCampos="listaCampos" listaArbitros="listaArbitros"
+    listaEstatusJuegos="listaEstatusJuego" listaEquipo01="listaEquipo01" listaEquipo02="listaEquipo02"
+    visiblegolesequipo=true horario="oJuegoCLS.fhorario"
+    oComentarioCLS="oComentarioCLS" />*@
+
+<FormularioProgramacionColegio123 oProgramacionColegio123CLS="oProgramacionColegio123CLS" listaColegio="listaColegio" listaArbitroColegio="listaArbitro"
+                               listaEquipo01Colegio="listaEquipo01" listaEquipo02Colegio="listaEquipo02" listaCampoColegio="listaCampo"
+                               horario="oProgramacionColegio123CLS.fhorario" semodifica=semodifica />
+
+@code {
+    [Parameter]
+    public string idProgramacionColegio { get; set; }
+
+    public ProgramacionColegio123CLS oProgramacionColegio123CLS = new ProgramacionColegio123CLS();
+    //public ComentarioCLS[] oComentarioCLS;
+
+    public List<ColegioCLS> listaColegio = new List<ColegioCLS>();
+    public List<ArbitroColegioCLS> listaArbitro = new List<ArbitroColegioCLS>();
+    //public List<LigaColegioCLS> listaLiga = new List<LigaColegioCLS>();
+    //public List<TorneoColegioCLS> listaTorneo = new List<TorneoColegioCLS>();
+    public List<EquipoColegioCLS> listaEquipo01 = new List<EquipoColegioCLS>();
+    public List<EquipoColegioCLS> listaEquipo02 = new List<EquipoColegioCLS>();
+    public List<CampoColegioCLS> listaCampo = new List<CampoColegioCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    bool semodifica = true;
+
+    protected async override Task OnParametersSetAsync()
+    {
+
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+        var idusuariologueado = claims[0].Value;
+
+        int tipousuario = await http.GetFromJsonAsync<int>("api/Usuario/RegresaIdTipoUsuario/" + idusuariologueado);
+
+
+        // EL TIPO USUARIO QUE VA A ENTRAR A ESTA PAGINA ES 1 2 3 Y SOLO EL 1 VA A MODIFICAR
+        if(tipousuario == 1)
+        {
+            semodifica = true;
+        }
+        else
+        {
+            semodifica = false;
+        }
+
+
+        oProgramacionColegio123CLS = await http.GetFromJsonAsync<ProgramacionColegio123CLS>("api/ProgramacionColegio/RecuperarInformacionProgramacionColegio/" + idProgramacionColegio);
+        int idcolegio = int.Parse(oProgramacionColegio123CLS.idcolegio);
+
+        //int idcolegio = await http.GetFromJsonAsync<int>("api/Colegio/RegresaIdColegio/" + idusuariologueado);
+        // LA VARIABLE idJuego CAMBIA EL VALOR, ARRIBA TIENE UN VALOR Y AL USARLO ABAJO ME DA OTRO, POR ESO PUSE oJuegoCLS.idjuego Y ASI ES EL MISMO VALOR
+        // oComentarioCLS = await http.GetFromJsonAsync<ComentarioCLS[]>("api/Comentario/RecuperarTodosComentario/" + oJuegoCLS.idjuego);
+
+        //string idtorneoseleccionado = oJuegoCLS.idtorneo.ToString();
+
+        listaColegio = await http.GetFromJsonAsync<List<ColegioCLS>>("api/Colegio/ListarColegio3/" + idcolegio);
+        listaArbitro = await http.GetFromJsonAsync<List<ArbitroColegioCLS>>("api/ArbitroColegio/ListarArbitroColegio/" + idcolegio);
+        //listaLiga = await http.GetFromJsonAsync<List<LigaColegioCLS>>("api/LigaColegio/ListaLigaColegio");
+        //listaTorneo = await http.GetFromJsonAsync<List<TorneoColegioCLS>>("api/TorneoColegio/ListaTorneoColegio");
+        listaEquipo01 = await http.GetFromJsonAsync<List<EquipoColegioCLS>>("api/EquipoColegio/ListaEquipoColegio/" + idcolegio);
+        listaEquipo02 = await http.GetFromJsonAsync<List<EquipoColegioCLS>>("api/EquipoColegio/ListaEquipoColegio/" + idcolegio);
+        listaCampo = await http.GetFromJsonAsync<List<CampoColegioCLS>>("api/CampoColegio/ListarCampoColegio/" + idcolegio);
+    }
+}
+
+
+

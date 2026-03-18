@@ -1,0 +1,512 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+@if (oJuegoCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+
+    <EditForm Model="@oJuegoCLS" OnValidSubmit="GuardarDatos">
+        <DataAnnotationsValidator />
+
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+        <div class="mb-4"></div>
+
+        @if (visiblegolesequipo)        // CUANDO ES UN EDITAR
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Jornada</label>
+                <div class="col-lg-10">
+                    <InputText class="form-control" readOnly @bind-Value="oJuegoCLS.jornadacadena" />
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Jornada *</label>
+                <div class="col-lg-10">
+                    <InputSelect @bind-Value="oJuegoCLS.idjornada" class="form-control">
+                        <option value="">--- Seleccione ---</option>
+                        @foreach (JornadaCLS oJornadaCLS in listaJornadas)
+                                {
+                            <option value="@oJornadaCLS.idjornada">@oJornadaCLS.nombre</option>
+                                }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => oJuegoCLS.idjornada)" />
+                </div>
+            </div>
+        }
+
+
+        @if (visiblegolesequipo)        // CUANDO ES UN EDITAR
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Equipo 01</label>
+                <div class="col-lg-5">
+                    <InputText class="form-control" readOnly @bind-Value="oJuegoCLS.equipo01cadena" />
+                    @*<InputSelect @bind-Value="oJuegoCLS.idequipo01" class="form-control" @oninput="@(() =>CambioEquipo01(oJuegoCLS))">*@
+                    @*<InputSelect @bind-Value="oJuegoCLS.idequipo01" class="form-control" readonly>
+                            <option value="">--- Seleccione ---</option>
+                            @foreach (EquipoCLS oEquipo01CLS in listaEquipo01)
+                                {
+                                <option value="@oEquipo01CLS.idequipo">@oEquipo01CLS.nombre</option>
+                                }
+                        </InputSelect>*@
+                </div>
+
+                <div class="col-lg-2" style="display:flex; justify-content:space-between;">
+                    <div>
+                        <label class="col-form-label font-weight-bold">G</label>
+                        <input type="radio" name="final01" @onchange="@(() => MuestraCambio01("G"))" id="G01" />
+                    </div>
+                    <div>
+                        <label class="col-form-label font-weight-bold">E</label>
+                        <input type="radio" name="final01" @onchange="@(() => MuestraCambio01("E"))" id="E01" />
+                    </div>
+                    <div>
+                        <label class="col-form-label font-weight-bold">P</label>
+                        <input type="radio" name="final01" @onchange="@(() => MuestraCambio01("P"))" id="P01" />
+                    </div>
+                    <div>
+                        <label class="col-form-label font-weight-bold">GP</label>
+                        <input type="radio" name="final01" @onchange="@(() => MuestraCambio01("GP"))" id="GP01" />
+                    </div>
+                    <div>
+                        <label class="col-form-label font-weight-bold">GA</label>
+                        <input type="radio" name="final01" @onchange="@(() => MuestraCambio01("GA"))" id="GA01" />
+                    </div>
+                </div>
+
+
+                <div>
+                    <label class="col-md-1 col-form-label font-weight-bold">Goles</label>
+                </div>
+                <div class="col-md-1">
+                    <InputNumber class="form-control font-weight-bold" style="text-align:center" @bind-Value="oJuegoCLS.golesequipo01" min="0" />
+                </div>
+
+
+                @* PUNTOS EXTRAS *@
+                <div>
+                    <label class="col-md-1 col-form-label font-weight-bold">PE</label>
+                </div>
+                <div class="col-md-1">
+                    <InputNumber class="form-control font-weight-bold" style="text-align:center" @bind-Value="oJuegoCLS.peequipo01" min="0" />
+                </div>
+
+            </div>
+
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Equipo 02</label>
+                <div class="col-lg-5">
+                    <InputText class="form-control" readOnly @bind-Value="oJuegoCLS.equipo02cadena" />
+                </div>
+                <div class="col-lg-2" style="display:flex; justify-content:space-between;">
+                    <div>
+                        <label class="col-form-label font-weight-bold">G</label>
+                        <input type="radio" name="final02" @onchange="@(() => MuestraCambio02("G"))" id="G02" />
+                    </div>
+                    <div>
+                        <label class="col-form-label font-weight-bold">E</label>
+                        <input type="radio" name="final02" @onchange="@(() => MuestraCambio02("E"))" id="E02" />
+                    </div>
+                    <div>
+                        <label class="col-form-label font-weight-bold">P</label>
+                        <input type="radio" name="final02" @onchange="@(() => MuestraCambio02("P"))" id="P02" />
+                    </div>
+                    <div>
+                        <label class="col-form-label font-weight-bold">GP</label>
+                        <input type="radio" name="final02" @onchange="@(() => MuestraCambio02("GP"))" id="GP02" />
+                    </div>
+                    <div>
+                        <label class="col-form-label font-weight-bold">GA</label>
+                        <input type="radio" name="final02" @onchange="@(() => MuestraCambio02("GA"))" id="GA02" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="col-md-1 col-form-label font-weight-bold">Goles</label>
+                </div>
+                <div class="col-md-1">
+                    <InputNumber class="form-control font-weight-bold" style="text-align:center" @bind-Value="oJuegoCLS.golesequipo02" min="0" />
+                </div>
+
+
+                @* PUNTOS EXTRAS *@
+                <div>
+                    <label class="col-md-1 col-form-label font-weight-bold">PE</label>
+                </div>
+                <div class="col-md-1">
+                    <InputNumber class="form-control font-weight-bold" style="text-align:center" @bind-Value="oJuegoCLS.peequipo02" min="0" />
+                </div>
+
+            </div>
+        }
+        else
+        {                               // CUANDO ES UNA ALTA
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Equipo 01 *</label>
+                <div class="col-lg-10">
+                    <InputSelect @bind-Value="oJuegoCLS.idequipo01" class="form-control">
+                        <option value="">--- Seleccione ---</option>
+                        @foreach (EquipoCLS oEquipo01CLS in listaEquipo01)
+                                {
+                            <option value="@oEquipo01CLS.idequipo">@oEquipo01CLS.nombre</option>
+                                }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => oJuegoCLS.idequipo01)" />
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Equipo 02 *</label>
+                <div class="col-lg-10">
+                    <InputSelect @bind-Value="oJuegoCLS.idequipo02" class="form-control">
+                        <option value="">--- Seleccione ---</option>
+                        @foreach (EquipoCLS oEquipo02CLS in listaEquipo02)
+                                {
+                            <option value="@oEquipo02CLS.idequipo">@oEquipo02CLS.nombre</option>
+                                }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => oJuegoCLS.idequipo02)" />
+                </div>
+            </div>
+        }
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Campo *</label>
+            <div class="col-lg-10">
+                <InputSelect @bind-Value="oJuegoCLS.idcampo" class="form-control">
+                    <option value="">--- Seleccione ---</option>
+                    @foreach (CampoCLS oCampoCLS in listaCampos)
+                        {
+                        <option value="@oCampoCLS.idcampo">@oCampoCLS.nombre</option>
+                        }
+                </InputSelect>
+                <ValidationMessage For="@(() => oJuegoCLS.idcampo)" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Arbitro *</label>
+            <div class="col-lg-10">
+                <InputSelect @bind-Value="oJuegoCLS.idarbitro" class="form-control">
+                    <option value="">--- Seleccione ---</option>
+                    @foreach (ArbitroCLS oArbitroCLS in listaArbitros)
+                        {
+                        <option value="@oArbitroCLS.idarbitro">@oArbitroCLS.nombrecompleto</option>
+                        }
+                </InputSelect>
+                <ValidationMessage For="@(() => oJuegoCLS.idarbitro)" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Horario *</label>
+            <div class="col-lg-10">
+                <input type="datetime-local" @bind="horario" @bind:format="yyyy-MM-ddTHH:mm" class="form-control" />
+                @*<InputDate type="datetime-local" class="form-control" @bind-Value="oJuegoCLS.fhorario" />*@
+                @*<InputDate class="form-control" @bind-Value="oJuegoCLS.fhorario" @bind:format="dd/MM/yyyy" />
+                    <InputDate class="form-control" @bind-Value="oJuegoCLS.fhorario" format-Value="dd/MM/yyyy hh:mm" />*@
+            </div>
+        </div>
+
+        @if (visiblegolesequipo)        // CUANDO ES UN EDITAR
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Estatus del Juego *</label>
+                <div class="col-lg-10">
+                    <InputSelect @bind-Value="oJuegoCLS.idestatusjuego" class="form-control">
+                        <option value="">--- Seleccione ---</option>
+                        @foreach (EstatusJuegoCLS oEstatusJuegoCLS in listaEstatusJuegos)
+                                {
+                            <option value="@oEstatusJuegoCLS.idestatusjuego">@oEstatusJuegoCLS.nombre</option>
+                                }
+                    </InputSelect>
+                    <ValidationMessage For="@(() => oJuegoCLS.idestatusjuego)" />
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group row">
+                <label class="col-md-2 col-form-label font-weight-bold">Estatus del Juego</label>
+                <div class="col-lg-10">
+                    <InputText class="form-control" readOnly @bind-Value="oJuegoCLS.estatusjuegocadena" />
+                </div>
+            </div>
+        }
+
+        <div class="form-group row">
+            <label class="col-md-5 col-form-label font-weight-bold">Cuenta para los PUNTOS de la tabla general?</label>
+            <div class="col-md-1">
+                <InputCheckbox @bind-Value="@oJuegoCLS.cuentaparapuntos" class="form form-control" />
+                <ValidationMessage For="@(() => oJuegoCLS.cuentaparapuntos)" />
+            </div>
+            <label class="col-md-5 col-form-label font-weight-bold">Cuenta para los GOLES de la tabla general?</label>
+            <div class="col-md-1">
+                <InputCheckbox @bind-Value="@oJuegoCLS.cuentaparagoles" class="form form-control" />
+                <ValidationMessage For="@(() => oJuegoCLS.cuentaparagoles)" />
+            </div>
+        </div>
+
+
+        @if (visiblegolesequipo)        // CUANDO ES UN EDITAR
+        {
+            <ListadoJugadoresGoles oJuegoCLS="oJuegoCLS" />
+        }
+
+        @if (visiblegolesequipo)        // CUANDO ES UN EDITAR, LOS COMENTARIOS NO SE VERAN CUANDO SE ESTA AGREGANDO UN JUEGO
+        {
+            <div class="form-group row" style="margin-top:20px;">
+                <label class="col-md-2 col-form-label font-weight-bold">Nuevo Comentario</label>
+                <div class="col-lg-10">
+                    <InputTextArea class="form form-control" @bind-Value="oJuegoCLS.comentario" />
+                    <ValidationMessage For="@(() => oJuegoCLS.comentario)" />
+                </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-end;">
+                <input type="submit" value="Enviar Comentario" class="btn btn-success" />
+            </div>
+
+            <ListadoComentario oComentarioCLS="oComentarioCLS" />
+        }
+
+        <div class="mb-4"></div>
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-4"></div>
+}
+
+
+
+@code {
+    public int yaentro = 0;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public JuegoCLS oJuegoCLS { get; set; } = new JuegoCLS();
+
+    [Parameter]
+    public ComentarioCLS[] oComentarioCLS { get; set; }
+
+    [Parameter]
+    public DateTime horario { get; set; } = DateTime.Now;
+
+    public int ganado01 { get; set; } = 1;
+
+    public int empatado01 { get; set; }
+
+    public int perdido01 { get; set; }
+
+    public int ganadoempatado01 { get; set; }
+
+    public int ganadoadmo01 { get; set; }
+
+    public int ganado02 { get; set; }
+
+    public int empatado02 { get; set; }
+
+    public int perdido02 { get; set; } = 0;
+
+    public int ganadoempatado02 { get; set; }
+
+    public int ganadoadmo02 { get; set; }
+
+    [Parameter]
+    public JuegoCLS oJuegoCLS2 { get; set; } = new JuegoCLS();
+
+    public string error { get; set; } = "Sin Error";
+
+    public string mensaje { get; set; } = "-1";
+
+    // AQUI VAN LOS PARAMETROS DE LOS COMBOS DEL FORMULARIO
+    [Parameter]
+    public List<JornadaCLS> listaJornadas { get; set; }
+    [Parameter]
+    public List<EquipoCLS> listaEquipo01 { get; set; }
+    [Parameter]
+    public List<EquipoCLS> listaEquipo02 { get; set; }
+    [Parameter]
+    public List<CampoCLS> listaCampos { get; set; }
+    [Parameter]
+    public List<ArbitroCLS> listaArbitros { get; set; }
+    [Parameter]
+    public List<EstatusJuegoCLS> listaEstatusJuegos { get; set; }
+
+    // ESTA VARIABLE ES PARA QUE MUESTRE EL CONTROL DE LOS GOLES EN CASO DE SER UN EDITAR
+    [Parameter]
+    public bool visiblegolesequipo { get; set; } = false;
+
+    public string ruta { get; set; }
+
+
+    protected async override Task OnParametersSetAsync()
+    {
+        string paginaEnviar = "ListaJuego";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+
+        // ESTE IF ES PORQUE CUANDO ES NUEVO NO ESTAN ACTIVADOS LOS RADIOS Y POR ESO NO DEBE ENTRAR
+        if (oJuegoCLS.idjuego != 0)
+        {
+            // ESTE IF ES PORQUE CUANDO LE DOY CLICK EN CERRAR SESION ME DA UN ERROR DE RELOAD PORQUE VUELVE A ENTRAR, NO LO PUDE ARREGLAR DE OTRO MODO
+            if (yaentro == 0)
+            {
+                string valid01 = oJuegoCLS.resequipo01.Trim() + "01";
+                string valid02 = oJuegoCLS.resequipo02.Trim() + "02";
+
+                await ijsruntime.InvokeVoidAsync("PonChecked", valid01, valid02);
+                yaentro = yaentro + 1;
+            }
+        }
+    }
+
+
+    public async Task<bool> GuardarDatos()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        oJuegoCLS.idtorneo = int.Parse(claims[2].Value);
+
+        oJuegoCLS.torneo = torneo;
+
+        oJuegoCLS.fhorario = horario;
+
+        oJuegoCLS.idusuario = int.Parse(user.Identity.Name);
+
+        var resultado = await http.PostAsJsonAsync("api/Juego/GuardarDatosJuego", oJuegoCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = ERROR    1 = OK  3 = ERROR EN GOLES DE LOS DOS EQUIPOS   4 = ERROR EN GOLES DEL EQUIPO 01    5 = ERROR EN GOLES DEL EQUIPO 02
+        // 6 = SE GRABO EL COMENTARIO   7 = EL COMENTARIO ESTA EN BLANCO    8 = SON MAS DE 50 MCOMENTARIOS  10 = ERROR EN LOS RADIOS
+        // 11 Y 12 PENDIENTE DE REVISAR
+
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR, NO SE GUARDARON LOS DATOS", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+                navigation.NavigateTo(ruta);
+                break;
+            case 3:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "LA SUMA DE GOLES NO ES IGUAL EN NINGUN EQUIPO", "error");
+                break;
+            case 4:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "REVISA LOS GOLES DE " + oJuegoCLS.equipo01cadena, "error");
+                break;
+            case 5:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "REVISA LOS GOLES DE " + oJuegoCLS.equipo02cadena, "error");
+                break;                  
+            case 6:
+                oJuegoCLS.comentario = "";
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, SE GUARDARON LOS DATOS Y SE ENVIO EL MENSAJE", "success");
+                oComentarioCLS = await http.GetFromJsonAsync<ComentarioCLS[]>("api/Comentario/RecuperarTodosComentario/" + oJuegoCLS.idjuego);
+                break;
+            case 7:
+                oJuegoCLS.comentario = "";
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+                navigation.NavigateTo(ruta);
+                break;
+            case 8:
+                oJuegoCLS.comentario = "";
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS, PERO NO EL COMENTARIO, EXEDIO EL LIMITE", "success");
+                navigation.NavigateTo(ruta);
+                break;
+            case 10:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "REVISA G  E  P  GP  GA", "error");
+                break;
+            case 11:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "SI " + oJuegoCLS.equipo01cadena + " GANO ADMINISTRATIVAMENTE EL RESULTADO DEBE SER 2 - 0", "error");
+                break;
+            case 12:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "SI " + oJuegoCLS.equipo02cadena + " GANO ADMINISTRATIVAMENTE EL RESULTADO DEBE SER 0 - 2", "error");
+                break;
+            default:
+                break;
+        }
+
+        return await Task.FromResult(true);
+    }
+
+
+    public void MuestraCambio01(string valSel)
+    {
+        oJuegoCLS.resequipo01 = valSel;
+
+        switch (valSel)
+        {
+            case "G":
+                oJuegoCLS.puntosequipo01 = 3;
+                break;
+            case "E":
+                oJuegoCLS.puntosequipo01 = 1;
+                break;
+            case "P":
+                oJuegoCLS.puntosequipo01 = 0;
+                break;
+            case "GP":
+                oJuegoCLS.puntosequipo01 = 2;
+                break;
+            case "GA":
+                oJuegoCLS.puntosequipo01 = 3;
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    public void MuestraCambio02(string valSel)
+    {
+        oJuegoCLS.resequipo02 = valSel;
+        switch (valSel)
+        {
+            case "G":
+                oJuegoCLS.puntosequipo02 = 3;
+                break;
+            case "E":
+                oJuegoCLS.puntosequipo02 = 1;
+                break;
+            case "P":
+                oJuegoCLS.puntosequipo02 = 0;
+                break;
+            case "GP":
+                oJuegoCLS.puntosequipo02 = 2;
+                break;
+            case "GA":
+                oJuegoCLS.puntosequipo02 = 3;
+                break;
+            default:
+                break;
+        }
+    }
+}
+

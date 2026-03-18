@@ -1,0 +1,21 @@
+﻿@page "/agregarPublicidad"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+
+<AuthorizeView>
+    <Authorized>
+        <FormularioPublicidad listaTorneos="listaTorneo"/>
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    public List<TorneoCLS> listaTorneo = new List<TorneoCLS>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaTorneo = await http.GetFromJsonAsync<List<TorneoCLS>>("api/Torneo/ListarTorneo");
+    }
+}

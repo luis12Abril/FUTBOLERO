@@ -1,0 +1,21 @@
+﻿@page "/editarJuegoInvitado/{idJuego}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioJuegoInvitado oJuegoInvitadoCLS="oJuegoInvitadoCLS" oComentarioCLS="oComentarioCLS" />
+
+@code {
+    [Parameter]
+    public string idJuego { get; set; }
+
+    public JuegoInvitadoCLS oJuegoInvitadoCLS = new JuegoInvitadoCLS();
+    public ComentarioCLS[] oComentarioCLS;
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oJuegoInvitadoCLS = await http.GetFromJsonAsync<JuegoInvitadoCLS>("api/JuegoInvitado/RecuperarInformacionJuegoInvitado/" + idJuego);
+
+        // LA VARIABLE idJuego CAMBIA EL VALOR, ARRIBA TIENE UN VALOR Y AL USARLO ABAJO ME DA OTRO, POR ESO PUSE oJuegoInvitadoCLS.idjuego Y ASI ES EL MISMO VALOR
+        oComentarioCLS = await http.GetFromJsonAsync<ComentarioCLS[]>("api/Comentario/RecuperarTodosComentario/" + oJuegoInvitadoCLS.idjuego);
+    }
+}

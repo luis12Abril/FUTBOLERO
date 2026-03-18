@@ -1,0 +1,54 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager navigate;
+@inject AuthenticationStateProvider auth;
+@using FUTBOLERO.Client.Service;
+
+@using FUTBOLERO.Shared;
+
+<div class="sidebar" style="overflow-y: scroll;">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4 bg-secondary">
+        <AuthorizeView>
+            <Authorized>
+                <div class="d-flex justify-content-between align-middle col-xl-12" style=" vertical-align: middle;">
+                    <p style="font-size:20px; color:white; font-weight:bold; align-items:center;">@misvalorescascada.torneocascada</p>
+                    <button class="btn btn-danger" @onclick="CerrarSesion">Cerrar Sesión</button>
+                </div>
+
+            </Authorized>
+            <NotAuthorized>
+                <div style="display:flex; justify-content:space-between;">
+                    <p></p>
+                    <button class="btn btn-primary" @onclick="IniciarSesion">Iniciar Sesión</button>
+                </div>
+            </NotAuthorized>
+
+        </AuthorizeView>
+    </div>
+    <div class="content px-4">
+        <CascadingValue Value="@misvalorescascada">
+            @Body
+        </CascadingValue>
+    </div>
+
+</div>
+
+@code{
+
+    MisValoresCascada misvalorescascada = new MisValoresCascada();
+
+    public void CerrarSesion()
+    {
+        ((Autenticacion)auth).cerrarSession();
+        navigate.NavigateTo("/");
+    }
+
+    public void IniciarSesion()
+    {
+        navigate.NavigateTo("/");
+    }
+
+}

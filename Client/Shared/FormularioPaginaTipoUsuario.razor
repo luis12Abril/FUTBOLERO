@@ -1,0 +1,113 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+
+
+@if (oPaginaTipoUsuarioCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    <EditForm Model="@oPaginaTipoUsuarioCLS" OnValidSubmit="GuardarDatos">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Id Pagina</label>
+            <InputNumber readOnly class="form form-control" @bind-Value="oPaginaTipoUsuarioCLS.idpaginatipousuario" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Ingrese botones a seleccionar</label>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <td>Opción</td>
+                        <td>Nombre Botón</td>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (BotonesCLS oBotonesCLS in listaBoton)
+                    {
+                        <tr>
+                            <td>
+                                @if (oPaginaTipoUsuarioCLS.idboton.Contains(oBotonesCLS.idboton))
+                                {
+                                    <input type="checkbox" checked @onchange="@(()=>CambiarValor(oBotonesCLS.idboton))" />
+                                }
+                                else
+                                {
+                                    <input type="checkbox" @onchange="@(()=>CambiarValor(oBotonesCLS.idboton))" />
+                                }
+                            </td>
+                            <td>
+                                @oBotonesCLS.nombre
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+
+    <div class="mb-2"></div>
+}
+
+@code {
+    [Parameter]
+    public PaginaTipoUsuarioCLS oPaginaTipoUsuarioCLS { get; set; } = new PaginaTipoUsuarioCLS();
+
+    public List<BotonesCLS> listaBoton = new List<BotonesCLS>();
+
+    public string ruta { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaBoton = await http.GetFromJsonAsync<List<BotonesCLS>>("api/PaginaTipoUsuario/ListarBotones");
+        //oPagTipoUsuarioCLS = await http.GetFromJsonAsync<PaginaTipoUsuarioCLS>("api/PaginaTipoUsuario/RecuperarBotones/+Id");
+
+        string paginaEnviar = "ListaPaginaTipoUsuarioBoton";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+
+    public async Task GuardarDatos()
+    {
+        var resultado = await http.PostAsJsonAsync("api/PaginaTipoUsuario/GuardarDatosPaginaTipoUsuario", oPaginaTipoUsuarioCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+    }
+
+
+    public void CambiarValor(int iidButton)
+    {
+        if (oPaginaTipoUsuarioCLS.idboton.Contains(iidButton))
+        {
+            oPaginaTipoUsuarioCLS.idboton.Remove(iidButton);
+        }
+        else
+        {
+            oPaginaTipoUsuarioCLS.idboton.Add(iidButton);
+        }
+    }
+}

@@ -1,0 +1,109 @@
+﻿@page "/ListaPosiciones/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "EQUIPO", "JJ", "JG", "JE", "JEGP", "JP", "GF", "GC", "DG", "PE", "PTOS" };
+    string[] propiedades = { "nombre", "jugados", "ganados", "empatados", "empatadosganados", "perdidos",
+    "golesafavor", "golesencontra", "diferenciagoles", "puntosextras", "puntos"};
+}
+
+<AuthorizeView>
+    <Authorized>
+        <div class="mt-3">
+            <div style="background:linear-gradient(180deg, #eff6ff 0%, #eef2ff 100%); border:1px solid #dbeafe; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;">
+                <h3 style="margin:0; color:#1d4ed8; font-weight:700;">Tabla de Posiciones</h3>
+                <span style="color:#475569; font-size:14px;">Consulta el rendimiento de los equipos del torneo seleccionado.</span>
+            </div>
+
+            @if (listadoPosiciones == null)
+            {
+                <div class="text-center mt-4">
+                    <button class="btn btn-primary" style="min-width:170px; border-radius:8px;">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Cargando posiciones...
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div style="background-color:white; border-radius:12px; padding:0.5rem; box-shadow:0 12px 26px rgba(0,0,0,0.08);">
+                    <Listados cabeceras=cabeceras
+                              nombrePropiedadesMostrar=propiedades
+                              lista=listadoPosiciones
+                              permitirExportarExcel=@permitirExportarExcel
+                              permitirExportarWord=@permitirExportarWord
+                              permitirExportarPdf=@permitirExportarPDF
+                              tituloReporte="Tabla de Posiciones" />
+                </div>
+            }
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    public string mensaje = "NADA";
+
+    public string idtorneoseleccionado;
+
+    public PosicionesCLS[] listadoPosiciones;
+
+    public PosicionesCLS oPosicionesCLSBorrar = new PosicionesCLS();         // ESTA LINEA AL PARECER NO LA OCUPO, PERO LA VOY A DEJAR MIENTRAS LO REVISO
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [CascadingParameter]
+    public MisValoresCascada misvalorescascada { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TODAS ESTAS LINEAS SI VAN
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneoseleccionadocadena = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            listadoPosiciones = await http.GetFromJsonAsync<PosicionesCLS[]>("api/Posiciones/ListarPosiciones/" + idtorneoseleccionado);
+            //listadoPosiciones = await http.GetFromJsonAsync<PosicionesCLS[]>("api/Posiciones/ListarPosiciones/" + "1");
+
+            listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+            //listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + "admin" + "/" + Id);
+
+            if (listaBotones.Count() > 0)
+            {
+                if (listaBotones.Contains(1)) permitirAgregar = true;
+                if (listaBotones.Contains(2)) permitirEditar = true;
+                if (listaBotones.Contains(3)) permitirEliminar = true;
+                if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                if (listaBotones.Contains(5)) permitirExportarWord = true;
+                if (listaBotones.Contains(6)) permitirExportarPDF = true;
+            }
+
+            misvalorescascada.torneocascada = torneoseleccionadocadena;
+        }
+    }
+
+
+
+}
+

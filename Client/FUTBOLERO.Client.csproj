@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Pages\ArbitroColegio ANT\**" />
+    <Compile Remove="Pages\ColegioCampo ANT\**" />
+    <Compile Remove="Pages\ColegioEquipo ANT\**" />
+    <Compile Remove="Pages\ProgramacionColegio ANT\**" />
+    <Content Remove="Pages\ArbitroColegio ANT\**" />
+    <Content Remove="Pages\ColegioCampo ANT\**" />
+    <Content Remove="Pages\ColegioEquipo ANT\**" />
+    <Content Remove="Pages\ProgramacionColegio ANT\**" />
+    <EmbeddedResource Remove="Pages\ArbitroColegio ANT\**" />
+    <EmbeddedResource Remove="Pages\ColegioCampo ANT\**" />
+    <EmbeddedResource Remove="Pages\ColegioEquipo ANT\**" />
+    <EmbeddedResource Remove="Pages\ProgramacionColegio ANT\**" />
+    <None Remove="Pages\ArbitroColegio ANT\**" />
+    <None Remove="Pages\ColegioCampo ANT\**" />
+    <None Remove="Pages\ColegioEquipo ANT\**" />
+    <None Remove="Pages\ProgramacionColegio ANT\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Shared\FormularioLigaColegio.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EPPlus" Version="7.5.3" />
+    <PackageReference Include="itext7" Version="7.1.16" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.5" PrivateAssets="all" />
+    <PackageReference Include="Syncfusion.DocIO.Net.Core" Version="19.2.0.62" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\FUTBOLERO.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Shared\FormularioLigaColegio.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Shared\FormularioLigaColegio.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Pages\ColegioCampo\AgregarCampoColegio.razor" />
+    <None Include="Pages\ColegioCampo\EditarCampoColegio.razor" />
+    <None Include="Pages\ColegioCampo\ListaCampoColegio.razor" />
+    <None Include="Shared\FormularioLigaColegio.razor" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,638 @@
+﻿@inject NavigationManager navigation
+@using OfficeOpenXml;                   @*SI MARCAN ERROR HAY QUE INSTALAR EL EPPLUS*@
+@using OfficeOpenXml.Style;
+@using System.IO;
+
+@using iText.Pdfa;
+@using iText.Kernel.Pdf;
+@using iText.Layout;
+@using iText.Layout.Element;
+
+@using Syncfusion.DocIO;
+@using Syncfusion.DocIO.DLS;
+
+@inject IJSRuntime jsruntime;
+
+@if (lista == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        @if (permitirAgregar)
+        {
+            <div class="mb-1">
+                <NavLink href="@rutaAgregar">
+                    <button class="btn btn-primary">Agregar</button>
+                </NavLink>
+            </div>
+        }
+
+        @if (permitirExportarExcel)
+        {
+            <a @onclick="exportarExcel" class="btn btn-success" href="@excel">Exportar a Excel</a>
+        }
+
+        @if (permitirExportarWord)
+        {
+            <a @onclick="exportarWord" class="btn btn-info" href="@word">Exportar a Word</a>
+        }
+
+        @if (permitirExportarPdf)
+        {
+            <button class="btn btn-warning" @onclick="exportarPdf">Exportar a PDF</button>
+        }
+
+        <div class="dataTables_length" id="example_length">
+            <label>
+                Muestrame
+                <select name="example_length" aria-controls="example" class=""
+                        @bind-value="numeroRegistrosPagina" @bind-value:event="oninput" @onchange="CambiarRegistrosPagina">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                    <option value="75">75</option>
+                    <option value="100">100</option>
+                    <option value="150">150</option>
+                    <option value="200">200</option>
+                    <option value="300">300</option>
+                    <option value="400">400</option>
+                    <option value="500">500</option>
+                </select> registros
+            </label>
+        </div>
+    </div>
+
+
+    @if (type != "none")
+    {
+        @if (type == "text")
+        {
+            @if (button)
+            {
+                <div class="mt-1 mb-2 d-flex justify-content-between">
+                    <label style="width:18%; font-weight: bold;">@label</label>
+                    <input style="width:64%;" type="text" class="form-control" @bind-value="valor" @bind-value:event="oninput" />
+                    <div style="display:flex; justify-content:flex-end; width:14%;">
+                        <button class="btn btn-primary" @onclick="Busqueda">Buscar</button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="mt-1 mb-2" style="display: grid; grid-template-columns: 2fr 8fr; grid-column-gap: 10px;">
+                    <label class="mb-2 font-weight-bold">@label</label>
+                    <input type="text" class="form-control" @bind-value="valor" @bind-value:event="oninput" @onkeyup="Busqueda" />
+
+                </div>
+            }
+        }
+        else if (type == "combobox")
+        {
+            if (button)
+            {
+                @*<div class="mb-2" style="display:grid; grid-template-columns:2fr 8fr 1fr; grid-column-gap:10px;">*@
+                <div class="mt-1 mb-2" style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="width:18%; font-weight:bold;">@label</label>
+                    <select style="width:64%;" @bind-value="valor" @bind-value:event="oninput" class="form-control">
+                        <option value="">--- Seleccione ---</option>
+                        @foreach (var item in combobox)
+                        {
+                            <option value="@item.GetType().GetProperty(valueMember).GetValue(item)">
+                                @item.GetType().GetProperty(displayMember).GetValue(item)
+                            </option>
+                        }
+
+                    </select>
+                    <div style="display:flex; justify-content:flex-end; width:14%;">
+                        <input type="button" value="Buscar" @onclick="Busqueda" class="btn btn-primary" />
+                    </div>
+                </div>
+            }
+            else
+            {
+                @*<div class="mb-2" style="display:grid; grid-template-columns:2fr 8fr; grid-column-gap:10px;">*@
+                <div class="mt-1 mb-2" style="display:flex; justify-content:space-between; align-items:center;">
+                    <label style="width:20%; font-weight:bold;">@label</label>
+                    <select style="width:80%;" @bind-value="valor" class="form-control" @bind-value:event="oninput" @onchange="Busqueda">
+                        @if (tieneseleccione)
+                        {
+                            <option value="">--- Seleccione ---</option>
+                        }
+
+                        @foreach (var item in combobox)
+                        {
+                            <option value="@item.GetType().GetProperty(valueMember).GetValue(item)">
+                                @item.GetType().GetProperty(displayMember).GetValue(item)
+                            </option>
+                        }
+                    </select>
+                </div>
+            }
+        }
+    }
+
+    <div class="dataTables_wrapper">
+
+        <table class="table table-striped dataTable no-footer table-sm" id="tabla">
+            <thead class="thead-dark">
+                <tr role="row">
+                    @foreach (string cab in cabeceras)
+                    {
+                        @*<th class="sorting_asc" tabindex="0" aria-controls="example" rowspan="1" colspan="1"
+                            style="width: 139px;" aria-sort="ascending"
+                            aria-label="Name: activate to sort column descending">Name</th>*@
+
+                        <th>@cab</th>
+                    }
+
+                    @*@if (numOpera == 1)
+                        {
+                            <th style="text-align:center">AGREGAR</th>
+                        }*@
+
+                    @if (permitirEditar || permitirEliminar)
+                    {
+                        @if (botoneditinvitado)
+                        {
+                            <th style="text-align:center">Ver Mas</th>
+                        }
+                        else
+                        {
+                            <th style="text-align:center">Operaciones</th>
+                        }
+                    }
+                </tr>
+            </thead>
+
+            <tbody>
+                @{
+                    List<object> listaRetornar = new List<object>();
+                    int indiceValor;
+
+                    // CUANDO DAMOS CLICK A UN BOTON DEL PAGINADO
+                    if (indiceVal > 1)
+                    {
+                        indiceValor = indiceVal;
+                    }
+                    else
+                    {
+                        indiceValor = 1;
+                    }
+                    int inicio = indiceValor * numeroRegistrosPagina - numeroRegistrosPagina;
+                    int fin = indiceValor * numeroRegistrosPagina;
+
+                    @for (int i = inicio; i < fin; i++)
+                    {
+                        if (i < lista.Length)
+                        {
+                            listaRetornar.Add(lista[i]);
+                        }
+                    }
+
+                }
+
+                @foreach (object obj in listaRetornar)
+                {
+                    <tr role="row" class="odd">
+                        @foreach (var propiedad in nombrePropiedadesMostrar)
+                        {
+                            <td>@obj.GetType().GetProperty(propiedad).GetValue(obj).ToString()</td>
+                        }
+
+
+                        @if (permitirEditar || permitirEliminar)
+                        {
+                            <td style="display:flex; justify-content:space-around; align-items:center;">
+                                @if (permitirEditar)
+                                {
+                                    if (botoneditinvitado)
+                                    {
+                                        <button class="btn btn-success fa fa-plus-square" @onclick="@(() => Editar(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))"></button>
+                                    }
+                                    else
+                                    {
+                                        @*<button class="btn btn-primary fa fa-edit" @onclick="@(() => Editar(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))"></button>*@
+                                        <button class="btn btn-primary fa fa-edit" @onclick="@(() => Editar(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))"></button>
+                                    }
+                                }
+                                @if (permitirEliminar)
+                                {
+                                    <button class="btn btn-danger fa fa-trash"
+                                            @onclick="@(() => Eliminar(@obj.GetType().GetProperties()[0].GetValue(@obj).ToString()))"></button>
+
+                                }
+                            </td>
+                        }
+
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @{
+            int inicioPaginado = inicio + 1;
+            int finPagina = inicioPaginado + numeroRegistrosPagina - 1;
+            if (finPagina > lista.Length)
+            {
+                finPagina = lista.Length;
+            }
+        }
+        <div class="mt-2 mb-2" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                @{
+                    string mensajeregistros = "";
+                    if (@lista.Length == 0)
+                    {
+                        mensajeregistros = "Mostrando del 0 al 0 de 0 registros";
+                    }
+                    else
+                    {
+                        mensajeregistros = "Mostrando del " + @inicioPaginado + " al " + @finPagina + " de " + @lista.Length + " registros";
+                    }
+                }
+                @mensajeregistros
+            </div>
+
+            <div class="dataTables_paginate paging_simple_numbers mb-2">
+                @*<a class="paginate_button previous disabled" aria-controls="example" data-dt-idx="0" tabindex="-1" id="example_previous">Previous</a>*@
+
+                <button @onclick="@(e => Anterior())" class="paginate_button btn btn-outline-info">Anterior</button>
+                <span>
+                    @{
+                        botonespagina = numeroPaginas();
+                        //int indiceVal2 = indiceVal;
+                    }
+
+                    @if (botonespagina <= 5)
+                    {
+                        @for (int i = 1; i <= botonespagina; i++)
+                        {
+                            int data = i;
+                            <button @onclick="@(e=>Paginar(data))" class="paginate_button btn btn-outline-info" aria-controls="example" data-dt-idx="1" tabindex="0">
+                                @i
+                            </button>
+                        }
+                    }
+                    else
+                    {
+                        @if (indiceVal <= 1)
+                        {
+                            iniciabotones = 1;
+                        }
+                        @if (indiceVal + 4 >= botonespagina)
+                        {
+                            iniciabotones = botonespagina - 4;
+                        }
+                        else
+                        {
+                            iniciabotones = indiceVal;
+                        }
+
+                        @for (int i = iniciabotones; i <= indiceVal + 4; i++)
+                        {
+                            if (i <= botonespagina)
+                            {
+                                int data = i;
+                                <button @onclick="@(e=>Paginar(data))" class="paginate_button btn btn-outline-info" aria-controls="example" data-dt-idx="1" tabindex="0">
+                                    @i
+                                </button>
+                            }
+                        }
+                    }
+
+                </span>
+                <button @onclick="@(e => Siguiente())" class="paginate_button btn btn-outline-info">Siguiente</button>
+
+                @*<a class="paginate_button next" aria-controls="example" data-dt-idx="7" tabindex="0" id="example_next">Next</a>*@
+            </div>
+        </div>
+
+    </div>
+}
+
+
+@code {
+    // ESTE PARAMETRO ES PARA CUANDO ES UN MENU DE OPERACIONES NORMAL Y PODER PONER OTRO CUANDO SEA ESPECIAL (COLEGIOARBITROS)
+
+
+    [Parameter]
+    public bool tieneseleccione { get; set; } = true;
+    [Parameter]
+    public bool idcolegioarbitro { get; set; } = false;
+
+    [Parameter]
+    public bool botoneditinvitado { get; set; } = false;
+
+    public int botonespagina { get; set; }
+    public int iniciabotones { get; set; } = 1;
+
+    public string excel = "";       // SE UTIULIZA PARA EXPORTAR A EXCEL
+    public string word = "";
+
+    public string valorEliminar { get; set; }
+    public string valor { get; set; }
+
+    [Parameter]
+    public string rutaAgregar { get; set; } = "";
+
+    [Parameter]
+    public string rutaEditar { get; set; } = "";
+
+    [Parameter]
+    public string[] cabeceras { get; set; }
+
+    [Parameter]
+    public object[] lista { get; set; }         // EN LISTA ESTA TODA LA DATA
+
+    [Parameter]
+    public string type { get; set; } = "none";
+
+    [Parameter]
+    public string label { get; set; } = "";
+
+    [Parameter]
+    public bool button { get; set; } = true;
+
+    [Parameter]
+    public EventCallback<string> eventBusqueda { get; set; }
+
+    [Parameter]
+    public EventCallback<string> eventEditar { get; set; }
+
+    [Parameter]
+    public EventCallback<string> eventEliminar { get; set; }
+
+    public void Editar(string data)
+    {
+        navigation.NavigateTo(rutaEditar + "/" + data);
+        eventEditar.InvokeAsync(data);
+    }
+
+    public void Eliminar(string data)
+    {
+        valorEliminar = data;
+        eventEliminar.InvokeAsync(data);
+    }
+
+
+    public void EliminarDatos(string data)
+    {
+        eventEliminar.InvokeAsync(data);
+    }
+
+
+    public void Busqueda()
+    {
+        eventBusqueda.InvokeAsync(valor);
+    }
+
+
+    public void Anterior()
+    {
+        indiceVal = indiceVal - 1;
+        if (indiceVal < 1)
+        {
+            indiceVal = 1;
+        }
+    }
+
+
+    public void Siguiente()
+    {
+
+        indiceVal = indiceVal + 1;
+        if (indiceVal > numeroPaginas())
+        {
+            indiceVal = numeroPaginas();
+        }
+    }
+
+
+    public void exportarExcel()
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            using (ExcelPackage ep = new ExcelPackage())
+            {
+                ep.Workbook.Worksheets.Add("Hoja");
+                ExcelWorksheet ew = ep.Workbook.Worksheets[0];
+
+                for (int i = 0; i < cabeceras.Length; i++)
+                {
+                    ew.Column(i + 1).Width = 50;
+                    ew.Cells[1, i + 1].Value = cabeceras[i];
+                }
+
+                //INICIALIZANDO VALORES
+                int fila = 2;
+                int col = 1;
+                foreach (object item in lista)
+                {
+                    col = 1;
+                    foreach (string propiedad in nombrePropiedadesMostrar)
+                    {
+                        ew.Cells[fila, col].Value = item.GetType().GetProperty(propiedad).GetValue(item).ToString();
+                        col++;
+                    }
+                    fila++;
+                }
+
+                // ESTO SE PONE PARA DESCARGAR
+                ep.SaveAs(ms);
+                byte[] buffer = ms.ToArray();
+                string base64 = Convert.ToBase64String(buffer);
+                excel = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + base64;
+            }
+        }
+    }
+
+
+    public void exportarWord()
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            WordDocument document = new WordDocument();
+            WSection section = document.AddSection() as WSection;
+
+            section.PageSetup.Margins.All = 72;
+            IWParagraph paragraph = section.AddParagraph();
+            paragraph.ApplyStyle("Normal");
+            paragraph.ParagraphFormat.HorizontalAlignment = HorizontalAlignment.Center;
+
+            WTextRange textRange = paragraph.AppendText(tituloReporte) as WTextRange;           //AQUI ME ESTA MARCANDO ERROR
+            textRange.CharacterFormat.FontSize = 20f;
+            textRange.CharacterFormat.FontName = "calibri";
+            textRange.CharacterFormat.TextColor = Syncfusion.Drawing.Color.Blue;
+
+            // CREO UNA TABLA
+            IWTable table = section.AddTable();
+            int numeroCabeceras = cabeceras.Length;
+            int numeroFilas = lista.Length;
+            table.ResetCells(numeroFilas + 1, numeroCabeceras);
+
+            for (int i = 0; i < numeroCabeceras; i++)
+            {
+                table[0, i].AddParagraph().AppendText(cabeceras[i]);
+            }
+
+            int fila = 1;
+            int col = 0;
+            foreach (object item in lista)
+            {
+                col = 0;
+                foreach (string prop in nombrePropiedadesMostrar)
+                {
+                    table[fila, col].AddParagraph().AppendText(item.GetType().GetProperty(prop).GetValue(item).ToString());
+                    col++;
+                }
+                fila++;
+            }
+
+            document.Save(ms, FormatType.Docx);
+
+            byte[] buffer = ms.ToArray();
+            string base64 = Convert.ToBase64String(buffer);
+
+            word = "data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64," + base64;
+        }
+    }
+
+    [Parameter]
+    public string tituloReporte { get; set; }
+
+    public string pdf { get; set; }
+
+
+    public void exportarPdf()
+    {
+        using (MemoryStream ms = new MemoryStream())
+        {
+            PdfWriter writer = new PdfWriter(ms);
+            using (var pdfDoc = new PdfDocument(writer))
+            {
+                // LLENADO DEL DOCUMENTO
+                Document doc = new Document(pdfDoc);
+                Paragraph p1 = new Paragraph(tituloReporte);
+
+                p1.SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER);
+                p1.SetFontSize(20);
+                doc.Add(p1);
+
+                Table tabla = new Table(cabeceras.Length);
+                Cell celda;
+                for (int i = 0; i < cabeceras.Length; i++)
+                {
+                    celda = new Cell();
+                    celda.Add(new Paragraph(cabeceras[i]));
+                    tabla.AddHeaderCell(celda);
+                }
+
+                foreach (object item in lista)
+                {
+                    foreach (string propiedad in nombrePropiedadesMostrar)
+                    {
+                        celda = new Cell();
+                        celda.Add(new Paragraph(item.GetType().GetProperty(propiedad).GetValue(item).ToString()));
+                        tabla.AddCell(celda);
+                    }
+                }
+
+                doc.Add(tabla);
+
+                // CERRADO DEL DOCUMENTO
+                doc.Close();
+                writer.Close();
+
+                // DESCARGAR EL DOCUMENTO
+                byte[] buffer = ms.ToArray();
+                string base64 = Convert.ToBase64String(buffer);
+
+                pdf = "data:application/pdf;base64," + base64;
+
+                jsruntime.InvokeVoidAsync("descargarPdf", pdf);
+            }
+        }
+    }
+
+    [Parameter]
+    public object[] combobox { get; set; } = null;            // ESTE PARAMETRO SIRVE PARA LLENAR LA INFORMACION DEL COMBOBOX
+
+    [Parameter]
+    public string displayMember { get; set; } = null;
+
+    [Parameter]
+    public string valueMember { get; set; } = null;
+
+    [Parameter]
+    public bool permitirAgregar { get; set; } = false;
+
+    [Parameter]
+    public bool permitirEditar { get; set; } = false;
+
+    [Parameter]
+    public bool permitirEliminar { get; set; } = false;
+
+    [Parameter]
+    public bool permitirExportarExcel { get; set; } = false;
+
+    [Parameter]
+    public bool permitirExportarPdf { get; set; } = false;
+
+    [Parameter]
+    public bool permitirExportarWord { get; set; } = false;
+
+    public List<object> listaRetornar { get; set; }         // AQUI SE MANEJARA EL PAGINADO
+
+    public int indiceVal { get; set; } = 1;                     // INDICE DE LA PAGINA ACTUAL
+
+    public int numeroPaginas()                              // DEVUELVE EL NUMERO DE BOTONES
+    {
+        // SI SON 12 REGISTROS TENEMOS DOS PAGINAS
+
+        int numeroBotones;
+        int numeroRegistros = lista.Length;
+        if (numeroRegistros % numeroRegistrosPagina == 0)
+        {
+            numeroBotones = (numeroRegistros / numeroRegistrosPagina);
+        }
+        else
+        {
+            numeroBotones = (numeroRegistros / numeroRegistrosPagina) + 1;
+        }
+
+        return numeroBotones;
+    }
+
+
+    public void Paginar(int indicePag)
+    {
+        indiceVal = indicePag;
+    }
+
+
+    public void CambiarRegistrosPagina(ChangeEventArgs e)
+    {
+        int valorCambiado = int.Parse(e.Value.ToString());
+        numeroRegistrosPagina = valorCambiado;
+    }
+
+    [Parameter]
+    public string[] nombrePropiedadesMostrar { get; set; }
+
+
+    public int numeroRegistrosPagina { get; set; } = 100;
+
+    //protected override async Task OnInitializedAsync()
+    //{
+    //      public int numeroRegistrosPagina { get; set; } = 10;
+    //}
+}
+
+

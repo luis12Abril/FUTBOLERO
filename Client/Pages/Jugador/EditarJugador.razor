@@ -1,0 +1,39 @@
+﻿@page "/editarJugador/{idJugador}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioJugador oJugadorCLS="oJugadorCLS" listaEquipos="listaEquipo" />
+
+@code {
+    public string idtorneoseleccionado;
+
+    [Parameter]
+    public string idJugador { get; set; }
+
+    public JugadorCLS oJugadorCLS = new JugadorCLS();
+    public List<EquipoCLS> listaEquipo = new List<EquipoCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    public string torneoMensaje { get; set; }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+        idtorneoseleccionado = claims[2].Value;
+
+        torneoMensaje = torneo;
+
+        oJugadorCLS = await http.GetFromJsonAsync<JugadorCLS>("api/Jugador/RecuperarInformacionJugador/" + idJugador);
+
+        // AQUI SE MANDA LLAMAR /ListarEquipoTodos PORQUE AL SER UN EDITAR PUEDE SER QUE QUIERA DAR DE BAJA AL JUGADOR
+        listaEquipo = await http.GetFromJsonAsync<List<EquipoCLS>>("api/Equipo/ListarEquipoTodos/" + idtorneoseleccionado);
+    }
+}

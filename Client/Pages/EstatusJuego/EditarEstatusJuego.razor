@@ -1,0 +1,19 @@
+﻿@page "/editarEstatusJuego/{idEstatusJuego}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioEstatusJuego oEstatusJuegoCLS="oEstatusJuegoCLS" semodifica=true />
+
+@code {
+    [Parameter]
+    public string idEstatusJuego { get; set; }
+
+    public EstatusJuegoCLS oEstatusJuegoCLS = new EstatusJuegoCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oEstatusJuegoCLS = await http.GetFromJsonAsync<EstatusJuegoCLS>("api/EstatusJuego/RecuperarInformacionEstatusJuego/" + idEstatusJuego);
+
+    }
+}
+

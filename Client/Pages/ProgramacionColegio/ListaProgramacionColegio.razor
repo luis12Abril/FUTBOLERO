@@ -1,0 +1,169 @@
+﻿@page "/ListaProgramacionColegio/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Arbitro", "Campo", "Equipo 01", "Equipo 02", "Horario", "Cedula"};
+
+    // ESTAS PROPIEDADES TIENEN QUE SER IGUAL A LAS QUE ESTAN EN EL CONTROLADOR
+    string[] propiedades = { "nombrecompleto", "campocadena", "equipo01cadena", "equipo02cadena", "fhorariocadena", "comentariojuego" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoProgramacionColegio
+                  type="combobox" button=false label="Seleccione un colegio"
+                  combobox="oColegioCLS" displayMember="nombre" valueMember="idcolegio" tieneseleccione="false"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarProgramacionColegio" idcolegioarbitro="true"
+                  permitirEditar=@permitirEditar rutaEditar="EditarProgramacionColegio"
+                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaProgramacionColegio"
+                  eventBusqueda="BuscarListaProgramacionColegio"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de Juegos" />
+    </Authorized>
+</AuthorizeView>
+
+ @*type="text" button=false label="Nombre del Arbitro"*@
+
+@code {
+    public string idtorneoseleccionado;
+    public string idcolegio = "1";
+
+    public string torneoMensaje { get; set; }
+
+    public ProgramacionColegioCLS[] listadoProgramacionColegio;
+
+    public ProgramacionColegioCLS oProgramacionColegioCLSBorrar = new ProgramacionColegioCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DE LOES EQUIPOS Y MANDARLA COMO PARAMETRO AL BORRAR
+
+    public ColegioCLS[] oColegioCLS;      // ESTO ES PORQUE SE VA HACER UNA BUSQUEDA POR COMBOBOX
+    public UsuarioCLS oUsuarioCLS = new UsuarioCLS();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+            var idusuariologueado = claims[0].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            oUsuarioCLS = await http.GetFromJsonAsync<UsuarioCLS>("api/Usuario/RecuperarInformacionUsuario/" + idusuariologueado);
+            int idcolegio = await http.GetFromJsonAsync<int>("api/Colegio/RegresaIdColegio/" + oUsuarioCLS.idarbitrocolegio);
+            oColegioCLS = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio2/" + idcolegio);  // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO DE COLEGIO 
+
+            torneoMensaje = torneo;
+
+
+            //int idcolegio = await http.GetFromJsonAsync<int>("api/Colegio/RegresaIdColegio/" + idusuariologueado);
+            int tipousuario = await http.GetFromJsonAsync<int>("api/Usuario/RegresaIdTipoUsuario/" + idusuariologueado);
+
+            // EL TIPO USUARIO 1 ES UN  ADMISTRADOR TOTAL
+            if (tipousuario == 1)
+            {
+                //idcolegio = int.Parse(oUsuarioCLS.idarbitrocolegio);        // CUANDO ES UN PRESIDENTE EN LA TABLA USUARIO ESTA EL ID DEL TORNEO QUE ADMINISTRA
+                oColegioCLS = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio");  // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO DE COLEGIO 
+                listadoProgramacionColegio = await http.GetFromJsonAsync<ProgramacionColegioCLS[]>("api/ProgramacionColegio/ListarProgramacionColegio1");
+            }
+
+            // EL TIPO USUARIO 4 ES UN ARBITRO
+            if (tipousuario == 4)
+            {
+                int idarbitro = await http.GetFromJsonAsync<int>("api/Arbitro/RegresaUsuario/" + oUsuarioCLS.nombre);
+                listadoProgramacionColegio = await http.GetFromJsonAsync<ProgramacionColegioCLS[]>("api/ProgramacionColegio/ListarProgramacionColegio2/" + idarbitro );
+            }
+
+            // EL TIPO USUARIO 5 ES UN  PRESIDENTE
+            if (tipousuario == 5)
+            {
+                idcolegio = int.Parse(oUsuarioCLS.idarbitrocolegio);        // CUANDO ES UN PRESIDENTE EN LA TABLA USUARIO ESTA EL ID DEL TORNEO QUE ADMINISTRA
+                oColegioCLS = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio2/" + idcolegio);  // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO DE COLEGIO 
+                listadoProgramacionColegio = await http.GetFromJsonAsync<ProgramacionColegioCLS[]>("api/ProgramacionColegio/ListarProgramacionColegio/" + idcolegio);
+            }
+
+            if (user.Identity.IsAuthenticated)
+            {
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaProgramacionColegio(string buscar)
+    {
+        if (buscar == null || buscar == "--- Seleccione ---")
+        {
+            // AQUI NO VA ENTRAR NUNCA
+            listadoProgramacionColegio = await http.GetFromJsonAsync<ProgramacionColegioCLS[]>("api/ProgramacionColegio/ListarProgramacionColegio/" + idcolegio);
+        }
+        else
+        {
+            listadoProgramacionColegio = await http.GetFromJsonAsync<ProgramacionColegioCLS[]>("api/ProgramacionColegio/FiltrarProgramacionColegio/" + buscar);
+        }
+    }
+
+
+    public async Task EliminarListaProgramacionColegio(string idProgramacionColegio)       // LO PONEMOS COMO STRING PORQUE EN LISTADOS ESTA COMO STRING
+    {
+        oProgramacionColegioCLSBorrar = await http.GetFromJsonAsync<ProgramacionColegioCLS>("api/ProgramacionColegio/RecuperarInformacionProgramacionColegio/" + idProgramacionColegio);
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oProgramacionColegioCLSBorrar.equipo01cadena +
+            " vs " + oProgramacionColegioCLSBorrar.equipo02cadena, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/ProgramacionColegio/EliminarProgramacionColegio/" + idProgramacionColegio);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO ON     2 = HAY JUEGOS CON ESA JORNADA
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, EL JUEGO SE ELIMINO", "success", 2000);
+                    listadoProgramacionColegio = await http.GetFromJsonAsync<ProgramacionColegioCLS[]>("api/ProgramacionColegio/ListarProgramacionColegio/" + idcolegio);
+                    break;
+                case 100:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE PUDO BORRAR", "error");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+

@@ -1,0 +1,115 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+<h2>FORMULARIO 1</h2>
+@if (oLigaColegioCLS == null)
+{
+    <h2>FORMULARIO 2</h2>
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    <h2>FORMULARIO 3</h2>
+    <EditForm Model="@oLigaColegioCLS" OnValidSubmit="GuardarDatos">
+
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Nombre *</label>
+            <InputText class="form form-control" @bind-Value="oLigaColegioCLS.nombre" />
+            <ValidationMessage For="@(()=>oLigaColegioCLS.nombre)" />
+        </div>
+
+        <div class="form-group">
+            <label class=" font-weight-bold">Estados *</label>
+            <InputSelect @bind-Value="oLigaColegioCLS.idligacolegio" class="form form-control">
+                <option value="">--- Seleccione ---</option>
+                @foreach (ColegioCLS oColegioCLS in listaColegios)
+                    {
+                    <option value="@oColegioCLS.idcolegio">@oColegioCLS.nombre</option>
+                    }
+            </InputSelect>
+            <ValidationMessage For="@(()=>oLigaColegioCLS.idcolegioarbitro)" />
+        </div>
+
+        <input type="submit" value="Guardar" class="btn btn-success" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-2"></div>
+}
+
+
+@code {
+
+    [Parameter]
+    public LigaColegioCLS oLigaColegioCLS { get; set; } = new LigaColegioCLS();
+
+    [Parameter]
+    public List<ColegioCLS> listaColegios { get; set; }
+
+    public string ruta { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        string paginaEnviar = "ListaLigaColegio";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+
+    public async Task<bool> GuardarDatos()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        //oJugadorCLS.idtorneo = int.Parse(claims[2].Value);
+
+        //oJugadorCLS.torneo = torneo;
+
+        var resultado = await http.PostAsJsonAsync("api/LigaColegio/GuardarDatosLigaColegio", oLigaColegioCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENTE      3 = ESE NOMBRE DE JUGADOR YA EXISTE
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE GUARDARON LOS DATOS", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+                break;
+            case 3:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ESE NOMBRE DE MUNICIPIO YA EXISTE", "warning");
+                break;
+            default:
+                break;
+        }
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+
+        return await Task.FromResult(true);
+    }
+}
+
+
+

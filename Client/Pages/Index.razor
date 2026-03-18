@@ -1,0 +1,123 @@
+﻿@layout LoginLayout
+@page "/"
+@using FUTBOLERO.Shared;
+@using FUTBOLERO.Client.Service;
+@using FUTBOLERO.Client.Helpers;
+@inject NavigationManager navigate;
+@inject AuthenticationStateProvider auth;
+@inject HttpClient http;
+
+@inject IJSRuntime ijsruntime;
+
+<div style="display:grid; justify-items:center; align-items:center; min-height:100vh; min-width:100vw; background:linear-gradient(180deg, #eef2ff 0%, #f3e8ff 100%); padding:1rem;">
+    <div class="col-md-6 m-auto" style="max-width:520px; background-color:white; border-radius:16px; padding:2rem; box-shadow:0 12px 30px rgba(0,0,0,0.10);">
+        <EditForm Model="@oUsuarioCLS" OnValidSubmit="Login">
+            <DataAnnotationsValidator />
+            @*<ValidationSummary />*@
+
+        <div class="text-center">
+            <img style="max-width:55%; margin-bottom:10px;" src="images/FUTBOLEANDO0.jpg" />
+            @*<img style="max-width:50%" src="https://st2.depositphotos.com/1967477/6540/v/600/depositphotos_65407345-stock-illustration-cartoon-soccer-football-goalie-keeper.jpg" />*@
+            @*https://thumbs.dreamstime.com/b/bosquejo-exhausto-de-la-mano-del-jugador-f%C3%BAtbol-en-negro-aislado-el-fondo-blanco-dibujo-detallado-estilo-aguafuerte-vintage-130552977.jpg
+        https://i.pinimg.com/474x/69/20/64/692064981d3fb4135b010af521384dfd.jpg*@
+            @*<img style="max-width:100%" src="https://livedeveloper.com/wp-content/uploads/2020/06/BrandBlazor_nohalo_1000x.png" />*@
+        </div>
+
+            <h1 class="text-center" style="color:#1d4ed8; font-weight:700; margin-bottom:4px;">Futboleando</h1>
+            <p class="text-center text-muted" style="margin-bottom:1.25rem;">Inicia sesión para continuar</p>
+
+            <div class="form-group mb-3">
+                <label class="font-weight-bold">Usuario *</label>
+                <InputText @bind-Value="oUsuarioCLS.nombre" class="form form-control" id="txtnombreusuario" />
+                <ValidationMessage For="@(()=>oUsuarioCLS.nombre)" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="font-weight-bold">Contraseña *</label>
+                <InputText type="password" @bind-Value="oUsuarioCLS.contraseña" class="form form-control" />
+                <ValidationMessage For="@(()=>oUsuarioCLS.contraseña)" />
+            </div>
+
+            @*LA CLASE btn btn-bloCk  ES PARA QUE ABARQUE TODO LO ANCHO POSIBLE*@
+            <input type="submit" value="Ingresar" class="btn btn-success btn-block" name="ingresar" style="margin-top:4px;" />
+        </EditForm>
+
+        <div style="display:flex; justify-content:center; margin-top:1rem;">
+            @*ANTES TENIA href="Register"*@
+            <NavLink class="nav-link" href="NuevoUsuario">
+                <input style="width:220px; border-radius:8px;" type="button" value="Registrese" class="btn btn-primary" />
+            </NavLink>
+
+            @*<input style="width:200px;" type="button" value="futboleando.com.mx" class="btn btn-primary" name="invitado" />*@
+
+            @*<NavLink class="nav-link" href="NuevoUsuario">
+                    <input style="width:200px;" type="submit" value="futboleando.com.mx" class="btn btn-primary" name="invitado" />
+                </NavLink>*@
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+@code{
+    public UsuarioCLS oUsuarioCLS = new UsuarioCLS();
+
+    public string ruta { get; set; }
+
+    public async Task<bool> Login()
+    {
+        var rpta1 = await http.PostAsJsonAsync("api/Usuario/LoginIidUsuario", oUsuarioCLS);      /*ESTAS DOS LINEAS SON DIFERENTES AL CURSO*/
+        var content = await rpta1.Content.ReadFromJsonAsync<object>();
+
+        int rpta = int.Parse(content.ToString());
+
+        if (rpta > 0)                /* SI ES MAYOR DE CERO QUIERE DECIR QUE DEVOLVIO EL IDUSUARIO Y SI ES CORRECTO*/
+        {
+            // SE LE SUMA UNA VISITA MAS AL USUARIO
+            int visitas = await http.GetFromJsonAsync<int>("api/Usuario/VisitasUsuario/" + rpta);
+
+            // LLAMAMOS AL METODO ENTRAR
+            ((Autenticacion)auth).Entrar(rpta.ToString(), "99", "Cuadrangular");      /*rpta.ToString() ES EL ID DEL USUARIO*/
+
+            // YA NO LO NECESITO PORQUE NO VOY A PAGINA PRINCIPAL
+            //int idPersona = await http.GetFromJsonAsync<int>("api/Persona/ObtenerIdPersona/" + rpta.ToString());
+
+            // MENSAJE DE BIENVENIDA
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "Bienvenido", "success");
+
+            //AQUI LE DIGO A QUE PAGINA DEBE IR CUANDO LA CLAVE Y CONTRASEÑA SEAN CORRECTAS
+            string paginaEnviar = "SeleccioneTorneo";
+
+            //AQUI VOY Y BUSCO EN EL CONTROLADO LA PAGINA DESEADA Y EL ME REGRESARA EL IDPAGINA QUE TENGA EN LA TABLA
+            int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+
+            // AQUI ARMO LA RUTA A LA QUE VA A NAVEGAR EJ. navigate.NavigateTo("SeleccioneTorneo/3")
+            ruta = paginaEnviar + "/" + idPag;
+
+            navigate.NavigateTo(ruta);
+        }
+        else
+        {
+            if (rpta == 0)
+            {
+                // MENSAJE DE ERROR
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "El usuario o contraseña es incorrecto", "error");
+            }
+        }
+        return await Task.FromResult(true);
+    }
+
+
+    // ESTO ES PARA MOSTRAR EL FOCUS EN EL CONTROL DESEADO, SE UTILIZA JAVASCRIPT PORQUE BLAZOR 3.1 TODAVIA NO LO TIENE
+    //protected override async Task OnInitializedAsync(bool firstRender)
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ijsruntime.InvokeVoidAsync("focusById", "txtnombreusuario");
+        }
+    }
+}

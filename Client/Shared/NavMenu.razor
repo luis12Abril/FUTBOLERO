@@ -1,0 +1,90 @@
+﻿ @inject HttpClient http;
+@using FUTBOLERO.Shared;
+
+<AuthorizeView>
+    <Authorized>
+
+        <div class="top-row pl-4 navbar navbar-dark">
+            <a class="navbar-brand" href="">futboleando.com.mx</a>
+            <button class="navbar-toggler" @onclick="ToggleNavMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+
+        <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+            <ul class="nav flex-column">
+
+                @foreach (PaginaCLS oPaginaCLS in lista)
+                {
+                    <li class="nav-item px-3">
+                        <NavLink class="nav-link" href="@oPaginaCLS.accion" Match="NavLinkMatch.All">
+                            <span class="oi oi-home" aria-hidden="true"></span> @oPaginaCLS.mensaje
+                        </NavLink>
+                    </li>
+                }
+
+            </ul>
+        </div>
+
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    public string idtorneoseleccionado;
+
+    private bool collapseNavMenu = true;
+
+    public string rutaPrincipal;
+
+    List<PaginaCLS> lista = new List<PaginaCLS>();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+
+        //if(claims != null)
+        //{
+        //    //var torneo = claims[1].Value;
+
+        //    // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+        //    idtorneoseleccionado = claims[2].Value;
+
+        //    if (user.Identity.IsAuthenticated)
+        //    {
+        //        string iidUsuario = user.Identity.Name;
+
+        //        // MANDO EL ID DEL USUARIO Y EL TORNEO SELECCIONADO PARA VER SI EL USUARIO SIGUE COMO ADMOINISTRADOR  O PASA A SER UN USUARIO INVITADO
+        //        lista = await http.GetFromJsonAsync<List<PaginaCLS>>("api/Usuario/ListarPaginaPorTipoUsuario/" + iidUsuario + "/" + idtorneoseleccionado);
+        //    }
+        //}
+
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var torneo = claims[1].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            string iidUsuario = user.Identity.Name;
+
+            // MANDO EL ID DEL USUARIO Y EL TORNEO SELECCIONADO PARA VER SI EL USUARIO SIGUE COMO ADMOINISTRADOR  O PASA A SER UN USUARIO INVITADO
+            lista = await http.GetFromJsonAsync<List<PaginaCLS>>("api/Usuario/ListarPaginaPorTipoUsuario/" + iidUsuario + "/" + idtorneoseleccionado);
+        }
+    }
+}

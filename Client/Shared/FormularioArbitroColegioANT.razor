@@ -1,0 +1,195 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+@if (oArbitroColegioCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    //string idfotoarbitro = oArbitroColegioCLS.fotoarbitro;
+    string archivoFoto = oArbitroColegioCLS.fotoarbitro;
+
+<EditForm Model="@oArbitroColegioCLS" OnValidSubmit="GuardarDatos">
+
+    <DataAnnotationsValidator />
+    @*<ValidationSummary />*@
+
+    <input type="submit" value="Guardar" class="btn btn-success" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Regresar" class="btn btn-info" />
+    </NavLink>
+
+    <div class="mb-4"></div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Colegio de arbitros*</label>
+        <InputSelect @bind-Value="oArbitroColegioCLS.idcolegioarbitro" class="form form-control">
+            <option value="">--- Seleccione ---</option>
+            @foreach (ColegioCLS oColegioCLS in listaColegios)
+                {
+                <option value="@oColegioCLS.idcolegio">@oColegioCLS.nombre</option>
+                }
+        </InputSelect>
+        <ValidationMessage For="@(()=>oArbitroColegioCLS.idcolegioarbitro)" />
+    </div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Nombre del Arbitro*</label>
+        <InputText class="form form-control" @bind-Value="oArbitroColegioCLS.nombre" />
+        <ValidationMessage For="@(()=>oArbitroColegioCLS.nombre)" />
+    </div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Apellido Paterno*</label>
+        <InputText class="form form-control" @bind-Value="oArbitroColegioCLS.appaterno" />
+        <ValidationMessage For="@(()=>oArbitroColegioCLS.appaterno)" />
+    </div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Apellido Materno</label>
+        <InputText class="form form-control" @bind-Value="oArbitroColegioCLS.apmaterno" />
+        <ValidationMessage For="@(()=>oArbitroColegioCLS.apmaterno)" />
+    </div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Fecha de Nacimiento *</label>
+        <InputDate class="form form-control" @bind-Value="oArbitroColegioCLS.fnacimiento" />
+        <ValidationMessage For="@(()=>oArbitroColegioCLS.fnacimiento)" />
+    </div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Peso *</label>
+        <InputNumber class="form-control font-weight-bold" @bind-Value="oArbitroColegioCLS.peso" min="0" />
+    </div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Usuario*</label>
+        <InputText class="form form-control" @bind-Value="oArbitroColegioCLS.nomusuario" />
+        <ValidationMessage For="@(()=>oArbitroColegioCLS.nomusuario)" />
+    </div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Clave*</label>
+        <InputText type="password" class="form form-control" @bind-Value="oArbitroColegioCLS.codigo" />
+        <ValidationMessage For="@(()=>oArbitroColegioCLS.codigo)" />
+    </div>
+
+    <div style="display:flex; justify-content:center; flex-direction:column; align-items:center;">
+        <label class="font-weight-bold">Foto del Arbitro</label>
+        <img class="mb-1" width="300" height="450" style="display: block; box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);
+        border: 3px solid gold;" id="idImgFoto" src="@archivoFoto" />
+
+        <input class="mb-2" type="file" id="idInputFoto" accept="image/png,image/jpg,image/jpeg" @onchange="previewImagen" />
+    </div>
+
+
+    <input type="submit" value="Guardar" class="btn btn-success" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Regresar" class="btn btn-info" />
+    </NavLink>
+
+</EditForm>
+    <div class="mb-2"></div>
+}
+
+
+@code {
+    [Parameter]
+    public ArbitroColegioCLS oArbitroColegioCLS { get; set; } = new ArbitroColegioCLS();
+
+    [Parameter]
+    public List<ColegioCLS> listaColegios { get; set; }
+
+    public string ruta { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        string paginaEnviar = "ListaArbitroColegio";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+
+    public async Task<bool> GuardarDatos()
+    {
+        string imgData = await ijsruntime.InvokeAsync<string>("obtenerImagen");
+        if (imgData.Length < 80)
+        {
+            oArbitroColegioCLS.fotoarbitro = "";
+        }
+        else
+        {
+            oArbitroColegioCLS.fotoarbitro = imgData;
+        }
+
+
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+
+
+        //oJugadorCLS.idtorneo = int.Parse(claims[2].Value);
+
+        //oJugadorCLS.torneo = torneo;
+
+        var resultado = await http.PostAsJsonAsync("api/ArbitroColegio/GuardarDatosArbitroColegio", oArbitroColegioCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENTE      3 = ESE NOMBRE DE JUGADOR YA EXISTE
+        switch (rpta)
+        {
+            case 0:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR, NO SE GUARDARON LOS DATOS", "error");
+                break;
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "OK, DATOS GUARDADOS", "success");
+                break;
+            case 2:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "ESE NOMBRE DE USUARIO YA EXISTE", "warning");
+                break;
+            case 3:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ESE NOMBRE DEL ARBITRO YA EXISTE", "warning");
+                break;
+            default:
+                break;
+        }
+        if (rpta == 1)
+        {
+            navigation.NavigateTo(ruta);
+        }
+
+        return await Task.FromResult(true);
+    }
+
+    public async Task previewImagen()
+    {
+        //ESTOY LLAMANDO UNA FUNCION DE JAVASCRIPT DESDE BLAZOR
+        await ijsruntime.InvokeVoidAsync("previewDataImagen");
+    }
+
+    //public async Task previewImagenArbitroColegio()
+    //{
+    //    int a = 1;
+    //    int b = 2;
+    //    //ESTAMOS LLAMANDO UNA FUNCION DE JAVASCRIPT DESDE BLAZOR
+    //    await ijsruntime.InvokeVoidAsync("muestrafotoarbitro");
+    //}
+
+}

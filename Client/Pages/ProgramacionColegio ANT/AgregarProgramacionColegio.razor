@@ -1,0 +1,64 @@
+﻿@page "/agregarProgramacionColegio"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+
+<AuthorizeView>
+    <Authorized>
+        <FormularioProgramacionColegio listaColegio="listaColegio" listaArbitroColegio="listaArbitro"
+                                       listaEquipo01Colegio="listaEquipo01" listaEquipo02Colegio="listaEquipo02" listaCampoColegio="listaCampo" />
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+
+    public List<ColegioCLS> listaColegio = new List<ColegioCLS>();
+    public List<ArbitroColegioCLS> listaArbitro = new List<ArbitroColegioCLS>();
+    public List<LigaColegioCLS> listaLiga = new List<LigaColegioCLS>();
+    public List<TorneoColegioCLS> listaTorneo = new List<TorneoColegioCLS>();
+    public List<EquipoColegioCLS> listaEquipo01 = new List<EquipoColegioCLS>();
+    public List<EquipoColegioCLS> listaEquipo02 = new List<EquipoColegioCLS>();
+    public List<CampoColegioCLS> listaCampo = new List<CampoColegioCLS>();
+
+
+    public string torneoMensaje { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        string idtorneoseleccionado;
+
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+            var idusuariologueado = claims[0].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            torneoMensaje = torneo;
+            int idcolegio = await http.GetFromJsonAsync<int>("api/Colegio/RegresaIdColegio/" + idusuariologueado);
+
+            listaColegio = await http.GetFromJsonAsync<List<ColegioCLS>>("api/Colegio/ListarColegio2/" + idusuariologueado);           
+            listaArbitro = await http.GetFromJsonAsync<List<ArbitroColegioCLS>>("api/ArbitroColegio/ListarArbitroColegio/" + idcolegio);
+            //listaLiga = await http.GetFromJsonAsync<List<LigaColegioCLS>>("api/LigaColegio/ListaLigaColegio" );
+            //listaTorneo = await http.GetFromJsonAsync<List<TorneoColegioCLS>>("api/TorneoColegio/ListaTorneoColegio");
+            listaEquipo01 = await http.GetFromJsonAsync<List<EquipoColegioCLS>>("api/EquipoColegio/ListaEquipoColegio/" + idcolegio);
+            listaEquipo02 = await http.GetFromJsonAsync<List<EquipoColegioCLS>>("api/EquipoColegio/ListaEquipoColegio/" + idcolegio);
+            listaCampo = await http.GetFromJsonAsync<List<CampoColegioCLS>>("api/CampoColegio/ListarCampoColegio/" + idcolegio);
+
+        }
+    }
+}
+
+
+

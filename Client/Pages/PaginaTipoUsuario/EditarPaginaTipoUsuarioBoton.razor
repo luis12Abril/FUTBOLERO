@@ -1,0 +1,18 @@
+﻿@page "/EditarPaginaTipoUsuarioBoton/{Id}"
+@inject HttpClient http
+@using FUTBOLERO.Shared
+
+<FormularioPaginaTipoUsuario oPaginaTipoUsuarioCLS=oPagTipoUsuarioCLS />
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    public PaginaTipoUsuarioCLS oPagTipoUsuarioCLS = new PaginaTipoUsuarioCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+
+        oPagTipoUsuarioCLS = await http.GetFromJsonAsync<PaginaTipoUsuarioCLS>("api/PaginaTipoUsuario/RecuperarBotones/" + Id);
+    }
+}

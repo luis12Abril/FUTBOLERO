@@ -1,0 +1,46 @@
+﻿@using FUTBOLERO.Shared
+
+<div class="mb-4"></div>
+<div class="mb-4"></div>
+<div class="mb-4"></div>
+<div class="mb-4"></div>
+<div class="bg-info font-weight-bold text-center">JUGADORES DEL EQUIPO</div>
+
+<table class="table table-sm table-hover table-hover thead-light">
+    <thead class="thead-dark">
+        <tr>
+            <th style="width:5%; text-align:center;">#</th>
+            <th style="width:15%; text-align:center;">Goles</th>
+            <th style="width:40%;">Jugador</th>
+            <th style="width:25%;">Fecha Nacimiento</th>
+            <th style="width:15%;">Años</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (oEquipoCLS.ListaJugadorEquipo != null)
+        {
+            @foreach (JugadorCLS oJugadorCLS in oEquipoCLS.ListaJugadorEquipo)
+            {
+                <tr class="font-weight-bold">
+                    <td style="width:5%; text-align:center;">@oJugadorCLS.numero</td>
+                    <td style="width:15%; text-align:center;">@oJugadorCLS.goles</td>
+                    <td style="width:40%;">@oJugadorCLS.nombrecompleto</td>
+                    <td style="width:25%;">@oJugadorCLS.fnacimientocadena</td>
+                    <td style="width:15%;">@oJugadorCLS.años</td>
+                </tr>
+            }
+        }
+
+    </tbody>
+</table>
+<div class="mb-4"></div>
+
+
+@code {
+    [Parameter]
+    public EquipoCLS oEquipoCLS { get; set; }
+
+}
+
+

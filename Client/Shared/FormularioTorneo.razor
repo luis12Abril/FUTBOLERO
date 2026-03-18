@@ -1,0 +1,115 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+
+@if (oTorneoCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+<EditForm Model="@oTorneoCLS" OnValidSubmit="GuardarDatosFTorneo">
+
+    <DataAnnotationsValidator />
+    @*<ValidationSummary />*@
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Nombre *</label>
+        <InputText class="form form-control" @bind-Value="oTorneoCLS.nombre" />
+        <ValidationMessage For="@(() => oTorneoCLS.nombre)" />
+    </div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Ligas *</label>
+        <InputSelect @bind-Value="oTorneoCLS.idliga" class="form form-control">
+            <option value="">--- Seleccione ---</option>
+            @foreach (LigaCLS oLigaCLS in listaLigas)
+                {
+                <option value="@oLigaCLS.idliga">@oLigaCLS.nombre</option>
+                }
+        </InputSelect>
+        <ValidationMessage For="@(()=>oTorneoCLS.idliga)" />
+
+    </div>
+
+    <div class="form-group">
+        <label class=" font-weight-bold">Orden en que se mostrara *</label>
+        <InputNumber class="form-control font-weight-bold" @bind-Value="oTorneoCLS.ordentorneo" min="1" />
+    </div>
+
+    <div class="col-md-1">
+        <label class=" font-weight-bold">Visible</label>
+        <InputCheckbox @bind-Value="@oTorneoCLS.visible" class="form form-control" />
+
+        <div class="mb-2"></div>
+
+    </div>
+    <input type="submit" value="Guardar" class="btn btn-success" />
+
+    <NavLink href="@ruta">
+        <input type="button" value="Regresar" class="btn btn-info" />
+    </NavLink>
+
+</EditForm>
+    <div class="mb-2"></div>
+}
+
+
+@code {
+
+    public bool semodifica { get; set; } = true;
+
+    [Parameter]
+    public TorneoCLS oTorneoCLS { get; set; } = new TorneoCLS();
+
+    [Parameter]
+    public List<LigaCLS> listaLigas { get; set; }
+
+    public string ruta { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        string paginaEnviar = "ListaTorneo";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+
+    public async Task<bool> GuardarDatosFTorneo()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        var claims = user.Claims.ToList();
+        var torneo = claims[1].Value;
+
+        var resultado = await http.PostAsJsonAsync("api/Torneo/GuardarDatosTorneo", oTorneoCLS);
+        var content = await resultado.Content.ReadFromJsonAsync<object>();
+        int rpta = int.Parse(content.ToString());
+
+        // 0 = OCURRIO UN ERROR     1 = SE BORRO ON     2 = HAY JUEGOS CON ESE Torneo
+        switch (rpta)
+        {
+            case 1:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "Ok, datos guardados", "success");
+                navigation.NavigateTo(ruta);
+                break;
+            case 100:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "Ocurrio un error, no se guardaron los datos", "error");
+                break;
+            default:
+                break;
+        }
+
+        return await Task.FromResult(true);
+    }
+}
+

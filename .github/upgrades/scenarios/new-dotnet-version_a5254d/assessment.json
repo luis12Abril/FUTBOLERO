@@ -1,0 +1,839 @@
+{
+  "settings": {
+    "components": {
+      "code": true,
+      "binaries": false
+    },
+    "targetId": "net10.0",
+    "targetDisplayName": ".NETCoreApp,Version=v10.0"
+  },
+  "analysisStartTime": "2026-03-16T04:20:48.8159937Z",
+  "analysisEndTime": "2026-03-16T04:20:54.019988Z",
+  "privacyModeHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2270980",
+  "stats": {
+    "summary": {
+      "projects": 3,
+      "issues": 7,
+      "incidents": 24,
+      "effort": 24
+    },
+    "charts": {
+      "severity": {
+        "Mandatory": 3,
+        "Optional": 2,
+        "Potential": 19,
+        "Information": 0
+      },
+      "category": {
+        "NuGet": 11,
+        "Api": 12,
+        "Project": 1
+      }
+    }
+  },
+  "projects": [
+    {
+      "path": "Client\\FUTBOLERO.Client.csproj",
+      "startingProject": true,
+      "issues": 4,
+      "storyPoints": 10,
+      "properties": {
+        "appName": "FUTBOLERO.Client",
+        "projectKind": "AspNetCore",
+        "frameworks": [
+          "netstandard2.1"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 156,
+        "numberOfCodeFiles": 3,
+        "linesTotal": 16642,
+        "linesOfCode": 116,
+        "totalApiScanned": 93,
+        "minLinesOfCodeToChange": 3,
+        "maxLinesOfCodeToChange": 3
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "4b24206e-7691-4fc2-8283-1d544274bbf7",
+          "ruleId": "NuGet.0002",
+          "projectPath": "Client\\FUTBOLERO.Client.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.AspNetCore.Components.Authorization, 3.1.19\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.Authorization, and replace with new package Microsoft.AspNetCore.Components.Authorization 10.0.5",
+              "protected": "Microsoft.AspNetCore.Components.Authorization, 3.1.19\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.Authorization, and replace with new package Microsoft.AspNetCore.Components.Authorization 10.0.5"
+            },
+            "kind": "File",
+            "path": "Client\\FUTBOLERO.Client.csproj",
+            "snippet": "Microsoft.AspNetCore.Components.Authorization, 3.1.19\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.Authorization, and replace with new package Microsoft.AspNetCore.Components.Authorization 10.0.5",
+            "protectedSnippet": "Microsoft.AspNetCore.Components.Authorization, 3.1.19\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.Authorization, and replace with new package Microsoft.AspNetCore.Components.Authorization 10.0.5",
+            "label": "Microsoft.AspNetCore.Components.Authorization 3.1.19",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.Components.Authorization",
+              "PackageVersion": "3.1.19",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "cddd6378-0822-4715-a9ea-a1c6fefeed56",
+          "ruleId": "NuGet.0002",
+          "projectPath": "Client\\FUTBOLERO.Client.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.AspNetCore.Components.WebAssembly, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly, and replace with new package Microsoft.AspNetCore.Components.WebAssembly 10.0.5",
+              "protected": "Microsoft.AspNetCore.Components.WebAssembly, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly, and replace with new package Microsoft.AspNetCore.Components.WebAssembly 10.0.5"
+            },
+            "kind": "File",
+            "path": "Client\\FUTBOLERO.Client.csproj",
+            "snippet": "Microsoft.AspNetCore.Components.WebAssembly, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly, and replace with new package Microsoft.AspNetCore.Components.WebAssembly 10.0.5",
+            "protectedSnippet": "Microsoft.AspNetCore.Components.WebAssembly, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly, and replace with new package Microsoft.AspNetCore.Components.WebAssembly 10.0.5",
+            "label": "Microsoft.AspNetCore.Components.WebAssembly 3.2.1",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.Components.WebAssembly",
+              "PackageVersion": "3.2.1",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "50986991-4a7c-45b7-b78b-7f317a654719",
+          "ruleId": "NuGet.0003",
+          "projectPath": "Client\\FUTBOLERO.Client.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.AspNetCore.Components.WebAssembly.Build, 3.2.1\n\nRecomendaci\u00F3n:\n\nFuncionalidad de paquete incluida con la nueva referencia de marco",
+              "protected": "Microsoft.AspNetCore.Components.WebAssembly.Build, 3.2.1\n\nRecomendaci\u00F3n:\n\nFuncionalidad de paquete incluida con la nueva referencia de marco"
+            },
+            "kind": "File",
+            "path": "Client\\FUTBOLERO.Client.csproj",
+            "snippet": "Microsoft.AspNetCore.Components.WebAssembly.Build, 3.2.1\n\nRecomendaci\u00F3n:\n\nFuncionalidad de paquete incluida con la nueva referencia de marco",
+            "protectedSnippet": "Microsoft.AspNetCore.Components.WebAssembly.Build, 3.2.1\n\nRecomendaci\u00F3n:\n\nFuncionalidad de paquete incluida con la nueva referencia de marco",
+            "label": "Microsoft.AspNetCore.Components.WebAssembly.Build 3.2.1",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.Components.WebAssembly.Build",
+              "PackageVersion": "3.2.1",
+              "PackageNewVersion": null,
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "164a5862-d2d2-48d1-a61a-e54caee61d61",
+          "ruleId": "NuGet.0002",
+          "projectPath": "Client\\FUTBOLERO.Client.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.AspNetCore.Components.WebAssembly.DevServer, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly.DevServer, and replace with new package Microsoft.AspNetCore.Components.WebAssembly.DevServer 10.0.5",
+              "protected": "Microsoft.AspNetCore.Components.WebAssembly.DevServer, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly.DevServer, and replace with new package Microsoft.AspNetCore.Components.WebAssembly.DevServer 10.0.5"
+            },
+            "kind": "File",
+            "path": "Client\\FUTBOLERO.Client.csproj",
+            "snippet": "Microsoft.AspNetCore.Components.WebAssembly.DevServer, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly.DevServer, and replace with new package Microsoft.AspNetCore.Components.WebAssembly.DevServer 10.0.5",
+            "protectedSnippet": "Microsoft.AspNetCore.Components.WebAssembly.DevServer, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly.DevServer, and replace with new package Microsoft.AspNetCore.Components.WebAssembly.DevServer 10.0.5",
+            "label": "Microsoft.AspNetCore.Components.WebAssembly.DevServer 3.2.1",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.Components.WebAssembly.DevServer",
+              "PackageVersion": "3.2.1",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "a036a58b-5080-437e-b83e-bcfc4c76251d",
+          "ruleId": "NuGet.0002",
+          "projectPath": "Client\\FUTBOLERO.Client.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "System.Net.Http.Json, 3.2.0\n\nRecomendaci\u00F3n:\n\nRemove System.Net.Http.Json, and replace with new package System.Net.Http.Json 10.0.5",
+              "protected": "System.Net.Http.Json, 3.2.0\n\nRecomendaci\u00F3n:\n\nRemove System.Net.Http.Json, and replace with new package System.Net.Http.Json 10.0.5"
+            },
+            "kind": "File",
+            "path": "Client\\FUTBOLERO.Client.csproj",
+            "snippet": "System.Net.Http.Json, 3.2.0\n\nRecomendaci\u00F3n:\n\nRemove System.Net.Http.Json, and replace with new package System.Net.Http.Json 10.0.5",
+            "protectedSnippet": "System.Net.Http.Json, 3.2.0\n\nRecomendaci\u00F3n:\n\nRemove System.Net.Http.Json, and replace with new package System.Net.Http.Json 10.0.5",
+            "label": "System.Net.Http.Json 3.2.0",
+            "properties": {
+              "PackageId": "System.Net.Http.Json",
+              "PackageVersion": "3.2.0",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "2d4aea24-6981-4504-a488-30bbe674c344",
+          "ruleId": "NuGet.0005",
+          "projectPath": "Client\\FUTBOLERO.Client.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "EPPlus, 5.7.4\n\nRecomendaci\u00F3n:\n\nDebe reemplazarse.\nRemove EPPlus, and replace with new package EPPlus, 8.5.0",
+              "protected": "EPPlus, 5.7.4\n\nRecomendaci\u00F3n:\n\nDebe reemplazarse.\nRemove EPPlus, and replace with new package EPPlus, 8.5.0"
+            },
+            "kind": "File",
+            "path": "Client\\FUTBOLERO.Client.csproj",
+            "snippet": "EPPlus, 5.7.4\n\nRecomendaci\u00F3n:\n\nDebe reemplazarse.\nRemove EPPlus, and replace with new package EPPlus, 8.5.0",
+            "protectedSnippet": "EPPlus, 5.7.4\n\nRecomendaci\u00F3n:\n\nDebe reemplazarse.\nRemove EPPlus, and replace with new package EPPlus, 8.5.0",
+            "label": "EPPlus 5.7.4",
+            "properties": {
+              "PackageId": "EPPlus",
+              "PackageVersion": "5.7.4",
+              "PackageNewVersion": null,
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "fbbb32e5-26c2-489d-9106-97e2fed0e90e",
+          "ruleId": "NuGet.0005",
+          "projectPath": "Client\\FUTBOLERO.Client.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "System.Net.Http.Json, 3.2.0\n\nRecomendaci\u00F3n:\n\nThis package has been deprecated as part of the .NET Package Deprecation effort. You can learn more about it from https://github.com/dotnet/announcements/issues/217\nRemove System.Net.Http.Json, and replace with new package System.Net.Http.Json, 10.0.5",
+              "protected": "System.Net.Http.Json, 3.2.0\n\nRecomendaci\u00F3n:\n\nThis package has been deprecated as part of the .NET Package Deprecation effort. You can learn more about it from https://github.com/dotnet/announcements/issues/217\nRemove System.Net.Http.Json, and replace with new package System.Net.Http.Json, 10.0.5"
+            },
+            "kind": "File",
+            "path": "Client\\FUTBOLERO.Client.csproj",
+            "snippet": "System.Net.Http.Json, 3.2.0\n\nRecomendaci\u00F3n:\n\nThis package has been deprecated as part of the .NET Package Deprecation effort. You can learn more about it from https://github.com/dotnet/announcements/issues/217\nRemove System.Net.Http.Json, and replace with new package System.Net.Http.Json, 10.0.5",
+            "protectedSnippet": "System.Net.Http.Json, 3.2.0\n\nRecomendaci\u00F3n:\n\nThis package has been deprecated as part of the .NET Package Deprecation effort. You can learn more about it from https://github.com/dotnet/announcements/issues/217\nRemove System.Net.Http.Json, and replace with new package System.Net.Http.Json, 10.0.5",
+            "label": "System.Net.Http.Json 3.2.0",
+            "properties": {
+              "PackageId": "System.Net.Http.Json",
+              "PackageVersion": "3.2.0",
+              "PackageNewVersion": null,
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "1d7fa7ea-81f6-4b42-9d3a-93e5ae53d170",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: URI length limits removed ",
+          "projectPath": "Client\\FUTBOLERO.Client.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "builder.Services.AddScoped(sp =\u003E new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });",
+              "protected": "T:System.Uri"
+            },
+            "kind": "File",
+            "path": "Client\\Program.cs",
+            "snippet": "builder.Services.AddScoped(sp =\u003E new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });",
+            "protectedSnippet": "T:System.Uri",
+            "label": "T:System.Uri",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/networking/10.0/uri-length-limits-removed.md",
+                "isCustom": false
+              }
+            ],
+            "line": 25,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "885fef2b-d7a9-4205-87e3-f857be35b6e9",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: URI length limits removed ",
+          "projectPath": "Client\\FUTBOLERO.Client.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "builder.Services.AddScoped(sp =\u003E new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });",
+              "protected": "M:System.Uri.#ctor(System.String)"
+            },
+            "kind": "File",
+            "path": "Client\\Program.cs",
+            "snippet": "builder.Services.AddScoped(sp =\u003E new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });",
+            "protectedSnippet": "M:System.Uri.#ctor(System.String)",
+            "label": "M:System.Uri.#ctor(System.String)",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/networking/10.0/uri-length-limits-removed.md",
+                "isCustom": false
+              }
+            ],
+            "line": 25,
+            "column": 12
+          }
+        },
+        {
+          "incidentId": "0b66cb08-fd1f-4ffb-861d-07cff2825b16",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: URI length limits removed ",
+          "projectPath": "Client\\FUTBOLERO.Client.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "builder.Services.AddScoped(sp =\u003E new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });",
+              "protected": "T:System.Uri"
+            },
+            "kind": "File",
+            "path": "Client\\Program.cs",
+            "snippet": "builder.Services.AddScoped(sp =\u003E new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });",
+            "protectedSnippet": "T:System.Uri",
+            "label": "T:System.Uri",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/networking/10.0/uri-length-limits-removed.md",
+                "isCustom": false
+              }
+            ],
+            "line": 25,
+            "column": 12
+          }
+        }
+      ],
+      "features": []
+    },
+    {
+      "path": "Server\\FUTBOLERO.Server.csproj",
+      "startingProject": true,
+      "issues": 4,
+      "storyPoints": 13,
+      "properties": {
+        "appName": "FUTBOLERO.Server",
+        "projectKind": "AspNetCore",
+        "frameworks": [
+          "netcoreapp3.1"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 75,
+        "numberOfCodeFiles": 73,
+        "linesTotal": 11405,
+        "linesOfCode": 11386,
+        "totalApiScanned": 16101,
+        "minLinesOfCodeToChange": 9,
+        "maxLinesOfCodeToChange": 9
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "2cd8506c-b41a-466f-b8ca-d2ce2bafadae",
+          "ruleId": "NuGet.0002",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.AspNetCore.Components.WebAssembly.Server, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly.Server, and replace with new package Microsoft.AspNetCore.Components.WebAssembly.Server 10.0.5",
+              "protected": "Microsoft.AspNetCore.Components.WebAssembly.Server, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly.Server, and replace with new package Microsoft.AspNetCore.Components.WebAssembly.Server 10.0.5"
+            },
+            "kind": "File",
+            "path": "Server\\FUTBOLERO.Server.csproj",
+            "snippet": "Microsoft.AspNetCore.Components.WebAssembly.Server, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly.Server, and replace with new package Microsoft.AspNetCore.Components.WebAssembly.Server 10.0.5",
+            "protectedSnippet": "Microsoft.AspNetCore.Components.WebAssembly.Server, 3.2.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.AspNetCore.Components.WebAssembly.Server, and replace with new package Microsoft.AspNetCore.Components.WebAssembly.Server 10.0.5",
+            "label": "Microsoft.AspNetCore.Components.WebAssembly.Server 3.2.1",
+            "properties": {
+              "PackageId": "Microsoft.AspNetCore.Components.WebAssembly.Server",
+              "PackageVersion": "3.2.1",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "24a01243-ad2f-4bc3-a765-a8d67e55aac8",
+          "ruleId": "NuGet.0002",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.EntityFrameWorkCore.SqlServer, 3.1.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.EntityFrameWorkCore.SqlServer, and replace with new package Microsoft.EntityFrameWorkCore.SqlServer 10.0.5",
+              "protected": "Microsoft.EntityFrameWorkCore.SqlServer, 3.1.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.EntityFrameWorkCore.SqlServer, and replace with new package Microsoft.EntityFrameWorkCore.SqlServer 10.0.5"
+            },
+            "kind": "File",
+            "path": "Server\\FUTBOLERO.Server.csproj",
+            "snippet": "Microsoft.EntityFrameWorkCore.SqlServer, 3.1.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.EntityFrameWorkCore.SqlServer, and replace with new package Microsoft.EntityFrameWorkCore.SqlServer 10.0.5",
+            "protectedSnippet": "Microsoft.EntityFrameWorkCore.SqlServer, 3.1.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.EntityFrameWorkCore.SqlServer, and replace with new package Microsoft.EntityFrameWorkCore.SqlServer 10.0.5",
+            "label": "Microsoft.EntityFrameWorkCore.SqlServer 3.1.1",
+            "properties": {
+              "PackageId": "Microsoft.EntityFrameWorkCore.SqlServer",
+              "PackageVersion": "3.1.1",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "c3b338a1-6dbc-4af9-90ec-05a7a48061f3",
+          "ruleId": "NuGet.0002",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Microsoft.EntityFrameWorkCore.tools, 3.1.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.EntityFrameWorkCore.tools, and replace with new package Microsoft.EntityFrameWorkCore.tools 10.0.5",
+              "protected": "Microsoft.EntityFrameWorkCore.tools, 3.1.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.EntityFrameWorkCore.tools, and replace with new package Microsoft.EntityFrameWorkCore.tools 10.0.5"
+            },
+            "kind": "File",
+            "path": "Server\\FUTBOLERO.Server.csproj",
+            "snippet": "Microsoft.EntityFrameWorkCore.tools, 3.1.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.EntityFrameWorkCore.tools, and replace with new package Microsoft.EntityFrameWorkCore.tools 10.0.5",
+            "protectedSnippet": "Microsoft.EntityFrameWorkCore.tools, 3.1.1\n\nRecomendaci\u00F3n:\n\nRemove Microsoft.EntityFrameWorkCore.tools, and replace with new package Microsoft.EntityFrameWorkCore.tools 10.0.5",
+            "label": "Microsoft.EntityFrameWorkCore.tools 3.1.1",
+            "properties": {
+              "PackageId": "Microsoft.EntityFrameWorkCore.tools",
+              "PackageVersion": "3.1.1",
+              "PackageNewVersion": "10.0.5",
+              "PackageReplacements": null
+            }
+          }
+        },
+        {
+          "incidentId": "c37c877d-eaa8-4a0d-b678-0788c5104f68",
+          "ruleId": "Project.0002",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "Marco de destino actual: netcoreapp3.1\nMarco de destino recomendado: net10.0",
+              "protected": "Marco de destino actual: netcoreapp3.1\nMarco de destino recomendado: net10.0"
+            },
+            "kind": "File",
+            "path": "Server\\FUTBOLERO.Server.csproj",
+            "snippet": "Marco de destino actual: netcoreapp3.1\nMarco de destino recomendado: net10.0",
+            "protectedSnippet": "Marco de destino actual: netcoreapp3.1\nMarco de destino recomendado: net10.0",
+            "properties": {
+              "CurrentTargetFramework": "netcoreapp3.1",
+              "RecommendedTargetFramework": "net10.0"
+            }
+          }
+        },
+        {
+          "incidentId": "004abe7b-237b-4f2f-93f8-1d921972efbb",
+          "ruleId": "Api.0002",
+          "description": "Derived cryptographic types are obsolete. Use the Create method on the base type instead. ",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "SHA256Managed sha = new SHA256Managed();",
+              "protected": "T:System.Security.Cryptography.SHA256Managed"
+            },
+            "kind": "File",
+            "path": "Server\\Controllers\\ArbitroColegioController.cs",
+            "snippet": "SHA256Managed sha = new SHA256Managed();",
+            "protectedSnippet": "T:System.Security.Cryptography.SHA256Managed",
+            "label": "T:System.Security.Cryptography.SHA256Managed",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://aka.ms/dotnet-warnings/SYSLIB0021",
+                "isCustom": false
+              }
+            ],
+            "line": 222,
+            "column": 32
+          }
+        },
+        {
+          "incidentId": "b910424a-1613-49dd-ae94-23d3d03b3065",
+          "ruleId": "Api.0002",
+          "description": "Derived cryptographic types are obsolete. Use the Create method on the base type instead. ",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "SHA256Managed sha = new SHA256Managed();",
+              "protected": "T:System.Security.Cryptography.SHA256Managed"
+            },
+            "kind": "File",
+            "path": "Server\\Controllers\\ArbitroColegioController.cs",
+            "snippet": "SHA256Managed sha = new SHA256Managed();",
+            "protectedSnippet": "T:System.Security.Cryptography.SHA256Managed",
+            "label": "T:System.Security.Cryptography.SHA256Managed",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://aka.ms/dotnet-warnings/SYSLIB0021",
+                "isCustom": false
+              }
+            ],
+            "line": 165,
+            "column": 36
+          }
+        },
+        {
+          "incidentId": "d3667ab0-d62d-4987-9e40-b1da9cef9f03",
+          "ruleId": "Api.0002",
+          "description": "Derived cryptographic types are obsolete. Use the Create method on the base type instead. ",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "SHA256Managed sha = new SHA256Managed();",
+              "protected": "T:System.Security.Cryptography.SHA256Managed"
+            },
+            "kind": "File",
+            "path": "Server\\Controllers\\UsuarioController.cs",
+            "snippet": "SHA256Managed sha = new SHA256Managed();",
+            "protectedSnippet": "T:System.Security.Cryptography.SHA256Managed",
+            "label": "T:System.Security.Cryptography.SHA256Managed",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://aka.ms/dotnet-warnings/SYSLIB0021",
+                "isCustom": false
+              }
+            ],
+            "line": 312,
+            "column": 24
+          }
+        },
+        {
+          "incidentId": "f0fc2ca0-df77-4eae-b1f6-be1541583c7d",
+          "ruleId": "Api.0002",
+          "description": "Derived cryptographic types are obsolete. Use the Create method on the base type instead. ",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "SHA256Managed sha = new SHA256Managed();",
+              "protected": "T:System.Security.Cryptography.SHA256Managed"
+            },
+            "kind": "File",
+            "path": "Server\\Controllers\\UsuarioController.cs",
+            "snippet": "SHA256Managed sha = new SHA256Managed();",
+            "protectedSnippet": "T:System.Security.Cryptography.SHA256Managed",
+            "label": "T:System.Security.Cryptography.SHA256Managed",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://aka.ms/dotnet-warnings/SYSLIB0021",
+                "isCustom": false
+              }
+            ],
+            "line": 226,
+            "column": 32
+          }
+        },
+        {
+          "incidentId": "7937ad08-6a83-433b-8aa5-b804497c9260",
+          "ruleId": "Api.0002",
+          "description": "Derived cryptographic types are obsolete. Use the Create method on the base type instead. ",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "SHA256Managed sha = new SHA256Managed();",
+              "protected": "T:System.Security.Cryptography.SHA256Managed"
+            },
+            "kind": "File",
+            "path": "Server\\Controllers\\UsuarioController.cs",
+            "snippet": "SHA256Managed sha = new SHA256Managed();",
+            "protectedSnippet": "T:System.Security.Cryptography.SHA256Managed",
+            "label": "T:System.Security.Cryptography.SHA256Managed",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://aka.ms/dotnet-warnings/SYSLIB0021",
+                "isCustom": false
+              }
+            ],
+            "line": 150,
+            "column": 32
+          }
+        },
+        {
+          "incidentId": "4c8606e9-7e21-44cd-b10a-d857f1867f14",
+          "ruleId": "Api.0002",
+          "description": "Derived cryptographic types are obsolete. Use the Create method on the base type instead. ",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "SHA256Managed sha = new SHA256Managed();",
+              "protected": "T:System.Security.Cryptography.SHA256Managed"
+            },
+            "kind": "File",
+            "path": "Server\\Controllers\\UsuarioController.cs",
+            "snippet": "SHA256Managed sha = new SHA256Managed();",
+            "protectedSnippet": "T:System.Security.Cryptography.SHA256Managed",
+            "label": "T:System.Security.Cryptography.SHA256Managed",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://aka.ms/dotnet-warnings/SYSLIB0021",
+                "isCustom": false
+              }
+            ],
+            "line": 99,
+            "column": 20
+          }
+        },
+        {
+          "incidentId": "4dfbc6aa-0e43-4adb-af24-2861ba2271c3",
+          "ruleId": "Api.0002",
+          "description": "Derived cryptographic types are obsolete. Use the Create method on the base type instead. ",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "SHA256Managed sha = new SHA256Managed();",
+              "protected": "T:System.Security.Cryptography.SHA256Managed"
+            },
+            "kind": "File",
+            "path": "Server\\Controllers\\EquipoController.cs",
+            "snippet": "SHA256Managed sha = new SHA256Managed();",
+            "protectedSnippet": "T:System.Security.Cryptography.SHA256Managed",
+            "label": "T:System.Security.Cryptography.SHA256Managed",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://aka.ms/dotnet-warnings/SYSLIB0021",
+                "isCustom": false
+              }
+            ],
+            "line": 338,
+            "column": 40
+          }
+        },
+        {
+          "incidentId": "a66981e5-25a5-4cd8-a9a5-dfcedfcec511",
+          "ruleId": "Api.0002",
+          "description": "Derived cryptographic types are obsolete. Use the Create method on the base type instead. ",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "SHA256Managed sha = new SHA256Managed();",
+              "protected": "T:System.Security.Cryptography.SHA256Managed"
+            },
+            "kind": "File",
+            "path": "Server\\Controllers\\EquipoController.cs",
+            "snippet": "SHA256Managed sha = new SHA256Managed();",
+            "protectedSnippet": "T:System.Security.Cryptography.SHA256Managed",
+            "label": "T:System.Security.Cryptography.SHA256Managed",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://aka.ms/dotnet-warnings/SYSLIB0021",
+                "isCustom": false
+              }
+            ],
+            "line": 211,
+            "column": 40
+          }
+        },
+        {
+          "incidentId": "85b3d6d1-d278-4ae3-b762-7f1848ca83dc",
+          "ruleId": "Api.0003",
+          "description": "Breaking change: Exception diagnostics are suppressed when IExceptionHandler.TryHandleAsync returns true ",
+          "projectPath": "Server\\FUTBOLERO.Server.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "app.UseExceptionHandler(\u0022/Error\u0022);",
+              "protected": "M:Microsoft.AspNetCore.Builder.ExceptionHandlerExtensions.UseExceptionHandler(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.String)"
+            },
+            "kind": "File",
+            "path": "Server\\Startup.cs",
+            "snippet": "app.UseExceptionHandler(\u0022/Error\u0022);",
+            "protectedSnippet": "M:Microsoft.AspNetCore.Builder.ExceptionHandlerExtensions.UseExceptionHandler(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.String)",
+            "label": "M:Microsoft.AspNetCore.Builder.ExceptionHandlerExtensions.UseExceptionHandler(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.String)",
+            "links": [
+              {
+                "title": "Documentaci\u00F3n de la API",
+                "url": "https://github.com/dotnet/docs/blob/main/docs/core/compatibility/aspnet-core/10/exception-handler-diagnostics-suppressed.md",
+                "isCustom": false
+              }
+            ],
+            "line": 39,
+            "column": 16
+          }
+        }
+      ],
+      "features": [
+        {
+          "featureId": "CryptographyLegacy",
+          "incidents": [
+            "a66981e5-25a5-4cd8-a9a5-dfcedfcec511",
+            "4dfbc6aa-0e43-4adb-af24-2861ba2271c3",
+            "4c8606e9-7e21-44cd-b10a-d857f1867f14",
+            "7937ad08-6a83-433b-8aa5-b804497c9260",
+            "f0fc2ca0-df77-4eae-b1f6-be1541583c7d",
+            "d3667ab0-d62d-4987-9e40-b1da9cef9f03",
+            "b910424a-1613-49dd-ae94-23d3d03b3065",
+            "004abe7b-237b-4f2f-93f8-1d921972efbb"
+          ]
+        }
+      ]
+    },
+    {
+      "path": "Shared\\FUTBOLERO.Shared.csproj",
+      "startingProject": true,
+      "issues": 1,
+      "storyPoints": 1,
+      "properties": {
+        "appName": "FUTBOLERO.Shared",
+        "projectKind": "ClassLibrary",
+        "frameworks": [
+          "netstandard2.1"
+        ],
+        "languages": [
+          "C#"
+        ],
+        "tools": [
+          "MSBuild"
+        ],
+        "isSdkStyle": true,
+        "numberOfFiles": 42,
+        "numberOfCodeFiles": 42,
+        "linesTotal": 1085,
+        "linesOfCode": 1085,
+        "totalApiScanned": 1546,
+        "minLinesOfCodeToChange": 0,
+        "maxLinesOfCodeToChange": 0
+      },
+      "ruleInstances": [
+        {
+          "incidentId": "494ab973-e594-4166-ba75-5d377c04f5e5",
+          "ruleId": "NuGet.0003",
+          "projectPath": "Shared\\FUTBOLERO.Shared.csproj",
+          "state": "Active",
+          "location": {
+            "snippetModel": {
+              "unrestricted": "System.ComponentModel.Annotations, 5.0.0\n\nRecomendaci\u00F3n:\n\nFuncionalidad de paquete incluida con la nueva referencia de marco",
+              "protected": "System.ComponentModel.Annotations, 5.0.0\n\nRecomendaci\u00F3n:\n\nFuncionalidad de paquete incluida con la nueva referencia de marco"
+            },
+            "kind": "File",
+            "path": "Shared\\FUTBOLERO.Shared.csproj",
+            "snippet": "System.ComponentModel.Annotations, 5.0.0\n\nRecomendaci\u00F3n:\n\nFuncionalidad de paquete incluida con la nueva referencia de marco",
+            "protectedSnippet": "System.ComponentModel.Annotations, 5.0.0\n\nRecomendaci\u00F3n:\n\nFuncionalidad de paquete incluida con la nueva referencia de marco",
+            "label": "System.ComponentModel.Annotations 5.0.0",
+            "properties": {
+              "PackageId": "System.ComponentModel.Annotations",
+              "PackageVersion": "5.0.0",
+              "PackageNewVersion": null,
+              "PackageReplacements": null
+            }
+          }
+        }
+      ],
+      "features": []
+    }
+  ],
+  "rules": {
+    "NuGet.0003": {
+      "id": "NuGet.0003",
+      "isFeature": false,
+      "description": "La funcionalidad del paquete NuGet se incluye con la referencia del marco.\n\nEs necesario quitar el paquete.",
+      "label": "La funcionalidad del paquete NuGet se incluye con la referencia del marco",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262609",
+          "isCustom": false
+        }
+      ]
+    },
+    "NuGet.0002": {
+      "id": "NuGet.0002",
+      "isFeature": false,
+      "description": "Se recomienda actualizar el paquete NuGet para la plataforma de destino seleccionada.\n\nSe recomienda que los paquetes .NET est\u00E1ndar tengan versiones que coincidan con la versi\u00F3n de .NET de destino del proyecto.\n\nTambi\u00E9n se sabe que otros paquetes funcionan mejor para las plataformas de destino seleccionadas.",
+      "label": "Se recomienda actualizar el paquete NuGet",
+      "severity": "Potential",
+      "effort": 1,
+      "links": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262530",
+          "isCustom": false
+        }
+      ]
+    },
+    "NuGet.0005": {
+      "id": "NuGet.0005",
+      "isFeature": false,
+      "description": "El paquete NuGet est\u00E1 en desuso.\n\nVaya a su documentaci\u00F3n y compruebe si hay una gu\u00EDa para reemplazar la funcionalidad proporcionada por este paquete.",
+      "label": "El paquete NuGet est\u00E1 en desuso",
+      "severity": "Optional",
+      "effort": 1,
+      "links": [
+        {
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262531",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0003": {
+      "id": "Api.0003",
+      "isFeature": false,
+      "description": "API has a behavioral change in selected .NET version: code and binaries may behave differently at runtime without needing recompilation, but the new behavior might be undesirable and require updates.",
+      "label": "Behavioral change in selected .NET version",
+      "severity": "Potential",
+      "effort": 1
+    },
+    "Project.0002": {
+      "id": "Project.0002",
+      "isFeature": false,
+      "description": "El marco de destino del proyecto deben cambiarse al nuevo marco de destino que seleccion\u00F3 para esta actualizaci\u00F3n.\n\nDurante la actualizaci\u00F3n, el marco de destino se ajustar\u00E1 a la plataforma correspondiente cuando proceda. En algunos casos, el proyecto dar\u00EDa como resultado varios marcos de destino despu\u00E9s de la actualizaci\u00F3n si usara caracter\u00EDsticas que ahora tienen sus propias plataformas en marcos de .NET modernos (windows, iOS, Android, etc.).",
+      "label": "Es necesario cambiar el marco de destino del proyecto",
+      "severity": "Mandatory",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Informaci\u00F3n general sobre la portabilidad de .NET Framework a .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265227",
+          "isCustom": false
+        },
+        {
+          "title": "SDK de proyecto .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2265226",
+          "isCustom": false
+        }
+      ]
+    },
+    "Api.0002": {
+      "id": "Api.0002",
+      "isFeature": false,
+      "description": "API is source incompatible for selected .NET version: requires code changes to compile successfully when targeting a new version, such as removing obsolete APIs or changing method signatures.",
+      "label": "Source incompatible for selected .NET version",
+      "severity": "Potential",
+      "effort": 1,
+      "links": [
+        {
+          "title": "Cambios importantes en .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2262679",
+          "isCustom": false
+        }
+      ]
+    },
+    "CryptographyLegacy": {
+      "id": "CryptographyLegacy",
+      "isFeature": false,
+      "description": "Obsolete or insecure cryptographic algorithms that have been deprecated for security reasons. These algorithms are no longer considered secure by modern standards. Migrate to modern cryptographic APIs using secure algorithms.",
+      "label": "Legacy Cryptography",
+      "severity": "Mandatory",
+      "effort": 2,
+      "links": [
+        {
+          "title": "Cryptography in .NET",
+          "url": "https://go.microsoft.com/fwlink/?linkid=2341612",
+          "isCustom": false
+        }
+      ]
+    }
+  }
+}

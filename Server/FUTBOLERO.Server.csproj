@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <UserSecretsId>393e4d66-fc8c-4f2a-addc-d26a07de7af4</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Controllers\CampoANTController.cs" />
+    <Compile Remove="Controllers\ColegioANTController.cs" />
+    <Compile Remove="Controllers\EquipoColegioANTController.cs" />
+    <Compile Remove="Controllers\ProgramacionColegioANTController.cs" />
+    <Compile Remove="Controllers\UsuarioANTController.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameWorkCore.SqlServer" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameWorkCore.tools" Version="10.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Client\FUTBOLERO.Client.csproj" />
+    <ProjectReference Include="..\Shared\FUTBOLERO.Shared.csproj" />
+  </ItemGroup>
+
+
+</Project>

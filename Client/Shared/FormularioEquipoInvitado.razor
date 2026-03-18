@@ -1,0 +1,88 @@
+﻿@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+@if (oEquipoInvitadoCLS == null)
+{
+    <button class="btn btn-primary">
+        <span class="spinner-border spinner-border-sm"></span>
+        Cargando...
+    </button>
+}
+else
+{
+    string archivoFoto = oEquipoInvitadoCLS.fotoequipo;
+
+    <NavLink href="@ruta">
+        <input type="button" value="Regresar" class="btn btn-info" />
+    </NavLink>
+    <div class="mb-4"></div>
+
+    <EditForm Model="@oEquipoInvitadoCLS">
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Equipo</label>
+            <div class="col-lg-10">
+                <InputText class="form-control font-weight-bold" readOnly @bind-Value="oEquipoInvitadoCLS.nombre" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Representante</label>
+            <div class="col-lg-10">
+                <InputText class="form-control font-weight-bold" readOnly @bind-Value="oEquipoInvitadoCLS.representante" />
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-md-2 col-form-label font-weight-bold">Promedio de Edad:</label>
+            <div class="col-lg-10">
+                @{promedioedad = oEquipoInvitadoCLS.años + " Años " + oEquipoInvitadoCLS.meses + " Meses";}
+                <input type="text" class="form-control font-weight-bold" readOnly Value="@promedioedad" />
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:center; flex-direction:column; align-items:center;">
+            <label class="font-weight-bold">Foto del Equipo</label>
+            <img class="mb-1" width="450" height="300" style="display: block;
+        box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);
+        border: 3px solid gold;" id="idImgFoto" src="@archivoFoto" />
+
+        </div>
+
+        <ListadoJugadoresEquipoInvitado oEquipoInvitadoCLS="oEquipoInvitadoCLS" />
+        <ListadoJuegosdelEquipo oJuegosdelequipoCLS="oJuegosdelequipoCLS" />
+
+        <NavLink href="@ruta">
+            <input type="button" value="Regresar" class="btn btn-info" />
+        </NavLink>
+
+    </EditForm>
+    <div class="mb-4"></div>
+}
+
+
+@code {
+    string promedioedad { get; set; } = "";
+
+    [Parameter]
+    public EquipoInvitadoCLS oEquipoInvitadoCLS { get; set; } = new EquipoInvitadoCLS();
+
+    [Parameter]
+    public List<JuegosdelequipoCLS> oJuegosdelequipoCLS { get; set; } = new List<JuegosdelequipoCLS>();
+
+    public string ruta { get; set; }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        string paginaEnviar = "ListaEquipoInvitado";
+        int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
+        ruta = paginaEnviar + "/" + idPag;
+    }
+
+    public async Task previewImagen()
+    {
+        //ESTAMOS LLAMANDO UNA FUNCION DE JAVASCRIPT DESDE BLAZOR
+        await ijsruntime.InvokeVoidAsync("previewDataImagen");
+    }
+}

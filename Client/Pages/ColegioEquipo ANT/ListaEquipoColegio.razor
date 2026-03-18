@@ -1,0 +1,145 @@
+﻿@page "/ListaEquipoColegio/{Id}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+@{
+    string[] cabeceras = { "Equipo" };
+
+    // ESTAS PROPIEDADES TIENEN QUE SER IGUAL A LAS QUE ESTAN EN EL CONTROLADOR
+    string[] propiedades = { "nombre" };
+}
+
+<AuthorizeView>
+    <Authorized>
+        <Listados cabeceras=cabeceras
+                  nombrePropiedadesMostrar=propiedades
+                  lista=listadoEquipoColegio
+                  type="combobox" button=false label="Seleccione un colegio"
+                  combobox="oColegioCLS" displayMember="nombre" valueMember="idcolegio" tieneseleccione="false"
+                  eventBusqueda="BuscarListaTorneoColegio"
+                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarEquipoColegio"
+                  permitirEditar=@permitirEditar rutaEditar="EditarEquipoColegio"
+                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaEquipoColegio"
+                  permitirExportarExcel=@permitirExportarExcel
+                  permitirExportarWord=@permitirExportarWord
+                  permitirExportarPdf=@permitirExportarPDF
+                  tituloReporte="Listado de Torneos" />
+    </Authorized>
+</AuthorizeView>
+@*type="combobox" button=false label="Seleccione un Colegio"
+    combobox="oColegioCLS" displayMember="nombre" valueMember="idcolegio"
+    eventBusqueda="BuscarListaLigaColegio"*@
+
+@code {
+
+    public string idtorneoseleccionado;
+    public string idcolegio = "1";
+
+    public EquipoColegioCLS[] listadoEquipoColegio;
+
+    public EquipoColegioCLS oEquipoColegioCLSBorrar = new EquipoColegioCLS();         // ESTE LO PONGO PARA SACAR EL NOMBRE DEL TORNEO Y MANDARLO COMO PARAMETRO AL BORRAR
+
+    public ColegioCLS[] oColegioCLS;      // ESTO ES PORQUE SE VA HACER UNA BUSQUEDA POR COMBOBOX
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    public bool permitirAgregar = false;
+    public bool permitirEditar = false;
+    public bool permitirEliminar = false;
+    public bool permitirExportarExcel = false;
+    public bool permitirExportarWord = false;
+    public bool permitirExportarPDF = false;
+
+    List<int> listaBotones = new List<int>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            var torneo = claims[1].Value;
+            var idusuariologueado = claims[0].Value;
+
+            // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
+            idtorneoseleccionado = claims[2].Value;
+
+            oColegioCLS = await http.GetFromJsonAsync<ColegioCLS[]>("api/Colegio/ListarColegio2/" + idusuariologueado);
+
+            int idcolegio = await http.GetFromJsonAsync<int>("api/Colegio/RegresaIdColegio/" + idusuariologueado);
+            listadoEquipoColegio = await http.GetFromJsonAsync<EquipoColegioCLS[]>("api/EquipoColegio/ListaEquipoColegio/" + idcolegio);
+
+            if (user.Identity.IsAuthenticated)
+            {
+                //listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
+
+                //  ESTO LO HAGO PORQUE SI ES UN ADMINISTRADOR Y NO TIENE DERECHO A ADMINISTRAR EL TORNEO SELECCIONADO TENDRA QUE VERLO COMO INVITADO
+                listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones2/" + user.Identity.Name + "/" + Id + "/" + idtorneoseleccionado);
+
+                if (listaBotones.Count() > 0)
+                {
+                    if (listaBotones.Contains(1)) permitirAgregar = true;
+                    if (listaBotones.Contains(2)) permitirEditar = true;
+                    if (listaBotones.Contains(3)) permitirEliminar = true;
+                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
+                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(6)) permitirExportarPDF = true;
+                }
+            }
+        }
+    }
+
+
+    public async Task BuscarListaTorneoColegio(string buscarNombreTorneoColegio)
+    {
+        if (buscarNombreTorneoColegio == null || buscarNombreTorneoColegio == "")
+        {
+            listadoEquipoColegio = await http.GetFromJsonAsync<EquipoColegioCLS[]>("api/EquipoColegio/ListaEquipoColegio");
+        }
+        else
+        {
+            //listadoMunicipio = await http.GetFromJsonAsync<MunicipioCLS[]>("api/Municipio/FiltrarMunicipio/" + "2");
+            listadoEquipoColegio = await http.GetFromJsonAsync<EquipoColegioCLS[]>("api/EquipoColegio/FiltrarEquipoColegio/" + buscarNombreTorneoColegio);
+        }
+    }
+
+
+    public async Task EliminarListaEquipoColegio(string idEquipoColegio)       // LO PONEMOS COMO STRING PORQUE EN EL LISTADOSRAZOR2 ESTA COMO STRING
+    {
+        oEquipoColegioCLSBorrar = await http.GetFromJsonAsync<EquipoColegioCLS>("api/EquipoColegio/RecuperarInformacionEquipoColegio/" + idEquipoColegio);
+
+
+        if (await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar", "Confirmar", "VAS A BORRAR A: " + oEquipoColegioCLSBorrar.nombre, "warning"))
+        {
+            int rpta = await http.GetFromJsonAsync<int>("api/EquipoColegio/EliminarEquipoColegio/" + idEquipoColegio);
+
+            // 0 = OCURRIO UN ERROR     1 = SE BORRO ON     2 = HAY LIGAS EN ESE MUNICIPIO
+            switch (rpta)
+            {
+                case 0:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR, NO SE PUDO DAR DE BAJA", "error");
+                    break;
+                case 1:
+                    await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "OK, LA LIGA SE ELIMINO", "success", 2000);
+                    listadoEquipoColegio = await http.GetFromJsonAsync<EquipoColegioCLS[]>("api/EquipoColegio/ListaEquipoColegio");
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+
+
+
+
+

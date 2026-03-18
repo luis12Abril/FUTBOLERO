@@ -1,0 +1,22 @@
+﻿@page "/agregarTorneo"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<AuthorizeView>
+    <Authorized>
+        <FormularioTorneo listaLigas="listaLiga"/>
+    </Authorized>
+</AuthorizeView>
+
+
+@code {
+    public List<LigaCLS> listaLiga = new List<LigaCLS>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        listaLiga = await http.GetFromJsonAsync<List<LigaCLS>>("api/Liga/ListarLiga");
+    }
+
+
+
+}

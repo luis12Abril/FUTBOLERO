@@ -1,0 +1,19 @@
+﻿@page "/editarEstado/{idEstado}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioEstado oEstadoCLS="oEstadoCLS" />
+
+@code {
+    [Parameter]
+    public string idEstado { get; set; }
+
+    public EstadoCLS oEstadoCLS = new EstadoCLS();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oEstadoCLS = await http.GetFromJsonAsync<EstadoCLS>("api/Estado/RecuperarInformacionEstado/" + idEstado);
+    }
+}
+
+https://localhost:44363/_framework/blazor.webassembly.js

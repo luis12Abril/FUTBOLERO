@@ -1,0 +1,46 @@
+﻿@using FUTBOLERO.Shared
+
+<div class="mb-4"></div>
+<div class="mb-4"></div>
+<div class="mb-4"></div>
+<div class="mb-4"></div>
+<div class="bg-info font-weight-bold text-center">JUEGOS DEL EQUIPO</div>
+
+<table class="table table-sm table-hover table-hover thead-light">
+    <thead class="thead-dark">
+        <tr>
+            <th>Jornada</th>
+            <th>Fecha</th>
+            <th>Equipo01</th>
+            <th>Goles</th>
+            <th>Equipo02</th>
+            <th>Goles</th>
+            <th>Estatus</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (oJuegosdelequipoCLS != null)
+        {
+            @foreach (JuegosdelequipoCLS item in oJuegosdelequipoCLS)
+            {
+                <tr class="font-weight-bold">
+                    <td>@item.nombrejornada</td>
+                    <td>@item.fechajuego</td>
+                    <td>@item.equipo1</td>
+                    <td>@item.golequipo1</td>
+                    <td>@item.equipo2</td>
+                    <td>@item.golequipo2</td>
+                    <td>@item.estatus</td>
+                </tr>
+            }
+        }
+
+    </tbody>
+</table>
+<div class="mb-4"></div>
+
+@code {
+    [Parameter]
+    public List<JuegosdelequipoCLS> oJuegosdelequipoCLS { get; set; }
+}

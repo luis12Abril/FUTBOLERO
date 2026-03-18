@@ -1,0 +1,18 @@
+﻿@page "/editarColegio/{idColegio}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+
+<FormularioColegio oColegioCLS="oColegioCLS" listaPresidentes=listaPresidente/>
+
+@code {
+    [Parameter]
+    public string idColegio { get; set; }
+    public ColegioCLS oColegioCLS = new ColegioCLS();
+    public List<PresidenteCLS> listaPresidente = new List<PresidenteCLS>();
+
+    protected async override Task OnParametersSetAsync()
+    {
+        oColegioCLS = await http.GetFromJsonAsync<ColegioCLS>("api/Colegio/RecuperarInformacionColegio/" + idColegio);
+        listaPresidente = await http.GetFromJsonAsync<List<PresidenteCLS>>("api/Colegio/ListarPresidentes");
+    }
+}

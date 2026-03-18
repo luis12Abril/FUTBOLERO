@@ -1,0 +1,40 @@
+﻿@using FUTBOLERO.Shared
+
+<div class="mb-4"></div>
+<div class="mb-4"></div>
+
+<table class="table table-sm table-hover table-hover thead-light">
+    <thead class="thead-dark">
+        <tr class="bg-info">
+            <td style="text-align:center">COMENTARIOS</td>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (oComentarioCLS != null)
+        {
+            @foreach (ComentarioCLS item in oComentarioCLS)
+            {
+                string encabezadocomentario = @item.usuario + "  -  " + @item.fechacomentariocadena;
+                <tr style="font-size:12px">
+                    <th>@encabezadocomentario</th>
+                    @*<th>@item.usuario @item.fechacomentariocadena</th>*@
+
+                    @*<th style="width:20%;">@item.usuario </th>
+                        <th style="width:80%;">@item.fechacomentariocadena</th>*@
+                </tr>
+                <tr>
+                    <th>@item.comentario</th>
+                </tr>
+                <tr></tr>
+            }
+        }
+    </tbody>
+</table>
+
+
+@code {
+    [Parameter]
+    public ComentarioCLS[] oComentarioCLS { get; set; }
+}
+
