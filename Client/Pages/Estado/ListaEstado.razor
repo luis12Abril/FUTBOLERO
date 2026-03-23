@@ -10,24 +10,28 @@
 
 <AuthorizeView>
     <Authorized>
-        <div class="mt-3">
-            <div style="background:linear-gradient(180deg, #eff6ff 0%, #eef2ff 100%); border:1px solid #dbeafe; border-radius:12px; padding:1rem 1.25rem; margin-bottom:1rem;">
-                <h3 style="margin:0; color:#1d4ed8; font-weight:700;">Estados Participantes</h3>
-                <span style="color:#475569; font-size:14px;">Administra los estados disponibles para el torneo.</span>
+        <section class="estado-page mt-3">
+            <div class="estado-header-card">
+                <div>
+                    <p class="estado-kicker">Panel de administración</p>
+                    <h3>Estados Participantes</h3>
+                    <span>Administra los estados disponibles para el torneo.</span>
+                </div>
+                <div class="estado-badge">
+                    <span>Catálogo</span>
+                </div>
             </div>
 
             @if (listadoEstado == null)
             {
-                <div class="text-center mt-4">
-                    <button class="btn btn-primary" style="min-width:170px; border-radius:8px;">
-                        <span class="spinner-border spinner-border-sm"></span>
-                        Cargando estados...
-                    </button>
+                <div class="estado-loading">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <span class="ml-2">Cargando estados...</span>
                 </div>
             }
             else
             {
-                <div style="background-color:white; border-radius:12px; padding:0.5rem; box-shadow:0 12px 26px rgba(0,0,0,0.08);">
+                <div class="estado-list-card">
                     <Listados cabeceras=cabeceras
                               nombrePropiedadesMostrar=propiedades
                               lista=listadoEstado
@@ -42,9 +46,83 @@
                               tituloReporte="Listado de Estados participantes" />
                 </div>
             }
-        </div>
+        </section>
     </Authorized>
 </AuthorizeView>
+
+<style>
+    .estado-page {
+        padding: 0.25rem 0;
+    }
+
+    .estado-header-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 45%, #f8fafc 100%);
+        border: 1px solid #dbeafe;
+        border-radius: 16px;
+        padding: 1.1rem 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 14px 28px rgba(30, 64, 175, 0.08);
+    }
+
+    .estado-kicker {
+        margin: 0;
+        color: #2563eb;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+
+    .estado-header-card h3 {
+        margin: 0.15rem 0 0.25rem;
+        color: #1e3a8a;
+        font-weight: 800;
+    }
+
+    .estado-header-card span {
+        color: #475569;
+        font-size: 0.93rem;
+    }
+
+    .estado-badge span {
+        display: inline-block;
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border-radius: 999px;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+    }
+
+    .estado-list-card {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 0.75rem;
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .estado-loading {
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1e3a8a;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 768px) {
+        .estado-header-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
 
 @code {
     //public string mensaje;

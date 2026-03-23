@@ -10,20 +10,119 @@
 
 <AuthorizeView>
     <Authorized>
-        <Listados cabeceras=cabeceras
-                  nombrePropiedadesMostrar=propiedades
-                  lista=listadoCampo
-                  type="text" button=false label="Nombre del Campo"
-                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarCampo"
-                  permitirEditar=@permitirEditar rutaEditar="EditarCampo"
-                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaCampo"
-                  eventBusqueda="BuscarListaCampo"
-                  permitirExportarExcel=@permitirExportarExcel
-                  permitirExportarWord=@permitirExportarWord
-                  permitirExportarPdf=@permitirExportarPDF
-                  tituloReporte="Listado de Campos" />
+        <section class="catalogo-page mt-3">
+            <div class="catalogo-header-card">
+                <div>
+                    <p class="catalogo-kicker">Panel de administración</p>
+                    <h3>Campos</h3>
+                    <span>Administra los campos disponibles para el torneo.</span>
+                </div>
+                <div class="catalogo-badge">
+                    <span>Catálogo</span>
+                </div>
+            </div>
+
+            @if (listadoCampo == null)
+            {
+                <div class="catalogo-loading">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <span class="ml-2">Cargando campos...</span>
+                </div>
+            }
+            else
+            {
+                <div class="catalogo-list-card">
+                    <Listados cabeceras=cabeceras
+                              nombrePropiedadesMostrar=propiedades
+                              lista=listadoCampo
+                              type="text" button=false label="Nombre del Campo"
+                              permitirAgregar=@permitirAgregar rutaAgregar="AgregarCampo"
+                              permitirEditar=@permitirEditar rutaEditar="EditarCampo"
+                              permitirEliminar=@permitirEliminar eventEliminar="EliminarListaCampo"
+                              eventBusqueda="BuscarListaCampo"
+                              permitirExportarExcel=@permitirExportarExcel
+                              permitirExportarWord=@permitirExportarWord
+                              permitirExportarPdf=@permitirExportarPDF
+                              tituloReporte="Listado de Campos" />
+                </div>
+            }
+        </section>
     </Authorized>
 </AuthorizeView>
+
+<style>
+    .catalogo-page {
+        padding: 0.25rem 0;
+    }
+
+    .catalogo-header-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 45%, #f8fafc 100%);
+        border: 1px solid #dbeafe;
+        border-radius: 16px;
+        padding: 1.1rem 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 14px 28px rgba(30, 64, 175, 0.08);
+    }
+
+    .catalogo-kicker {
+        margin: 0;
+        color: #2563eb;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+
+    .catalogo-header-card h3 {
+        margin: 0.15rem 0 0.25rem;
+        color: #1e3a8a;
+        font-weight: 800;
+    }
+
+    .catalogo-header-card span {
+        color: #475569;
+        font-size: 0.93rem;
+    }
+
+    .catalogo-badge span {
+        display: inline-block;
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border-radius: 999px;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+    }
+
+    .catalogo-list-card {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 0.75rem;
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .catalogo-loading {
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1e3a8a;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 768px) {
+        .catalogo-header-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
 
 @code {
     public string idtorneoseleccionado;

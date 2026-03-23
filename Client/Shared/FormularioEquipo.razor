@@ -6,105 +6,263 @@
 
 @if (oEquipoCLS == null)
 {
-    <div class="text-center mt-4">
-        <button class="btn btn-primary" style="min-width:170px; border-radius:8px;">
-            <span class="spinner-border spinner-border-sm"></span>
-            Cargando...
-        </button>
+    <div class="equipo-loading">
+        <div class="spinner-border text-primary" role="status"></div>
+        <span class="ml-2">Cargando información del equipo...</span>
     </div>
 }
 else
 {
     string archivoFoto = oEquipoCLS.fotoequipo;
 
-    <div style="background-color:white; border-radius:14px; padding:1.25rem; box-shadow:0 12px 28px rgba(0,0,0,0.10);">
-    <h3 style="color:#1d4ed8; font-weight:700; margin-bottom:1rem;">Datos del Equipo</h3>
-
-    <EditForm Model="@oEquipoCLS" OnValidSubmit="GuardarDatos">
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:1rem;">
-            <input type="submit" value="Guardar" class="btn btn-success" style="min-width:130px; border-radius:8px;" />
-
-            <NavLink href="@ruta" class="text-decoration-none">
-                <input type="button" value="Regresar" class="btn btn-info" style="min-width:130px; border-radius:8px;" />
-            </NavLink>
-        </div>
-        <div class="mb-4"></div>
-
-        <DataAnnotationsValidator />
-        @*<ValidationSummary />*@
-
-        <div class="form-group row align-items-center">
-            <label class="col-lg-2 col-form-label font-weight-bold" style="color:#1e3a8a;">Nombre **</label>
-            <div class="col-lg-10">
-                <InputText class="form-control" style="border-radius:8px;" @bind-Value="oEquipoCLS.nombre" />
-                <ValidationMessage For="@(()=>oEquipoCLS.nombre)" />
-            </div>
-        </div>
-
-
-        @*<div class="mb-4"></div>*@
-
-        <div class="form-group row align-items-center">
-            <label class="col-md-2 col-form-label font-weight-bold" style="color:#1e3a8a;">Representante</label>
-            <div class="col-lg-10">
-                <InputText class="form-control" style="border-radius:8px;" @bind-Value="oEquipoCLS.representante" />
+    <section class="equipo-page">
+        <div class="equipo-card">
+            <div class="equipo-header">
+                <h3>Datos del Equipo</h3>
+                <p>Registra la información principal del equipo participante.</p>
             </div>
 
+            <EditForm Model="@oEquipoCLS" OnValidSubmit="GuardarDatos">
+                <div class="equipo-actions">
+                    <input type="submit" value="Guardar" class="btn equipo-btn-save" />
+
+                    <NavLink href="@ruta" class="text-decoration-none">
+                        <input type="button" value="Regresar" class="btn equipo-btn-back" />
+                    </NavLink>
+                </div>
+
+                <DataAnnotationsValidator />
+
+                <div class="form-group row align-items-center equipo-field-row">
+                    <label class="col-lg-3 col-form-label equipo-label">Nombre <span class="equipo-required">*</span></label>
+                    <div class="col-lg-9">
+                        <InputText class="form-control equipo-input" @bind-Value="oEquipoCLS.nombre" />
+                        <ValidationMessage For="@(()=>oEquipoCLS.nombre)" />
+                    </div>
+                </div>
+
+                <div class="form-group row align-items-center equipo-field-row">
+                    <label class="col-lg-3 col-form-label equipo-label">Representante</label>
+                    <div class="col-lg-9">
+                        <InputText class="form-control equipo-input" @bind-Value="oEquipoCLS.representante" />
+                    </div>
+                </div>
+
+                <div class="equipo-optional-panel">
+                    <div class="equipo-optional-title">
+                        <span>Acceso para capturista (Opcional)</span>
+                        <small>Solo llénalo cuando quieras asignar un usuario para capturar jugadores y datos del equipo.</small>
+                    </div>
+
+                    <div class="form-group row align-items-center equipo-field-row">
+                        <label class="col-lg-3 col-form-label equipo-label">Usuario equipo</label>
+                        <div class="col-lg-9">
+                            <InputText class="form-control equipo-input" @bind-Value="oEquipoCLS.usuequipo" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row align-items-center equipo-field-row">
+                        <label class="col-lg-3 col-form-label equipo-label">Clave</label>
+                        <div class="col-lg-9">
+                            <InputText type="password" class="form-control equipo-input" @bind-Value="oEquipoCLS.codigo" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row align-items-center equipo-field-row mb-0">
+                        <label class="col-lg-3 col-form-label equipo-label">Vigencia</label>
+                        <div class="col-lg-9">
+                            <InputDate class="form-control equipo-input" @bind-Value="oEquipoCLS.vigencia" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row align-items-center equipo-field-row">
+                    <label class="col-lg-3 col-form-label equipo-label">Promedio de Edad</label>
+                    <div class="col-lg-9">
+                        @{promedioedad = oEquipoCLS.años + " Años " + oEquipoCLS.meses + " Meses";}
+                        <input type="text" class="form-control equipo-input equipo-readonly" readOnly Value="@promedioedad" />
+                    </div>
+                </div>
+
+                <div class="equipo-photo-panel">
+                    <label class="equipo-photo-title">Foto del Equipo</label>
+                    <img class="equipo-photo-preview" id="idImgFoto" src="@archivoFoto" />
+                    <input class="equipo-photo-input" type="file" id="idInputFoto" accept="image/png,image/jpg,image/jpeg" @onchange="previewImagen" />
+                </div>
+
+                <ListadoJugadoresEquipo oEquipoCLS="oEquipoCLS" />
+                <ListadoJuegosdelEquipo oJuegosdelequipoCLS="oJuegosdelequipoCLS" />
+
+                <div class="equipo-actions equipo-actions-bottom">
+                    <input type="submit" value="Guardar" class="btn equipo-btn-save" />
+
+                    <NavLink href="@ruta" class="text-decoration-none">
+                        <input type="button" value="Regresar" class="btn equipo-btn-back" />
+                    </NavLink>
+                </div>
+
+            </EditForm>
         </div>
-
-        <div class="form-group row align-items-center">
-            <label class="col-md-2 col-form-label font-weight-bold" style="color:#1e3a8a;">.....  Usuario equipo</label>
-            <div class="col-lg-10">
-                <InputText class="form-control" style="border-radius:8px;" @bind-Value="oEquipoCLS.usuequipo" />
-            </div>
-        </div>
-
-        <div class="form-group row align-items-center">
-            <label class="col-md-2 col-form-label font-weight-bold" style="color:#1e3a8a;">.....  Clave</label>
-            <div class="col-lg-10">
-                <InputText type="password" class="form-control" style="border-radius:8px;" @bind-Value="oEquipoCLS.codigo" />
-            </div>
-        </div>
-
-        <div class="form-group row align-items-center">
-            <label class="col-md-2 col-form-label font-weight-bold" style="color:#1e3a8a;">.....  Vigencia</label>
-           <div class= "col-lg-10">
-                <InputDate class="form form-control" style="border-radius:8px;" @bind-Value="oEquipoCLS.vigencia" />
-           </div>
-           
-           
-        </div>
-
-        <div class="form-group row align-items-center">
-            <label class="col-md-2 col-form-label font-weight-bold" style="color:#1e3a8a;">Promedio de Edad:</label>
-            <div class="col-lg-10">
-                @{promedioedad = oEquipoCLS.años + " Años " + oEquipoCLS.meses + " Meses";}
-                <input type="text" class="form-control font-weight-bold" style="border-radius:8px;" readOnly Value="@promedioedad" />
-            </div>
-        </div>
-
-        <div style="display:flex; justify-content:center; flex-direction:column; align-items:center; background-color:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:1rem;">
-            <label class="font-weight-bold">Foto del Equipo</label>
-            <img class="mb-2" width="450" height="300" style="display:block; border-radius:10px; box-shadow:0 12px 24px rgba(0,0,0,0.20); border:2px solid #facc15;" id="idImgFoto" src="@archivoFoto" />
-
-            <input class="mb-2" type="file" style="max-width:350px;" id="idInputFoto" accept="image/png,image/jpg,image/jpeg" @onchange="previewImagen" />
-        </div>
-
-        <ListadoJugadoresEquipo oEquipoCLS="oEquipoCLS" />
-        <ListadoJuegosdelEquipo oJuegosdelequipoCLS="oJuegosdelequipoCLS" />
-
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:1rem;">
-            <input type="submit" value="Guardar" class="btn btn-success" style="min-width:130px; border-radius:8px;" />
-
-            <NavLink href="@ruta" class="text-decoration-none">
-                <input type="button" value="Regresar" class="btn btn-info" style="min-width:130px; border-radius:8px;" />
-            </NavLink>
-        </div>
-
-    </EditForm>
-    </div>
+    </section>
     <div class="mb-2"></div>
 }
+
+<style>
+    .equipo-page {
+        margin-top: 0.75rem;
+    }
+
+    .equipo-card {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
+        border: 1px solid #dbeafe;
+        border-radius: 18px;
+        padding: 1.4rem;
+        box-shadow: 0 16px 35px rgba(15, 23, 42, 0.1);
+    }
+
+    .equipo-header h3 {
+        color: #1d4ed8;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .equipo-header p {
+        margin-bottom: 1.2rem;
+        color: #64748b;
+    }
+
+    .equipo-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .equipo-btn-save,
+    .equipo-btn-back {
+        min-width: 130px;
+        border-radius: 10px;
+        color: #ffffff;
+        border: 0;
+        font-weight: 600;
+    }
+
+    .equipo-btn-save {
+        background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+        box-shadow: 0 8px 18px rgba(22, 163, 74, 0.25);
+    }
+
+    .equipo-btn-back {
+        background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%);
+        box-shadow: 0 8px 18px rgba(8, 145, 178, 0.25);
+    }
+
+    .equipo-field-row {
+        margin-bottom: 0.9rem;
+    }
+
+    .equipo-label {
+        color: #1e3a8a;
+        font-weight: 600;
+    }
+
+    .equipo-required {
+        color: #dc2626;
+    }
+
+    .equipo-input {
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        min-height: 42px;
+    }
+
+    .equipo-input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+    }
+
+    .equipo-readonly {
+        background-color: #f8fafc;
+        font-weight: 600;
+    }
+
+    .equipo-optional-panel {
+        border: 1px dashed #f59e0b;
+        background-color: #fffbeb;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .equipo-optional-title {
+        margin-bottom: 0.8rem;
+    }
+
+    .equipo-optional-title span {
+        display: inline-block;
+        background-color: #f59e0b;
+        color: #ffffff;
+        padding: 0.2rem 0.6rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 0.35rem;
+    }
+
+    .equipo-optional-title small {
+        display: block;
+        color: #92400e;
+        font-size: 0.88rem;
+    }
+
+    .equipo-photo-panel {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 1rem;
+    }
+
+    .equipo-photo-title {
+        font-weight: 700;
+        color: #1e3a8a;
+        margin-bottom: 0.75rem;
+    }
+
+    .equipo-photo-preview {
+        width: 100%;
+        max-width: 450px;
+        height: auto;
+        max-height: 300px;
+        display: block;
+        border-radius: 12px;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+        border: 2px solid #fde68a;
+        object-fit: cover;
+        margin-bottom: 0.6rem;
+    }
+
+    .equipo-photo-input {
+        max-width: 350px;
+    }
+
+    .equipo-actions-bottom {
+        margin-top: 1rem;
+        margin-bottom: 0;
+    }
+
+    .equipo-loading {
+        margin-top: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1e3a8a;
+        font-weight: 600;
+    }
+</style>
 
 
 

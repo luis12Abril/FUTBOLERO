@@ -20,204 +20,170 @@
 
 @if (listaEstados == null)
 {
-    <div class="text-center mt-4">
-        <button class="btn btn-primary" style="min-width:170px; border-radius:8px; box-shadow:0 8px 18px rgba(0,0,0,0.12);">
-            <span class="spinner-border spinner-border-sm"></span>
-            Cargando...
-        </button>
+    <div class="torneo-loading">
+        <div class="spinner-border text-primary" role="status"></div>
+        <span class="ml-2">Cargando torneos...</span>
     </div>
 }
 else
 {
-    <h2 class="text-center" style="color:#1d4ed8; font-weight:700; margin-bottom:1rem;">Selecciona tu Torneo</h2>
-
-    <input type="text" class="contacto font-weight-bold mb-4" style="text-align:center; width:100%; border-radius:8px; border:1px solid #dbeafe; background-color:#eff6ff; color:#1e3a8a; font-size:14px;" readOnly
-            Value="Contacto al correo: admin@futboleando.com.mx              SELECCIONA EL TORNEO QUE QUIERES VER              Contacto al correo:  admin@futboleando.com.mx" />
-
-    <EditForm Model="oTorneoCLS" OnValidSubmit="VerTorneo">
-
-        <div class="col-md-6 m-auto mt-2" style="background-color:white; border-radius:14px; padding:1rem 1.25rem; box-shadow:0 12px 26px rgba(0,0,0,0.10);">
-            <div class="form-group mb-5 mt-3">
-                <label class="font-weight-bold" style="color:#1e3a8a;">Estados</label>
-                <InputSelect class="form-control" style="border-radius:8px;" ValueChanged="@((string idEstado)=>CambiaEstado(idEstado))" ValueExpression="@(()=>idEstado)" Value="@idEstado">
-                    <option value="0">--- Seleccione ---</option>
-                    @foreach (EstadoCLS oEstadoCLS in oListaEstados)
-                    {
-                        if (idEstado == oEstadoCLS.idestado.ToString())
-                        {
-                            <option selected value="@oEstadoCLS.idestado">@oEstadoCLS.nombre</option>
-                        }
-                        else
-                        {
-                            <option value="@oEstadoCLS.idestado">@oEstadoCLS.nombre</option>
-                        }
-
-
-                    }
-                </InputSelect>
-                @*<ValidationMessage For="@(()=>oTorneoSeleccionadoCLS.idestado)" />*@
-
+    <section class="torneo-page">
+        <div class="torneo-card">
+            <div class="torneo-header">
+                <h2>Selecciona tu Torneo</h2>
+                <p>Elige estado, municipio, liga y torneo para continuar.</p>
             </div>
 
-
-
-            <div class="form-group mb-5">
-                <label class="font-weight-bold" style="color:#1e3a8a;">Municipios</label>
-                <InputSelect class="form-control" style="border-radius:8px;" ValueChanged="@((string idMunicipio)=>CambiaMunicipio(idMunicipio))" ValueExpression="@(()=>idMunicipio)" Value="@idMunicipio">
-                    <option value="0">--- Seleccione ---</option>
-
-                    @foreach (MunicipioCLS oMunicipioCLS in oListaMunicipios)
-                    {
-                        <option value="@oMunicipioCLS.idmunicipio">@oMunicipioCLS.nombre</option>
-                        @*if (idMunicipio == oMunicipioCLS.idmunicipio.ToString())
-                        {
-                            <option selected value="@oMunicipioCLS.idmunicipio">@oMunicipioCLS.nombre</option>
-                        }
-                        else
-                        {
-                            <option value="@oMunicipioCLS.idmunicipio">@oMunicipioCLS.nombre</option>
-                        }*@
-
-                    }
-                </InputSelect>
-                @*<ValidationMessage For="@(()=>oTorneoSeleccionadoCLS.idmunicipio)" />*@
-
-
-
-
-            </div>
-
-
-            <div class="form-group mb-5">
-                <label class="font-weight-bold" style="color:#1e3a8a;">Ligas</label>
-                <InputSelect class="form-control" style="border-radius:8px;" ValueChanged="@((string idLiga)=>CambiaLiga(idLiga))" ValueExpression="@(()=>idLiga)" Value="@idLiga">
-                    <option value="0">--- Seleccione ---</option>
-                    @foreach (LigaCLS oLigaCLS in oListaLigas)
-                    {
-                        <option value="@oLigaCLS.idliga">@oLigaCLS.nombre</option>
-                    }
-                </InputSelect>
-                @*<ValidationMessage For="@(()=>oTorneoSeleccionadoCLS.idliga)" />*@
-
-            </div>
-
-
-            <div class="form-group mb-5">
-                <label class="font-weight-bold" style="color:#1e3a8a;">Torneos</label>
-                <InputSelect class="form-control" style="border-radius:8px;" @bind-Value="@idTorneo">
-                    <option value="0">--- Seleccione ---</option>
-                    @foreach (TorneoCLS otorneoCLS in oListaTorneos)
-                        {
-                        <option value="@otorneoCLS.idtorneo">@otorneoCLS.nombre</option>
-                        }
-                </InputSelect>
-                @*<ValidationMessage For="@(()=>oTorneoSeleccionadoCLS.idliga)" />*@
-
-            </div>
-
-        </div>
-
-        <div class="col-md-6 m-auto">
-            <input type="submit" value="Ver Torneo" class="btn btn-success btn-block" name="ingresar" style="border-radius:8px; height:44px; font-weight:600; box-shadow:0 8px 18px rgba(22,163,74,0.25);" />
-        </div>
-      
-
-
-
-        <!--<div class="col-md-6 m-auto ">
-            <div class="form-group mb-5 mt-4">
-                <label class=" font-weight-bold">Estado</label>
-                <InputSelect class="form-control" ValueChanged="@((string value)=>CambiaEstado(value))" ValueExpression="@(()=>oTorneoSeleccionadoCLS.idestado)">
-                    <option value="">--- Seleccione ---</option>
-                    @foreach (TorneoSeleccionadoCLS oEstadoCLS in listaEstados)
-                    {
-
-                        <option value="@oEstadoCLS.idestado">@oEstadoCLS.estado</option>
-                    }
-                </InputSelect>
-                <ValidationMessage For="@(()=>oTorneoSeleccionadoCLS.idestado)" />
-
-            </div>-->
-        @*@if (verMunicipio)
-            {
-                <ComboMunicipio listaMunicipio="listaMunicipio" />
-                verMunicipio = false;
-            }*@
-
-
-        <!--<div class="form-group mb-5">
-                <label class=" font-weight-bold">Municipio</label>
-                <InputSelect class="form-control" ValueChanged="@((string value)=>CambiaMunicipio(value))" ValueExpression="@(()=>oTorneoSeleccionadoCLS.idmunicipio)">
-                    <option value="">--- Seleccione ---</option>
-                    @if (listaMunicipio != null)
-                    {
-                        @foreach (TorneoSeleccionadoCLS oMunicipioCLS in @listaMunicipio)
-                        {
-                            <option value="@oMunicipioCLS.idmunicipio">@oMunicipioCLS.municipio</option>
-
-                        }
-                    }
-
-                </InputSelect>
-                <ValidationMessage For="@(()=>oTorneoSeleccionadoCLS.idmunicipio)" />
-
-            </div>
-
-
-
-            <div class="form-group mb-5">
-                <label class=" font-weight-bold">Liga</label>
-                <InputSelect @bind-Value="oTorneoSeleccionadoCLS.idliga" class="form-control">
-                    <option value="">--- Seleccione ---</option>
-                    @foreach (LigaCLS oLigaCLS in listaLiga)
-                        {
-                        <option value="@oLigaCLS.idliga">@oLigaCLS.nombre</option>
-                        }
-                </InputSelect>
-                <ValidationMessage For="@(()=>oTorneoSeleccionadoCLS.idliga)" />
-
-            </div>
-
-            <div class="form-group mb-5">
-                <label class=" font-weight-bold">Torneo</label>
-                <InputSelect @bind-Value="oTorneoSeleccionadoCLS.idtorneo" class="form form-control">
-                    <option value="">--- Seleccione ---</option>
-                    @foreach (TorneoCLS oTorneoCLS in listaTorneo)
-                        {
-                        <option value="@oTorneoCLS.idtorneo">@oTorneoCLS.nombre</option>
-                        }
-                </InputSelect>
-                <ValidationMessage For="@(()=>oTorneoSeleccionadoCLS.idtorneo)" />
-
-            </div>
-        </div>-->
-
-    </EditForm>
-
-
-
-    @*<div class="grid-contenedor mb-5 mt-4">
-
-            @foreach (TorneoCLS oTorneoCLS in listadoTorneo)
-            {
-                @if (oTorneoCLS.torneovisible == "Si")
-                {
-                    <div>
-                        <input type="button" value="@oTorneoCLS.nombre" style=" width:100%; height:100%; font-size:40px;"
-                               class="torneo btn btn-info btn-block" @onclick="@(e => Torneo2(oTorneoCLS.nombre, oTorneoCLS.idtorneo))" />
+            <EditForm Model="oTorneoCLS" OnValidSubmit="VerTorneo">
+                <div class="torneo-form-grid">
+                    <div class="form-group torneo-field">
+                        <label>Estados</label>
+                        <InputSelect class="form-control torneo-select" ValueChanged="@((string idEstado)=>CambiaEstado(idEstado))" ValueExpression="@(()=>idEstado)" Value="@idEstado">
+                            <option value="0">--- Seleccione ---</option>
+                            @foreach (EstadoCLS oEstadoCLS in oListaEstados)
+                            {
+                                if (idEstado == oEstadoCLS.idestado.ToString())
+                                {
+                                    <option selected value="@oEstadoCLS.idestado">@oEstadoCLS.nombre</option>
+                                }
+                                else
+                                {
+                                    <option value="@oEstadoCLS.idestado">@oEstadoCLS.nombre</option>
+                                }
+                            }
+                        </InputSelect>
                     </div>
-                }
-            }
 
-        </div>*@
+                    <div class="form-group torneo-field">
+                        <label>Municipios</label>
+                        <InputSelect class="form-control torneo-select" ValueChanged="@((string idMunicipio)=>CambiaMunicipio(idMunicipio))" ValueExpression="@(()=>idMunicipio)" Value="@idMunicipio">
+                            <option value="0">--- Seleccione ---</option>
+                            @foreach (MunicipioCLS oMunicipioCLS in oListaMunicipios)
+                            {
+                                <option value="@oMunicipioCLS.idmunicipio">@oMunicipioCLS.nombre</option>
+                            }
+                        </InputSelect>
+                    </div>
 
-    <input type="text" class="contacto font-weight-bold mb-4 mt-3" style="text-align:center; width:100%; border-radius:8px; border:1px solid #dbeafe; background-color:#eff6ff; color:#1e3a8a; font-size:14px;" readOnly
-           Value="Contacto al correo: admin@futboleando.com.mx              SELECCIONA EL TORNEO QUE QUIERES VER              Contacto al correo:  admin@futboleando.com.mx" />
+                    <div class="form-group torneo-field">
+                        <label>Ligas</label>
+                        <InputSelect class="form-control torneo-select" ValueChanged="@((string idLiga)=>CambiaLiga(idLiga))" ValueExpression="@(()=>idLiga)" Value="@idLiga">
+                            <option value="0">--- Seleccione ---</option>
+                            @foreach (LigaCLS oLigaCLS in oListaLigas)
+                            {
+                                <option value="@oLigaCLS.idliga">@oLigaCLS.nombre</option>
+                            }
+                        </InputSelect>
+                    </div>
 
+                    <div class="form-group torneo-field">
+                        <label>Torneos</label>
+                        <InputSelect class="form-control torneo-select" @bind-Value="@idTorneo">
+                            <option value="0">--- Seleccione ---</option>
+                            @foreach (TorneoCLS otorneoCLS in oListaTorneos)
+                            {
+                                <option value="@otorneoCLS.idtorneo">@otorneoCLS.nombre</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
 
-
-
+                <button type="submit" class="btn torneo-submit-btn" name="ingresar">Ver Torneo</button>
+            </EditForm>
+        </div>
+    </section>
 }
+
+<style>
+    .torneo-page {
+        max-width: 920px;
+        margin: 1.5rem auto 0 auto;
+        padding: 0 1rem;
+    }
+
+    .torneo-card {
+        background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
+        border: 1px solid #dbeafe;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 18px 40px rgba(30, 58, 138, 0.12);
+    }
+
+    .torneo-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .torneo-header h2 {
+        margin: 0;
+        color: #1d4ed8;
+        font-weight: 700;
+    }
+
+    .torneo-header p {
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+        color: #64748b;
+    }
+
+    .torneo-form-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .torneo-field {
+        margin-bottom: 0;
+    }
+
+    .torneo-field label {
+        display: block;
+        margin-bottom: 0.45rem;
+        color: #1e3a8a;
+        font-weight: 600;
+    }
+
+    .torneo-select {
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        height: 44px;
+    }
+
+    .torneo-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.15);
+    }
+
+    .torneo-submit-btn {
+        width: 100%;
+        margin-top: 1.5rem;
+        background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+        border: 0;
+        border-radius: 10px;
+        color: #ffffff;
+        font-weight: 700;
+        height: 46px;
+        box-shadow: 0 10px 20px rgba(22, 163, 74, 0.28);
+    }
+
+    .torneo-submit-btn:hover {
+        background: linear-gradient(90deg, #15803d 0%, #16a34a 100%);
+    }
+
+    .torneo-loading {
+        margin-top: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1e3a8a;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 576px) {
+        .torneo-card {
+            padding: 1.2rem;
+        }
+    }
+</style>
 
 @code {
 
