@@ -5,53 +5,169 @@
 
 @if (oPaginaCLS == null)
 {
-    <button class="btn btn-primary">
-        <span class="spinner-border spinner-border-sm"></span>
-        Cargando...
-    </button>
+    <div class="modern-form-wrapper">
+        <div class="modern-form-card text-center py-5">
+            <button class="btn btn-cargando" disabled>
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Cargando...
+            </button>
+        </div>
+    </div>
 }
 else
 {
-    <EditForm Model="@oPaginaCLS" OnValidSubmit="GuardarPaginaFormulario">
-        <DataAnnotationsValidator />
-        @*<ValidationSummary />*@
+    <div class="modern-form-wrapper">
+        <div class="modern-form-card">
+            <div class="modern-form-header">
+                <h4 class="mb-1">Formulario de Página</h4>
+                <p class="mb-0">Configure los datos de navegación del sistema.</p>
+            </div>
 
-        <div class="form-group">
-            <label class=" font-weight-bold">Id Página</label>
-            <InputNumber readOnly @bind-Value="@oPaginaCLS.idpagina" class="form form-control" />
+            <EditForm Model="@oPaginaCLS" OnValidSubmit="GuardarPaginaFormulario" class="modern-form-body">
+                <DataAnnotationsValidator />
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="modern-label">Id Página</label>
+                        <InputNumber readOnly @bind-Value="@oPaginaCLS.idpagina" class="form-control modern-input" />
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="modern-label">Mensaje *</label>
+                        <InputText @bind-Value="@oPaginaCLS.mensaje" class="form-control modern-input" />
+                        <ValidationMessage For="@(()=>oPaginaCLS.mensaje)" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="modern-label">Acción *</label>
+                        <InputText @bind-Value="@oPaginaCLS.accion" class="form-control modern-input" />
+                        <ValidationMessage For="@(()=>oPaginaCLS.accion)" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="modern-label">Orden en el Menú *</label>
+                        <InputNumber @bind-Value="@oPaginaCLS.ordenmenu" class="form-control modern-input" min="1" />
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="modern-checkbox-wrap">
+                            <InputCheckbox @bind-Value="@oPaginaCLS.visible" class="modern-check" />
+                            <label class="modern-checkbox-label">Visible</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modern-form-actions">
+                    <button type="submit" class="btn btn-guardar">Guardar</button>
+                    <NavLink href="@ruta" class="btn btn-regresar">Regresar</NavLink>
+                </div>
+            </EditForm>
         </div>
-
-        <div class="form-group">
-            <label class=" font-weight-bold">Mensaje *</label>
-            <InputText @bind-Value="@oPaginaCLS.mensaje" class="form form-control" />
-            <ValidationMessage For="@(()=>oPaginaCLS.mensaje)" />
-        </div>
-
-        <div class="form-group">
-            <label class=" font-weight-bold">Acción *</label>
-            <InputText @bind-Value="@oPaginaCLS.accion" class="form form-control" />
-            <ValidationMessage For="@(()=>oPaginaCLS.accion)" />
-        </div>
-
-        <div class="form-group">
-            <label class=" font-weight-bold">Orden en el Menu *</label>
-            <InputNumber @bind-Value="@oPaginaCLS.ordenmenu" class="form form-control" min="1" />
-        </div>
-
-        <div class="form-group">
-            <label class=" font-weight-bold">Visible</label>
-            <InputCheckbox @bind-Value="@oPaginaCLS.visible" class="form form-control" />
-        </div>
-
-        <input type="submit" value="Guardar" class="btn btn-success" />
-
-        <NavLink href="@ruta">
-            <input type="button" value="Regresar" class="btn btn-info" />
-        </NavLink>
-
-    </EditForm>
-    <div class="mb-2"></div>
+    </div>
 }
+
+<style>
+    .modern-form-wrapper {
+        padding: 1.25rem 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #eef6f5 100%);
+        border-radius: 1.25rem;
+    }
+
+    .modern-form-card {
+        max-width: 920px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 1.2rem;
+        box-shadow: 0 10px 30px rgba(45, 64, 89, 0.08);
+        overflow: hidden;
+    }
+
+    .modern-form-header {
+        padding: 1.2rem 1.4rem;
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 55%, #9bd8ca 100%);
+        color: #ffffff;
+    }
+
+    .modern-form-body {
+        padding: 1.4rem;
+    }
+
+    .modern-label {
+        font-weight: 600;
+        color: #2f3e46;
+        margin-bottom: 0.35rem;
+        display: inline-block;
+    }
+
+    .modern-input {
+        border-radius: 0.65rem;
+        border: 1px solid #d6dde3;
+        min-height: 42px;
+    }
+
+    .modern-input:focus {
+        border-color: #5faea0;
+        box-shadow: 0 0 0 0.2rem rgba(95, 174, 160, 0.2);
+    }
+
+    .modern-checkbox-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f8fafc;
+        border: 1px solid #d6dde3;
+        border-radius: 0.65rem;
+        padding: 0.55rem 0.8rem;
+        width: 100%;
+    }
+
+    .modern-check {
+        width: 18px;
+        height: 18px;
+        accent-color: #4faa96;
+    }
+
+    .modern-checkbox-label {
+        margin: 0;
+        font-weight: 600;
+        color: #2f3e46;
+    }
+
+    .modern-form-actions {
+        margin-top: 1.4rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+    }
+
+    .btn-guardar {
+        background: linear-gradient(120deg, #42a890 0%, #5fb8a1 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.45rem 1.2rem;
+        font-weight: 600;
+    }
+
+    .btn-regresar {
+        background: #edf2f7;
+        color: #344054;
+        border: 1px solid #d0d7de;
+        border-radius: 0.65rem;
+        padding: 0.45rem 1.2rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .btn-cargando {
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.5rem 1rem;
+    }
+</style>
 
 @code {
     [Parameter]

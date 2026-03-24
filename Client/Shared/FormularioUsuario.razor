@@ -6,115 +6,210 @@
 
 @if (oUsuarioCLS == null)
 {
-    <button class="btn btn-primary">
-        <span class="spinner-border spinner-border-sm"></span>
-        Cargando...
-    </button>
+    <div class="modern-form-wrapper">
+        <div class="modern-form-card text-center py-5">
+            <button class="btn btn-cargando" disabled>
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Cargando...
+            </button>
+        </div>
+    </div>
 }
 else
 {
-    <EditForm Model="@oUsuarioCLS" OnValidSubmit="GuardarDatos">
-        <DataAnnotationsValidator />
-
-        <input type="submit" value="Guardar" class="btn btn-success" />
-
-        <NavLink href="@ruta">
-            <input type="button" value="Regresar" class="btn btn-info" />
-        </NavLink>
-        <div class="mb-4"></div>
-
-        @if (semodifica)
-        {
-            <div class="form-group">
-                <label class=" font-weight-bold">Nombre usuario *</label>
-                <InputText class="form form-control" @bind-Value="oUsuarioCLS.nombre" />
-                <ValidationMessage For="@(() => oUsuarioCLS.nombre)" />
+    <div class="modern-form-wrapper">
+        <div class="modern-form-card">
+            <div class="modern-form-header">
+                <h4 class="mb-1">Formulario de Usuario</h4>
+                <p class="mb-0">Complete la información para registrar o actualizar un usuario.</p>
             </div>
-        }
-        else
-        {
-            <div class="form-group">
-                <label class=" font-weight-bold">Nombre usuario</label>
-                <InputText class="form form-control" @bind-Value="oUsuarioCLS.nombre" readOnly />
-                <ValidationMessage For="@(() => oUsuarioCLS.nombre)" />
-            </div>
-        }
 
-        @if (semodifica)
-        {
-            <div class="form-group">
-                <label class=" font-weight-bold">Contraseña *</label>
-                <InputText type="password" class="form form-control" @bind-Value="oUsuarioCLS.contraseña" />
-                <ValidationMessage For="@(() => oUsuarioCLS.contraseña)" />
-            </div>
-        }
-        else
-        {
-            
-            <div class="form-group">
-                <label class=" font-weight-bold">Contraseña</label>
-                <InputText type="password" class="form form-control" @bind-Value="oUsuarioCLS.contraseña" />       @*QUITE EL READONLY PORQUE QUIERO MODIFICAR EL PASSWORD*@
-                <ValidationMessage For="@(() => oUsuarioCLS.contraseña)" />
-            </div>
-        }
+            <EditForm Model="@oUsuarioCLS" OnValidSubmit="GuardarDatos" class="modern-form-body">
+                <DataAnnotationsValidator />
 
-        <div class="form-group">
-            <label class=" font-weight-bold">Tipo usuario *</label>
-            <InputSelect @bind-Value="oUsuarioCLS.idtipousuario" class="form form-control">
-                <option value="">--- Seleccione ---</option>
-                @foreach (TipoUsuarioCLS oTipoUsuarioCLS in listaTipoUsuario)
-                    {
-                    <option value="@oTipoUsuarioCLS.iidTipoUsuario">@oTipoUsuarioCLS.nombre</option>
-                    }
-            </InputSelect>
-            <ValidationMessage For="@(()=>oUsuarioCLS.idtipousuario)" />
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        @if (semodifica)
+                        {
+                            <label class="modern-label">Nombre usuario *</label>
+                            <InputText class="form-control modern-input" @bind-Value="oUsuarioCLS.nombre" />
+                            <ValidationMessage For="@(() => oUsuarioCLS.nombre)" />
+                        }
+                        else
+                        {
+                            <label class="modern-label">Nombre usuario</label>
+                            <InputText class="form-control modern-input" @bind-Value="oUsuarioCLS.nombre" readOnly />
+                            <ValidationMessage For="@(() => oUsuarioCLS.nombre)" />
+                        }
+                    </div>
+
+                    <div class="col-md-6">
+                        @if (semodifica)
+                        {
+                            <label class="modern-label">Contraseña *</label>
+                            <InputText type="password" class="form-control modern-input" @bind-Value="oUsuarioCLS.contraseña" />
+                            <ValidationMessage For="@(() => oUsuarioCLS.contraseña)" />
+                        }
+                        else
+                        {
+                            <label class="modern-label">Contraseña</label>
+                            <InputText type="password" class="form-control modern-input" @bind-Value="oUsuarioCLS.contraseña" />
+                            <ValidationMessage For="@(() => oUsuarioCLS.contraseña)" />
+                        }
+                    </div>
+
+                    <div class="col-12">
+                        <label class="modern-label">Tipo usuario *</label>
+                        <InputSelect @bind-Value="oUsuarioCLS.idtipousuario" class="form-control modern-input">
+                            <option value="">--- Seleccione ---</option>
+                            @foreach (TipoUsuarioCLS oTipoUsuarioCLS in listaTipoUsuario)
+                            {
+                                <option value="@oTipoUsuarioCLS.iidTipoUsuario">@oTipoUsuarioCLS.nombre</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(()=>oUsuarioCLS.idtipousuario)" />
+                    </div>
+
+                    <div class="col-12">
+                        <label class="modern-label">Seleccione los torneos que administrará el usuario</label>
+                        <div class="modern-table-wrapper">
+                            <table class="table table-hover modern-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <td>Opción</td>
+                                        <td>Nombre Torneo</td>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @foreach (TorneoCLS oTorneoCLS in listaTorneo)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (oUsuarioCLS.listaidtorneo.Contains(oTorneoCLS.idtorneo))
+                                                {
+                                                    <input type="checkbox" class="modern-check" checked @onchange="@(()=>CambiarValor(oTorneoCLS.idtorneo))" />
+                                                }
+                                                else
+                                                {
+                                                    <input type="checkbox" class="modern-check" @onchange="@(()=>CambiarValor(oTorneoCLS.idtorneo))" />
+                                                }
+                                            </td>
+                                            <td>@oTorneoCLS.nombre</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modern-form-actions">
+                    <button type="submit" class="btn btn-guardar">Guardar</button>
+                    <NavLink href="@ruta" class="btn btn-regresar">Regresar</NavLink>
+                </div>
+            </EditForm>
         </div>
-
-        <div class="form-group">
-            <label class=" font-weight-bold">Seleccione los torneos que administrara el usuario</label>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <td>Opción</td>
-                        <td>Nombre Torneo</td>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach (TorneoCLS oTorneoCLS in listaTorneo)
-                    {
-                        <tr>
-                            <td>
-
-                                @if (oUsuarioCLS.listaidtorneo.Contains(oTorneoCLS.idtorneo))
-                                {
-                                    <input type="checkbox" checked @onchange="@(()=>CambiarValor(oTorneoCLS.idtorneo))" />
-                                }
-                                else
-                                {
-                                    <input type="checkbox" @onchange="@(()=>CambiarValor(oTorneoCLS.idtorneo))" />
-                                }
-
-                            </td>
-                            <td>
-                                @oTorneoCLS.nombre
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-
-            </table>
-        </div>
-
-        <input type="submit" value="Guardar" class="btn btn-success" />
-
-        <NavLink href="@ruta">
-            <input type="button" value="Regresar" class="btn btn-info" />
-        </NavLink>
-
-    </EditForm>
-    <div class="mb-2"></div>
+    </div>
 }
+
+<style>
+    .modern-form-wrapper {
+        padding: 1.25rem 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #eef6f5 100%);
+        border-radius: 1.25rem;
+    }
+
+    .modern-form-card {
+        max-width: 920px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 1.2rem;
+        box-shadow: 0 10px 30px rgba(45, 64, 89, 0.08);
+        overflow: hidden;
+    }
+
+    .modern-form-header {
+        padding: 1.2rem 1.4rem;
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 55%, #9bd8ca 100%);
+        color: #ffffff;
+    }
+
+    .modern-form-body {
+        padding: 1.4rem;
+    }
+
+    .modern-label {
+        font-weight: 600;
+        color: #2f3e46;
+        margin-bottom: 0.35rem;
+        display: inline-block;
+    }
+
+    .modern-input {
+        border-radius: 0.65rem;
+        border: 1px solid #d6dde3;
+        min-height: 42px;
+    }
+
+    .modern-input:focus {
+        border-color: #5faea0;
+        box-shadow: 0 0 0 0.2rem rgba(95, 174, 160, 0.2);
+    }
+
+    .modern-table-wrapper {
+        border: 1px solid #e4e9ef;
+        border-radius: 0.8rem;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .modern-table thead {
+        background: #f1f5f9;
+        font-weight: 600;
+    }
+
+    .modern-check {
+        width: 18px;
+        height: 18px;
+        accent-color: #4faa96;
+    }
+
+    .modern-form-actions {
+        margin-top: 1.4rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+    }
+
+    .btn-guardar {
+        background: linear-gradient(120deg, #42a890 0%, #5fb8a1 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.45rem 1.2rem;
+        font-weight: 600;
+    }
+
+    .btn-regresar {
+        background: #edf2f7;
+        color: #344054;
+        border: 1px solid #d0d7de;
+        border-radius: 0.65rem;
+        padding: 0.45rem 1.2rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .btn-cargando {
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.5rem 1rem;
+    }
+</style>
 
 @code {
     [Parameter]

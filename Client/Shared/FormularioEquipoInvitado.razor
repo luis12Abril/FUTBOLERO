@@ -5,21 +5,33 @@
 
 @if (oEquipoInvitadoCLS == null)
 {
-    <button class="btn btn-primary">
-        <span class="spinner-border spinner-border-sm"></span>
-        Cargando...
-    </button>
+    <div class="modern-form-wrapper">
+        <div class="modern-form-card text-center py-5">
+            <button class="btn btn-cargando" disabled>
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Cargando...
+            </button>
+        </div>
+    </div>
 }
 else
 {
     string archivoFoto = oEquipoInvitadoCLS.fotoequipo;
 
-    <NavLink href="@ruta">
-        <input type="button" value="Regresar" class="btn btn-info" />
-    </NavLink>
-    <div class="mb-4"></div>
+    <div class="modern-form-wrapper">
+        <div class="modern-form-card modern-form-card-lg">
+            <div class="modern-form-header">
+                <h4 class="mb-1">Detalle del Equipo @oEquipoInvitadoCLS.nombre</h4>
+                <p class="mb-0">Consulte información del equipo, plantilla y calendario.</p>
+            </div>
 
-    <EditForm Model="@oEquipoInvitadoCLS">
+            <div class="modern-form-body">
+                <div class="modern-form-actions">
+                    <NavLink href="@ruta" class="btn btn-regresar">Regresar</NavLink>
+                </div>
+                <div class="mb-4"></div>
+
+                <EditForm Model="@oEquipoInvitadoCLS">
         <div class="form-group row">
             <label class="col-md-2 col-form-label font-weight-bold">Equipo</label>
             <div class="col-lg-10">
@@ -43,23 +55,95 @@ else
         </div>
 
         <div style="display:flex; justify-content:center; flex-direction:column; align-items:center;">
-            <label class="font-weight-bold">Foto del Equipo</label>
-            <img class="mb-1" width="450" height="300" style="display: block;
-        box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);
-        border: 3px solid gold;" id="idImgFoto" src="@archivoFoto" />
+            <label class="modern-label">Foto del Equipo</label>
+            <img class="mb-1 modern-image" width="450" height="300" id="idImgFoto" src="@archivoFoto" />
 
         </div>
 
         <ListadoJugadoresEquipoInvitado oEquipoInvitadoCLS="oEquipoInvitadoCLS" />
         <ListadoJuegosdelEquipo oJuegosdelequipoCLS="oJuegosdelequipoCLS" />
 
-        <NavLink href="@ruta">
-            <input type="button" value="Regresar" class="btn btn-info" />
-        </NavLink>
+                    <div class="modern-form-actions">
+                        <NavLink href="@ruta" class="btn btn-regresar">Regresar</NavLink>
+                    </div>
 
-    </EditForm>
-    <div class="mb-4"></div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="mb-3"></div>
 }
+
+<style>
+    .modern-form-wrapper {
+        padding: 1.25rem 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #eef6f5 100%);
+        border-radius: 1.25rem;
+    }
+
+    .modern-form-card {
+        max-width: 920px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 1.2rem;
+        box-shadow: 0 10px 30px rgba(45, 64, 89, 0.08);
+        overflow: hidden;
+    }
+
+    .modern-form-card-lg {
+        max-width: 1220px;
+    }
+
+    .modern-form-header {
+        padding: 1.2rem 1.4rem;
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 55%, #9bd8ca 100%);
+        color: #ffffff;
+    }
+
+    .modern-form-body {
+        padding: 1.4rem;
+    }
+
+    .modern-label {
+        font-weight: 600;
+        color: #2f3e46;
+        margin-bottom: 0.35rem;
+        display: inline-block;
+    }
+
+    .modern-image {
+        display: block;
+        box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);
+        border: 3px solid gold;
+        border-radius: 0.75rem;
+    }
+
+    .modern-form-actions {
+        margin-top: 0.2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+    }
+
+    .btn-regresar {
+        background: #edf2f7;
+        color: #344054;
+        border: 1px solid #d0d7de;
+        border-radius: 0.65rem;
+        padding: 0.45rem 1.2rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .btn-cargando {
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.5rem 1rem;
+    }
+</style>
 
 
 @code {

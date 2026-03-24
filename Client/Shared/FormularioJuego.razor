@@ -5,22 +5,31 @@
 
 @if (oJuegoCLS == null)
 {
-    <button class="btn btn-primary">
-        <span class="spinner-border spinner-border-sm"></span>
-        Cargando...
-    </button>
+    <div class="modern-form-wrapper">
+        <div class="modern-form-card text-center py-5">
+            <button class="btn btn-cargando" disabled>
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Cargando...
+            </button>
+        </div>
+    </div>
 }
 else
 {
+    <div class="modern-form-wrapper">
+        <div class="modern-form-card modern-form-card-lg">
+            <div class="modern-form-header">
+                <h4 class="mb-1">Formulario de Juego</h4>
+                <p class="mb-0">Administre programación, resultado, estatus y comentarios del juego.</p>
+            </div>
 
-    <EditForm Model="@oJuegoCLS" OnValidSubmit="GuardarDatos">
+            <EditForm Model="@oJuegoCLS" OnValidSubmit="GuardarDatos" class="modern-form-body">
         <DataAnnotationsValidator />
 
-        <input type="submit" value="Guardar" class="btn btn-success" />
-
-        <NavLink href="@ruta">
-            <input type="button" value="Regresar" class="btn btn-info" />
-        </NavLink>
+        <div class="modern-form-actions">
+            <button type="submit" class="btn btn-guardar">Guardar</button>
+            <NavLink href="@ruta" class="btn btn-regresar">Regresar</NavLink>
+        </div>
         <div class="mb-4"></div>
 
         @if (visiblegolesequipo)        // CUANDO ES UN EDITAR
@@ -52,10 +61,10 @@ else
 
         @if (visiblegolesequipo)        // CUANDO ES UN EDITAR
         {
-            <div class="form-group row">
+            <div class="form-group row equipo-resultado-row g-2">
                 <label class="col-md-2 col-form-label font-weight-bold">Equipo 01</label>
-                <div class="col-lg-5">
-                    <InputText class="form-control" readOnly @bind-Value="oJuegoCLS.equipo01cadena" />
+                <div class="col-lg-4 col-md-5">
+                    <InputText class="form-control form-control-sm equipo-nombre-input" readOnly @bind-Value="oJuegoCLS.equipo01cadena" />
                     @*<InputSelect @bind-Value="oJuegoCLS.idequipo01" class="form-control" @oninput="@(() =>CambioEquipo01(oJuegoCLS))">*@
                     @*<InputSelect @bind-Value="oJuegoCLS.idequipo01" class="form-control" readonly>
                             <option value="">--- Seleccione ---</option>
@@ -66,90 +75,54 @@ else
                         </InputSelect>*@
                 </div>
 
-                <div class="col-lg-2" style="display:flex; justify-content:space-between;">
-                    <div>
-                        <label class="col-form-label font-weight-bold">G</label>
-                        <input type="radio" name="final01" @onchange="@(() => MuestraCambio01("G"))" id="G01" />
-                    </div>
-                    <div>
-                        <label class="col-form-label font-weight-bold">E</label>
-                        <input type="radio" name="final01" @onchange="@(() => MuestraCambio01("E"))" id="E01" />
-                    </div>
-                    <div>
-                        <label class="col-form-label font-weight-bold">P</label>
-                        <input type="radio" name="final01" @onchange="@(() => MuestraCambio01("P"))" id="P01" />
-                    </div>
-                    <div>
-                        <label class="col-form-label font-weight-bold">GP</label>
-                        <input type="radio" name="final01" @onchange="@(() => MuestraCambio01("GP"))" id="GP01" />
-                    </div>
-                    <div>
-                        <label class="col-form-label font-weight-bold">GA</label>
-                        <input type="radio" name="final01" @onchange="@(() => MuestraCambio01("GA"))" id="GA01" />
+                <div class="col-lg-3 col-md-7">
+                    <div class="resultado-radio-group">
+                        <label class="resultado-radio-item"><span>G</span><input type="radio" name="final01" @onchange="@(() => MuestraCambio01("G"))" id="G01" /></label>
+                        <label class="resultado-radio-item"><span>E</span><input type="radio" name="final01" @onchange="@(() => MuestraCambio01("E"))" id="E01" /></label>
+                        <label class="resultado-radio-item"><span>P</span><input type="radio" name="final01" @onchange="@(() => MuestraCambio01("P"))" id="P01" /></label>
+                        <label class="resultado-radio-item"><span>GP</span><input type="radio" name="final01" @onchange="@(() => MuestraCambio01("GP"))" id="GP01" /></label>
+                        <label class="resultado-radio-item"><span>GA</span><input type="radio" name="final01" @onchange="@(() => MuestraCambio01("GA"))" id="GA01" /></label>
                     </div>
                 </div>
 
+                <div class="col marcador-pe-wrapper">
+                    <div class="marcador-pe-group">
+                        <label class="col-form-label font-weight-bold mb-0">Goles</label>
+                        <InputNumber class="form-control font-weight-bold marcador-input" style="text-align:center" @bind-Value="oJuegoCLS.golesequipo01" min="0" />
 
-                <div>
-                    <label class="col-md-1 col-form-label font-weight-bold">Goles</label>
-                </div>
-                <div class="col-md-1">
-                    <InputNumber class="form-control font-weight-bold" style="text-align:center" @bind-Value="oJuegoCLS.golesequipo01" min="0" />
-                </div>
-
-
-                @* PUNTOS EXTRAS *@
-                <div>
-                    <label class="col-md-1 col-form-label font-weight-bold">PE</label>
-                </div>
-                <div class="col-md-1">
-                    <InputNumber class="form-control font-weight-bold" style="text-align:center" @bind-Value="oJuegoCLS.peequipo01" min="0" />
+                        @* PUNTOS EXTRAS *@
+                        <label class="col-form-label font-weight-bold mb-0">PE</label>
+                        <InputNumber class="form-control font-weight-bold marcador-input" style="text-align:center" @bind-Value="oJuegoCLS.peequipo01" min="0" />
+                    </div>
                 </div>
 
             </div>
 
-            <div class="form-group row">
+            <div class="form-group row equipo-resultado-row g-2">
                 <label class="col-md-2 col-form-label font-weight-bold">Equipo 02</label>
-                <div class="col-lg-5">
-                    <InputText class="form-control" readOnly @bind-Value="oJuegoCLS.equipo02cadena" />
+                <div class="col-lg-4 col-md-5">
+                    <InputText class="form-control form-control-sm equipo-nombre-input" readOnly @bind-Value="oJuegoCLS.equipo02cadena" />
                 </div>
-                <div class="col-lg-2" style="display:flex; justify-content:space-between;">
-                    <div>
-                        <label class="col-form-label font-weight-bold">G</label>
-                        <input type="radio" name="final02" @onchange="@(() => MuestraCambio02("G"))" id="G02" />
-                    </div>
-                    <div>
-                        <label class="col-form-label font-weight-bold">E</label>
-                        <input type="radio" name="final02" @onchange="@(() => MuestraCambio02("E"))" id="E02" />
-                    </div>
-                    <div>
-                        <label class="col-form-label font-weight-bold">P</label>
-                        <input type="radio" name="final02" @onchange="@(() => MuestraCambio02("P"))" id="P02" />
-                    </div>
-                    <div>
-                        <label class="col-form-label font-weight-bold">GP</label>
-                        <input type="radio" name="final02" @onchange="@(() => MuestraCambio02("GP"))" id="GP02" />
-                    </div>
-                    <div>
-                        <label class="col-form-label font-weight-bold">GA</label>
-                        <input type="radio" name="final02" @onchange="@(() => MuestraCambio02("GA"))" id="GA02" />
+                <div class="col-lg-3 col-md-7">
+                    <div class="resultado-radio-group">
+                        <label class="resultado-radio-item"><span>G</span><input type="radio" name="final02" @onchange="@(() => MuestraCambio02("G"))" id="G02" /></label>
+                        <label class="resultado-radio-item"><span>E</span><input type="radio" name="final02" @onchange="@(() => MuestraCambio02("E"))" id="E02" /></label>
+                        <label class="resultado-radio-item"><span>P</span><input type="radio" name="final02" @onchange="@(() => MuestraCambio02("P"))" id="P02" /></label>
+                        <label class="resultado-radio-item"><span>GP</span><input type="radio" name="final02" @onchange="@(() => MuestraCambio02("GP"))" id="GP02" /></label>
+                        <label class="resultado-radio-item"><span>GA</span><input type="radio" name="final02" @onchange="@(() => MuestraCambio02("GA"))" id="GA02" /></label>
                     </div>
                 </div>
 
-                <div>
-                    <label class="col-md-1 col-form-label font-weight-bold">Goles</label>
-                </div>
-                <div class="col-md-1">
-                    <InputNumber class="form-control font-weight-bold" style="text-align:center" @bind-Value="oJuegoCLS.golesequipo02" min="0" />
-                </div>
+                <div class="col marcador-pe-wrapper">
+                    <div class="marcador-pe-group">
+                        <label class="col-form-label font-weight-bold mb-0">Goles</label>
+                        <InputNumber class="form-control font-weight-bold marcador-input" style="text-align:center" @bind-Value="oJuegoCLS.golesequipo02" min="0" />
 
 
-                @* PUNTOS EXTRAS *@
-                <div>
-                    <label class="col-md-1 col-form-label font-weight-bold">PE</label>
-                </div>
-                <div class="col-md-1">
-                    <InputNumber class="form-control font-weight-bold" style="text-align:center" @bind-Value="oJuegoCLS.peequipo02" min="0" />
+                        @* PUNTOS EXTRAS *@
+                        <label class="col-form-label font-weight-bold mb-0">PE</label>
+                        <InputNumber class="form-control font-weight-bold marcador-input" style="text-align:center" @bind-Value="oJuegoCLS.peequipo02" min="0" />
+                    </div>
                 </div>
 
             </div>
@@ -279,22 +252,132 @@ else
             </div>
 
             <div style="display:flex; flex-direction:column; justify-content:flex-start; align-items:flex-end;">
-                <input type="submit" value="Enviar Comentario" class="btn btn-success" />
+                <button type="submit" class="btn btn-guardar">Enviar Comentario</button>
             </div>
 
             <ListadoComentario oComentarioCLS="oComentarioCLS" />
         }
 
         <div class="mb-4"></div>
-        <input type="submit" value="Guardar" class="btn btn-success" />
+        <div class="modern-form-actions">
+            <button type="submit" class="btn btn-guardar">Guardar</button>
+            <NavLink href="@ruta" class="btn btn-regresar">Regresar</NavLink>
+        </div>
 
-        <NavLink href="@ruta">
-            <input type="button" value="Regresar" class="btn btn-info" />
-        </NavLink>
-
-    </EditForm>
-    <div class="mb-4"></div>
+            </EditForm>
+        </div>
+    </div>
 }
+
+<style>
+    .modern-form-wrapper {
+        padding: 1.25rem 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #eef6f5 100%);
+        border-radius: 1.25rem;
+    }
+
+    .modern-form-card {
+        max-width: 920px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 1.2rem;
+        box-shadow: 0 10px 30px rgba(45, 64, 89, 0.08);
+        overflow: hidden;
+    }
+
+    .modern-form-card-lg {
+        max-width: 1220px;
+    }
+
+    .modern-form-header {
+        padding: 1.2rem 1.4rem;
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 55%, #9bd8ca 100%);
+        color: #ffffff;
+    }
+
+    .modern-form-body {
+        padding: 1.4rem;
+    }
+
+    .modern-form-actions {
+        margin-top: 0.2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+    }
+
+    .btn-guardar {
+        background: linear-gradient(120deg, #42a890 0%, #5fb8a1 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.45rem 1.2rem;
+        font-weight: 600;
+    }
+
+    .btn-regresar {
+        background: #edf2f7;
+        color: #344054;
+        border: 1px solid #d0d7de;
+        border-radius: 0.65rem;
+        padding: 0.45rem 1.2rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .btn-cargando {
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .equipo-resultado-row {
+        align-items: center;
+    }
+
+    .resultado-radio-group {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        flex-wrap: nowrap;
+    }
+
+    .resultado-radio-item {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .resultado-radio-item input {
+        margin: 0;
+    }
+
+    .equipo-nombre-input {
+        max-width: 420px;
+    }
+
+    .marcador-input {
+        width: 70px;
+    }
+
+    .marcador-pe-wrapper {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .marcador-pe-group {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+    }
+</style>
 
 
 

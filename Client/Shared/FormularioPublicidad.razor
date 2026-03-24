@@ -6,21 +6,31 @@
 
 @if (oPublicidadCLS == null)
 {
-    <button class="btn btn-primary">
-        <span class="spinner-border spinner-border-sm"></span>
-        Cargando...
-    </button>
+    <div class="modern-form-wrapper">
+        <div class="modern-form-card text-center py-5">
+            <button class="btn btn-cargando" disabled>
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Cargando...
+            </button>
+        </div>
+    </div>
 }
 else
 {
     string archivoFoto = oPublicidadCLS.foto;
 
-<EditForm Model="@oPublicidadCLS" OnValidSubmit="GuardarDatos">
-    <input type="submit" value="Guardar" class="btn btn-success" />
+<div class="modern-form-wrapper">
+    <div class="modern-form-card">
+        <div class="modern-form-header">
+            <h4 class="mb-1">Formulario de Publicidad</h4>
+            <p class="mb-0">Gestione el torneo, imagen y orden de la publicidad.</p>
+        </div>
 
-    <NavLink href="@ruta">
-        <input type="button" value="Regresar" class="btn btn-info" />
-    </NavLink>
+        <EditForm Model="@oPublicidadCLS" OnValidSubmit="GuardarDatos" class="modern-form-body">
+    <div class="modern-form-actions">
+        <button type="submit" class="btn btn-guardar">Guardar</button>
+        <NavLink href="@ruta" class="btn btn-regresar">Regresar</NavLink>
+    </div>
     <div class="mb-4"></div>
 
     <DataAnnotationsValidator />
@@ -29,7 +39,7 @@ else
     <div class="form-group row">
         <label class="col-md-2 col-form-label font-weight-bold">Torneo</label>
         <div class="col-lg-10">
-            <InputSelect @bind-Value="oPublicidadCLS.idtorneo" class="form-control">
+            <InputSelect @bind-Value="oPublicidadCLS.idtorneo" class="form-control modern-input">
                 <option value="">--- Seleccione ---</option>
                 @foreach (TorneoCLS oTorneoCLS in listaTorneos)
                     {
@@ -41,28 +51,115 @@ else
 
 
     <div style="display:flex; justify-content:center; flex-direction:column; align-items:center;">
-        <label class="font-weight-bold">Foto de la Publicidad</label>
-        <img class="mb-1" width="450" height="300" style="display: block; box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);
-        border: 3px solid gold;" id="idImgFoto" src="@archivoFoto" />
+        <label class="modern-label">Foto de la Publicidad</label>
+        <img class="mb-1 modern-image" width="450" height="300" id="idImgFoto" src="@archivoFoto" />
 
         <input class="mb-2" type="file" id="idInputFoto" accept="image/png,image/jpg,image/jpeg" @onchange="previewImagen" />
     </div>
 
     <div class="form-group">
-        <label class=" font-weight-bold">Orden en que se mostrara *</label>
-        <InputNumber class="form-control font-weight-bold" @bind-Value="oPublicidadCLS.orden" min="1" />
+        <label class="modern-label">Orden en que se mostrará *</label>
+        <InputNumber class="form-control modern-input font-weight-bold" @bind-Value="oPublicidadCLS.orden" min="1" />
     </div>
 
 
-    <input type="submit" value="Guardar" class="btn btn-success" />
-
-    <NavLink href="@ruta">
-        <input type="button" value="Regresar" class="btn btn-info" />
-    </NavLink>
+    <div class="modern-form-actions">
+        <button type="submit" class="btn btn-guardar">Guardar</button>
+        <NavLink href="@ruta" class="btn btn-regresar">Regresar</NavLink>
+    </div>
 
 </EditForm>
+    </div>
+</div>
     <div class="mb-2"></div>
 }
+
+<style>
+    .modern-form-wrapper {
+        padding: 1.25rem 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #eef6f5 100%);
+        border-radius: 1.25rem;
+    }
+
+    .modern-form-card {
+        max-width: 920px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 1.2rem;
+        box-shadow: 0 10px 30px rgba(45, 64, 89, 0.08);
+        overflow: hidden;
+    }
+
+    .modern-form-header {
+        padding: 1.2rem 1.4rem;
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 55%, #9bd8ca 100%);
+        color: #ffffff;
+    }
+
+    .modern-form-body {
+        padding: 1.4rem;
+    }
+
+    .modern-label {
+        font-weight: 600;
+        color: #2f3e46;
+        margin-bottom: 0.35rem;
+        display: inline-block;
+    }
+
+    .modern-input {
+        border-radius: 0.65rem;
+        border: 1px solid #d6dde3;
+        min-height: 42px;
+    }
+
+    .modern-input:focus {
+        border-color: #5faea0;
+        box-shadow: 0 0 0 0.2rem rgba(95, 174, 160, 0.2);
+    }
+
+    .modern-image {
+        display: block;
+        box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);
+        border: 3px solid gold;
+        border-radius: 0.75rem;
+    }
+
+    .modern-form-actions {
+        margin-top: 0.2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+    }
+
+    .btn-guardar {
+        background: linear-gradient(120deg, #42a890 0%, #5fb8a1 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.45rem 1.2rem;
+        font-weight: 600;
+    }
+
+    .btn-regresar {
+        background: #edf2f7;
+        color: #344054;
+        border: 1px solid #d0d7de;
+        border-radius: 0.65rem;
+        padding: 0.45rem 1.2rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .btn-cargando {
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.5rem 1rem;
+    }
+</style>
 
 
 
