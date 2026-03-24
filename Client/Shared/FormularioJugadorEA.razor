@@ -109,7 +109,7 @@ else
         var content = await resultado.Content.ReadFromJsonAsync<object>();
         int rpta = int.Parse(content.ToString());
 
-        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENTE      3 = ESE NOMBRE DE JUGADOR YA EXISTE
+        // 0 = OCURRIO UN ERROR     1 = SE GRABO CORRECTAMENTE      3 = ESE NOMBRE DE JUGADOR YA EXISTE      4 = EQUIPO CON TOPE DE 30
         switch (rpta)
         {
             case 0:
@@ -120,6 +120,9 @@ else
                 break;
             case 3:
                 await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ESE NOMBRE DE JUGADOR YA EXISTE", "warning");
+                break;
+            case 4:
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "NO SE PUEDE AGREGAR, EL EQUIPO YA TIENE 30 JUGADORES ACTIVOS", "warning");
                 break;
             default:
                 break;

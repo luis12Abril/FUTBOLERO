@@ -4,10 +4,14 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using FUTBOLERO.Server.Models;
 using FUTBOLERO.Shared;
 using System.Text;
 using System.Transactions;
+using OfficeOpenXml;
+using System.Globalization;
+using System.IO;
 //using FutbolObregon.Server.Clases;
 
 namespace FUTBOLERO.Server.Controllers
@@ -223,6 +227,7 @@ namespace FUTBOLERO.Server.Controllers
         {
             int rpta = 0;
             int nveces = 0;
+            const int maxJugadoresActivosPorEquipo = 30;
             try
             {
                 using (var baseDatos = new FUTBOLEANDOContext())
@@ -230,6 +235,7 @@ namespace FUTBOLERO.Server.Controllers
                     // ESTO LO PONGO PORQUE EL APELLIDO MATERNO NO ES OBLIGATORIO
                     string apellidomaterno = (oJugadorCLS.apmaterno == null ? " " : oJugadorCLS.apmaterno);
                     string nombrecompletoformulario = oJugadorCLS.nombre.Trim() + oJugadorCLS.appaterno.Trim() + apellidomaterno.Trim();
+                    int idEquipo = int.Parse(oJugadorCLS.idequipo);
                     if (oJugadorCLS.idjugador == 0)
                     {
                         // VER SI ESTA EN LA TABLA JUGADOR, ESE NOMBRE COMPLETO DEL JUGADOR, EN ESE TORNEO Y QUE ESTE HABILITADO
@@ -241,12 +247,21 @@ namespace FUTBOLERO.Server.Controllers
                         }
                         else
                         {
+                            int totalActivosEquipo = baseDatos.Jugador.Where(p => p.Habilitado == 1
+                            && p.Idtorneo == oJugadorCLS.idtorneo && p.Idequipo == idEquipo && !p.Nombre.Contains("GOL A FAVOR")).Count();
+
+                            if (totalActivosEquipo >= maxJugadoresActivosPorEquipo)
+                            {
+                                rpta = 4;
+                                return rpta;
+                            }
+
                             Jugador oJugador = new Jugador();
                             oJugador.Nombre = oJugadorCLS.nombre;
                             oJugador.Appaterno = oJugadorCLS.appaterno;
                             oJugador.Apmaterno = oJugadorCLS.apmaterno;
                             oJugador.Fnacimiento = oJugadorCLS.fnacimiento;
-                            oJugador.Idequipo = int.Parse(oJugadorCLS.idequipo);
+                            oJugador.Idequipo = idEquipo;
                             oJugador.Goles = 0;
                             oJugador.Torneo = "";       // NO LO VOY A USAR
                             oJugador.Idtorneo = oJugadorCLS.idtorneo;
@@ -268,11 +283,24 @@ namespace FUTBOLERO.Server.Controllers
                         else
                         {
                             Jugador oJugador = baseDatos.Jugador.Where(p => p.Idjugador == oJugadorCLS.idjugador).First();
+
+                            if (oJugador.Idequipo != idEquipo)
+                            {
+                                int totalActivosEquipo = baseDatos.Jugador.Where(p => p.Habilitado == 1
+                                && p.Idtorneo == oJugadorCLS.idtorneo && p.Idequipo == idEquipo && !p.Nombre.Contains("GOL A FAVOR")).Count();
+
+                                if (totalActivosEquipo >= maxJugadoresActivosPorEquipo)
+                                {
+                                    rpta = 4;
+                                    return rpta;
+                                }
+                            }
+
                             oJugador.Nombre = oJugadorCLS.nombre;
                             oJugador.Appaterno = oJugadorCLS.appaterno;
                             oJugador.Apmaterno = oJugadorCLS.apmaterno;
                             oJugador.Fnacimiento = oJugadorCLS.fnacimiento;
-                            oJugador.Idequipo = int.Parse(oJugadorCLS.idequipo);
+                            oJugador.Idequipo = idEquipo;
                             baseDatos.SaveChanges();
                             rpta = 1;
                         }
@@ -420,6 +448,242 @@ namespace FUTBOLERO.Server.Controllers
                                 }).ToList();
             }
             return listaJugador;
+        }
+
+
+        [HttpPost]
+        [Route("api/Jugador/ImportarJugadoresExcel")]
+        public async Task<ImportacionJugadoresExcelCLS> ImportarJugadoresExcel([FromForm] IFormFile archivo, [FromForm] string idequipo, [FromForm] string idtorneo)
+        {
+            ImportacionJugadoresExcelCLS respuesta = new ImportacionJugadoresExcelCLS();
+            const int maxJugadoresActivosPorEquipo = 30;
+
+            if (archivo == null || archivo.Length == 0)
+            {
+                respuesta.errores.Add("Debe seleccionar un archivo de Excel.");
+                return respuesta;
+            }
+
+            if (!int.TryParse(idequipo, out int idEquipoInt))
+            {
+                respuesta.errores.Add("Debe seleccionar un equipo válido.");
+                return respuesta;
+            }
+
+            if (!int.TryParse(idtorneo, out int idTorneoInt))
+            {
+                respuesta.errores.Add("No se pudo identificar el torneo seleccionado.");
+                return respuesta;
+            }
+
+            string extension = Path.GetExtension(archivo.FileName).ToLowerInvariant();
+            if (extension != ".xlsx" && extension != ".xlsm")
+            {
+                respuesta.errores.Add("Solo se permiten archivos Excel .xlsx o .xlsm.");
+                return respuesta;
+            }
+
+            try
+            {
+                using (var memoriaArchivo = new MemoryStream())
+                {
+                    await archivo.CopyToAsync(memoriaArchivo);
+                    memoriaArchivo.Position = 0;
+
+                    using (var paquete = new ExcelPackage(memoriaArchivo))
+                    {
+                        ExcelWorksheet hoja = paquete.Workbook.Worksheets.FirstOrDefault();
+                        if (hoja == null || hoja.Dimension == null)
+                        {
+                            respuesta.errores.Add("El archivo no contiene datos válidos.");
+                            return respuesta;
+                        }
+
+                        int ultimaFila = hoja.Dimension.End.Row;
+                        if (ultimaFila < 2)
+                        {
+                            respuesta.errores.Add("La plantilla no contiene jugadores para importar.");
+                            return respuesta;
+                        }
+
+                        using (var baseDatos = new FUTBOLEANDOContext())
+                        {
+                            int activosEquipo = baseDatos.Jugador.Where(j => j.Habilitado == 1 && j.Idtorneo == idTorneoInt
+                            && j.Idequipo == idEquipoInt && !j.Nombre.Contains("GOL A FAVOR")).Count();
+
+                            HashSet<string> jugadoresExistentes = baseDatos.Jugador
+                                .Where(j => j.Habilitado == 1 && j.Idtorneo == idTorneoInt)
+                                .Select(j => ((j.Nombre ?? "").Trim() + "|" + (j.Appaterno ?? "").Trim() + "|" + (j.Apmaterno ?? "").Trim()).ToUpper())
+                                .ToHashSet();
+
+                            HashSet<string> jugadoresArchivo = new HashSet<string>();
+
+                            for (int fila = 2; fila <= ultimaFila; fila++)
+                            {
+                                string nombre = ObtenerTextoCelda(hoja.Cells[fila, 1]);
+                                string appaterno = ObtenerTextoCelda(hoja.Cells[fila, 2]);
+                                string apmaterno = ObtenerTextoCelda(hoja.Cells[fila, 3]);
+                                DateTime? fechaNacimiento = ObtenerFechaCelda(hoja.Cells[fila, 4]);
+
+                                bool filaVacia = string.IsNullOrWhiteSpace(nombre)
+                                                 && string.IsNullOrWhiteSpace(appaterno)
+                                                 && string.IsNullOrWhiteSpace(apmaterno)
+                                                 && fechaNacimiento == null;
+
+                                if (filaVacia)
+                                {
+                                    continue;
+                                }
+
+                                respuesta.totalFilas++;
+
+                                if (string.IsNullOrWhiteSpace(nombre))
+                                {
+                                    respuesta.errores.Add("Fila " + fila + ": el nombre es obligatorio.");
+                                    continue;
+                                }
+
+                                if (nombre.Trim().Length > 50)
+                                {
+                                    respuesta.errores.Add("Fila " + fila + ": el nombre excede 50 caracteres.");
+                                    continue;
+                                }
+
+                                if (string.IsNullOrWhiteSpace(appaterno))
+                                {
+                                    respuesta.errores.Add("Fila " + fila + ": el apellido paterno es obligatorio.");
+                                    continue;
+                                }
+
+                                if (appaterno.Trim().Length > 50)
+                                {
+                                    respuesta.errores.Add("Fila " + fila + ": el apellido paterno excede 50 caracteres.");
+                                    continue;
+                                }
+
+                                if (!string.IsNullOrWhiteSpace(apmaterno) && apmaterno.Trim().Length > 50)
+                                {
+                                    respuesta.errores.Add("Fila " + fila + ": el apellido materno excede 50 caracteres.");
+                                    continue;
+                                }
+
+                                if (fechaNacimiento == null)
+                                {
+                                    respuesta.errores.Add("Fila " + fila + ": la fecha de nacimiento es inválida o está vacía.");
+                                    continue;
+                                }
+
+                                string apMaternoGuardar = (string.IsNullOrWhiteSpace(apmaterno) ? " " : apmaterno.Trim());
+                                string llaveJugador = (nombre.Trim() + "|" + appaterno.Trim() + "|" + apMaternoGuardar.Trim()).ToUpper();
+
+                                if (jugadoresArchivo.Contains(llaveJugador))
+                                {
+                                    respuesta.errores.Add("Fila " + fila + ": el jugador está repetido en el archivo.");
+                                    continue;
+                                }
+
+                                if (jugadoresExistentes.Contains(llaveJugador))
+                                {
+                                    respuesta.errores.Add("Fila " + fila + ": el jugador ya existe en el torneo.");
+                                    continue;
+                                }
+
+                                if (activosEquipo >= maxJugadoresActivosPorEquipo)
+                                {
+                                    respuesta.errores.Add("Fila " + fila + ": el equipo ya alcanzó el máximo de 30 jugadores activos.");
+                                    continue;
+                                }
+
+                                Jugador oJugador = new Jugador();
+                                oJugador.Nombre = nombre.Trim();
+                                oJugador.Appaterno = appaterno.Trim();
+                                oJugador.Apmaterno = apMaternoGuardar;
+                                oJugador.Fnacimiento = fechaNacimiento.Value;
+                                oJugador.Idequipo = idEquipoInt;
+                                oJugador.Goles = 0;
+                                oJugador.Torneo = "";
+                                oJugador.Idtorneo = idTorneoInt;
+                                oJugador.Habilitado = 1;
+
+                                baseDatos.Jugador.Add(oJugador);
+                                jugadoresArchivo.Add(llaveJugador);
+                                jugadoresExistentes.Add(llaveJugador);
+                                activosEquipo++;
+                                respuesta.insertados++;
+                            }
+
+                            if (respuesta.insertados > 0)
+                            {
+                                baseDatos.SaveChanges();
+                            }
+
+                            respuesta.rechazados = respuesta.totalFilas - respuesta.insertados;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string detalle = ex.Message;
+                if (ex.InnerException != null && !string.IsNullOrWhiteSpace(ex.InnerException.Message))
+                {
+                    detalle = detalle + " | " + ex.InnerException.Message;
+                }
+
+                respuesta.errores.Add("Ocurrió un error al procesar el archivo de Excel. Detalle: " + detalle);
+            }
+
+            return respuesta;
+        }
+
+
+        private static string ObtenerTextoCelda(ExcelRange celda)
+        {
+            if (celda == null || celda.Value == null)
+            {
+                return "";
+            }
+
+            return celda.Value.ToString().Trim();
+        }
+
+
+        private static DateTime? ObtenerFechaCelda(ExcelRange celda)
+        {
+            if (celda == null || celda.Value == null)
+            {
+                return null;
+            }
+
+            if (celda.Value is DateTime fechaDirecta)
+            {
+                return fechaDirecta.Date;
+            }
+
+            if (double.TryParse(celda.Value.ToString(), out double fechaExcel))
+            {
+                try
+                {
+                    return DateTime.FromOADate(fechaExcel).Date;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            string fechaTexto = celda.Value.ToString().Trim();
+            if (DateTime.TryParse(fechaTexto, new CultureInfo("es-MX"), DateTimeStyles.None, out DateTime fechaEsMx))
+            {
+                return fechaEsMx.Date;
+            }
+
+            if (DateTime.TryParse(fechaTexto, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fechaInvariante))
+            {
+                return fechaInvariante.Date;
+            }
+
+            return null;
         }
 
 

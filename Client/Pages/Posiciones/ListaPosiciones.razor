@@ -33,12 +33,23 @@
             else
             {
                 <div class="catalogo-list-card">
+                    <div class="mb-2 d-flex" style="gap: 0.5rem;">
+                        @if (permitirExportarExcel)
+                        {
+                            <button class="btn btn-success" @onclick="ExportarExcelPosiciones">Exportar a Excel</button>
+                        }
+                        @if (permitirExportarPDF)
+                        {
+                            <button class="btn btn-warning" @onclick="ExportarPdfPosiciones">Exportar a PDF</button>
+                        }
+                    </div>
+
                     <Listados cabeceras=cabeceras
                               nombrePropiedadesMostrar=propiedades
                               lista=listadoPosiciones
-                              permitirExportarExcel=@permitirExportarExcel
+                              permitirExportarExcel=false
                               permitirExportarWord=@permitirExportarWord
-                              permitirExportarPdf=@permitirExportarPDF
+                              permitirExportarPdf=false
                               tituloReporte="Tabla de Posiciones" />
                 </div>
             }
@@ -178,6 +189,38 @@
             }
 
             misvalorescascada.torneocascada = torneoseleccionadocadena;
+        }
+    }
+
+
+    public async Task ExportarExcelPosiciones()
+    {
+        try
+        {
+            byte[] archivo = await http.GetByteArrayAsync("api/Posiciones/ExportarPosicionesExcel/" + idtorneoseleccionado);
+            string base64 = Convert.ToBase64String(archivo);
+            string data = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + base64;
+            await ijsruntime.InvokeVoidAsync("descargarExcel", data, "TablaPosiciones.xlsx");
+        }
+        catch (Exception ex)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR AL EXPORTAR EXCEL: " + ex.Message, "error");
+        }
+    }
+
+
+    public async Task ExportarPdfPosiciones()
+    {
+        try
+        {
+            byte[] archivo = await http.GetByteArrayAsync("api/Posiciones/ExportarPosicionesPdf/" + idtorneoseleccionado);
+            string base64 = Convert.ToBase64String(archivo);
+            string data = "data:application/pdf;base64," + base64;
+            await ijsruntime.InvokeVoidAsync("descargarPdf", data);
+        }
+        catch (Exception ex)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR AL EXPORTAR PDF: " + ex.Message, "error");
         }
     }
 

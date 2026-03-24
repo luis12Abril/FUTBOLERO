@@ -1,5 +1,8 @@
 ﻿@page "/ListaJugador/{Id}"
 @using FUTBOLERO.Shared
+@using Microsoft.AspNetCore.Components.Forms
+@using System.IO
+@using System.Linq
 @inject HttpClient http
 @inject IJSRuntime ijsruntime
 
@@ -35,6 +38,47 @@
             }
             else
             {
+                @if (permitirAgregar)
+                {
+                    <div class="importar-card mb-3">
+                        <h5>Carga masiva de jugadores por Excel</h5>
+                        <span>Selecciona el equipo, carga la plantilla y registra jugadores en bloque.</span>
+
+                        <div class="importar-grid mt-2">
+                            <div>
+                                <label class="importar-label">Equipo destino</label>
+                                <select class="form-control" @bind="equipoSeleccionadoImportacion">
+                                    <option value="">--- Seleccione ---</option>
+                                    @if (oEquipoCLS != null)
+                                    {
+                                        @foreach (var equipo in oEquipoCLS)
+                                        {
+                                            <option value="@equipo.idequipo">@equipo.nombre</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="importar-label">Archivo Excel (.xlsx o .xlsm)</label>
+                                <InputFile OnChange="SeleccionarArchivoExcel" accept=".xlsx,.xlsm" />
+                                @if (!string.IsNullOrWhiteSpace(nombreArchivoExcel))
+                                {
+                                    <small class="text-muted">Archivo seleccionado: @nombreArchivoExcel</small>
+                                }
+                            </div>
+
+                            <div class="importar-actions">
+                                <button class="btn btn-success" @onclick="ImportarJugadoresExcel">Importar jugadores</button>
+                            </div>
+                        </div>
+
+                        <small class="text-muted d-block mt-2">
+                            Columnas requeridas en la plantilla: Nombre, ApellidoPaterno, ApellidoMaterno, FechaNacimiento.
+                        </small>
+                    </div>
+                }
+
                 <div class="catalogo-list-card">
                     <Listados cabeceras=cabeceras
                               nombrePropiedadesMostrar=propiedades
@@ -121,10 +165,51 @@
         font-weight: 600;
     }
 
+    .importar-card {
+        background: #ffffff;
+        border: 1px solid #d1fae5;
+        border-radius: 14px;
+        padding: 0.9rem 1rem;
+        box-shadow: 0 12px 22px rgba(5, 150, 105, 0.12);
+    }
+
+    .importar-card h5 {
+        margin: 0;
+        color: #065f46;
+        font-weight: 700;
+    }
+
+    .importar-card span {
+        color: #4b5563;
+        font-size: 0.9rem;
+    }
+
+    .importar-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.8rem;
+        align-items: end;
+    }
+
+    .importar-label {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .importar-actions {
+        display: flex;
+        align-items: end;
+    }
+
     @@media (max-width: 768px) {
         .catalogo-header-card {
             flex-direction: column;
             align-items: flex-start;
+        }
+
+        .importar-grid {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -160,6 +245,10 @@
 
     public UsuarioEACLS listadousuario;
 
+    public string equipoSeleccionadoImportacion;
+    public IBrowserFile archivoExcelSeleccionado;
+    public string nombreArchivoExcel;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -177,38 +266,28 @@
 
             torneoMensaje = torneo;
 
-            //listadoJugador = await http.GetFromJsonAsync<JugadorCLS[]>("api/Jugador/ListarTotalesPorAños/" + 9);
-
-
             // ESTA LINEA LA TUVE QUE CAMBIAR DE CONTROLADOR PORQUE EN EL DE USUARIO NO FUNCIONABA, NO SE PORQUE
             listadousuario = await http.GetFromJsonAsync<UsuarioEACLS>("api/Jugador/RecEA/" + idusuariologueado);
 
             int tipoUsuario = await http.GetFromJsonAsync<int>("api/Usuario/RegresaIdTipoUsuario/" + idusuariologueado);
             if (tipoUsuario == 6)
             {
-                //string usuequipo1 = await http.GetFromJsonAsync<string>("api/Jugador/RegresaUsuarioEA/" + idusuariologueado);
-                //int a = 0;
-
                 // DEBO SACAR DE LA TABLA EQUIPO EL IDEQUIPO, TENGO EL USUARIO LOGUEADO ENTONCES LO BIUSCO EN EL CONTROLADOR EQUIPO
                 int idequipo = await http.GetFromJsonAsync<int>("api/Equipo/RegresaIdEquipo/" + listadousuario.usuequipo);
 
                 listadoJugador = await http.GetFromJsonAsync<JugadorCLS[]>("api/Jugador/ListarJugadorEquipo/" + idequipo);  // AQUI OCUPO EL IDEQUIPO
 
                 oEquipoCLS = await http.GetFromJsonAsync<EquipoCLS[]>("api/Equipo/ListarEquipoAdminEquipo/" + idequipo);    // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO BUSQUEDA DE EQUIPOS
-
+                equipoSeleccionadoImportacion = idequipo.ToString();
             }
             else
             {
-
                 listadoJugador = await http.GetFromJsonAsync<JugadorCLS[]>("api/Jugador/ListarJugador/" + idtorneoseleccionado);
                 oEquipoCLS = await http.GetFromJsonAsync<EquipoCLS[]>("api/Equipo/ListarEquipoTodos/" + idtorneoseleccionado);    // ESTE LO LLENO PORQUE SE VA HA UTILIZAR EN EL COMBO BUSQUEDA DE EQUIPOS
-
             }
 
             if (user.Identity.IsAuthenticated)
             {
-                //listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones/" + user.Identity.Name + "/" + Id);
-
                 //  ESTO LO HAGO PORQUE SI ES UN ADMINISTRADOR Y NO TIENE DERECHO A ADMINISTRAR EL TORNEO SELECCIONADO TENDRA QUE VERLO COMO INVITADO
                 listaBotones = await http.GetFromJsonAsync<List<int>>("api/PaginaTipoUsuario/listarBotones2/" + user.Identity.Name + "/" + Id + "/" + idtorneoseleccionado);
 
@@ -223,6 +302,68 @@
                 }
             }
         }
+    }
+
+
+    public void SeleccionarArchivoExcel(InputFileChangeEventArgs e)
+    {
+        archivoExcelSeleccionado = e.File;
+        nombreArchivoExcel = archivoExcelSeleccionado?.Name;
+    }
+
+
+    public async Task ImportarJugadoresExcel()
+    {
+        if (string.IsNullOrWhiteSpace(equipoSeleccionadoImportacion))
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "SELECCIONA EL EQUIPO DESTINO", "warning");
+            return;
+        }
+
+        if (archivoExcelSeleccionado == null)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "SELECCIONA UN ARCHIVO EXCEL", "warning");
+            return;
+        }
+
+        using MultipartFormDataContent data = new MultipartFormDataContent();
+        using Stream archivoStream = archivoExcelSeleccionado.OpenReadStream(10 * 1024 * 1024);
+        using StreamContent contenidoArchivo = new StreamContent(archivoStream);
+        contenidoArchivo.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(archivoExcelSeleccionado.ContentType);
+
+        data.Add(contenidoArchivo, "archivo", archivoExcelSeleccionado.Name);
+        data.Add(new StringContent(equipoSeleccionadoImportacion), "idequipo");
+        data.Add(new StringContent(idtorneoseleccionado), "idtorneo");
+
+        HttpResponseMessage respuesta = await http.PostAsync("api/Jugador/ImportarJugadoresExcel", data);
+        if (!respuesta.IsSuccessStatusCode)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "OCURRIO UN ERROR AL IMPORTAR", "error");
+            return;
+        }
+
+        ImportacionJugadoresExcelCLS resultado = await respuesta.Content.ReadFromJsonAsync<ImportacionJugadoresExcelCLS>();
+
+        if (resultado != null)
+        {
+            string mensaje = "INSERTADOS: " + resultado.insertados + " | RECHAZADOS: " + resultado.rechazados;
+            if (resultado.insertados > 0)
+            {
+                await ijsruntime.InvokeVoidAsync("MostrarMensajetime", "IMPORTACION COMPLETADA. " + mensaje, "success", 2500);
+            }
+            else
+            {
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "NO SE IMPORTARON JUGADORES. " + mensaje, "warning");
+            }
+
+            if (resultado.errores != null && resultado.errores.Count > 0)
+            {
+                string errores = string.Join("\n", resultado.errores.Take(6));
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", errores, "warning");
+            }
+        }
+
+        listadoJugador = await http.GetFromJsonAsync<JugadorCLS[]>("api/Jugador/FiltrarJugador/" + equipoSeleccionadoImportacion + "/" + idtorneoseleccionado);
     }
 
 

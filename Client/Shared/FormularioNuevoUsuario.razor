@@ -7,44 +7,147 @@
 
 @if (oNuevoUsuarioCLS == null)
 {
-    <button class="btn btn-primary">
-        <span class="spinner-border spinner-border-sm"></span>
-        Cargando...
-    </button>
+    <div class="registro-wrapper">
+        <div class="registro-card text-center py-5">
+            <button class="btn btn-cargando" disabled>
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Cargando...
+            </button>
+        </div>
+    </div>
 }
 else
 {
-    <div style="display:grid; justify-items:center; align-items:center; min-height:100vh; min-width:100vh; background-color:lavender;">
-        <div class="col-md-6 m-auto">
-            <div style="display: block; box-shadow: 15px 15px 15px 0px rgba(0,0,0,.5);  padding:20px; background-color:lightseagreen;">
-                <EditForm Model="@oNuevoUsuarioCLS" OnValidSubmit="GuardarDatosFormulario">
-                    <DataAnnotationsValidator />
+    <div class="registro-wrapper">
+        <div class="registro-card">
+            <EditForm Model="@oNuevoUsuarioCLS" OnValidSubmit="GuardarDatosFormulario" class="registro-body">
+                <DataAnnotationsValidator />
 
-                    <div class="form-group">
-                        <label class="font-weight-bold">Usuario *</label>
-                        <InputText class="form form-control" @bind-Value="oNuevoUsuarioCLS.nombreusuario" />
-                        <ValidationMessage For="@(() => oNuevoUsuarioCLS.nombreusuario)" />
-                    </div>
+                <div class="text-center">
+                    <img class="registro-logo" src="images/FUTBOLEANDO0.jpg" />
+                </div>
 
-                    <div class="form-group">
-                        <label class="font-weight-bold">Contraseña *</label>
-                        <InputText type="password" class="form form-control" @bind-Value="oNuevoUsuarioCLS.contra" />
-                        <ValidationMessage For="@(() => oNuevoUsuarioCLS.contra)" />
-                    </div>
+                <h1 class="registro-title">Crear cuenta</h1>
+                <p class="registro-subtitle">Registra tus credenciales para comenzar.</p>
 
-                    <input type="submit" value="Guardar" class="btn btn-success" />
+                <div class="form-group mb-3">
+                    <label class="registro-label">Usuario *</label>
+                    <InputText class="form-control registro-input" @bind-Value="oNuevoUsuarioCLS.nombreusuario" />
+                    <ValidationMessage For="@(() => oNuevoUsuarioCLS.nombreusuario)" />
+                </div>
 
-                    <NavLink href="/">
-                        <input type="button" value="Regresar" class="btn btn-info" />
-                    </NavLink>
+                <div class="form-group mb-3">
+                    <label class="registro-label">Contraseña *</label>
+                    <InputText type="password" class="form-control registro-input" @bind-Value="oNuevoUsuarioCLS.contra" />
+                    <ValidationMessage For="@(() => oNuevoUsuarioCLS.contra)" />
+                </div>
 
-                </EditForm>
-            </div>
+                <button type="submit" class="btn btn-guardar btn-block">Guardar</button>
+
+                <div class="registro-actions">
+                    <NavLink href="/" class="btn btn-regresar btn-block">Regresar al inicio</NavLink>
+                </div>
+            </EditForm>
         </div>
-
     </div>
     <div class="mb-2"></div>
 }
+
+<style>
+    .registro-wrapper {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1.25rem;
+        background: linear-gradient(180deg, #eef2ff 0%, #f3e8ff 100%);
+    }
+
+    .registro-card {
+        width: 100%;
+        max-width: 520px;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.10);
+    }
+
+    .registro-body {
+        padding: 0;
+    }
+
+    .registro-logo {
+        max-width: 55%;
+        margin-bottom: 0.65rem;
+    }
+
+    .registro-title {
+        text-align: center;
+        color: #1d4ed8;
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+    }
+
+    .registro-subtitle {
+        text-align: center;
+        color: #6b7280;
+        margin-bottom: 1.25rem;
+    }
+
+    .registro-label {
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.35rem;
+        display: inline-block;
+    }
+
+    .registro-input {
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        min-height: 42px;
+    }
+
+    .registro-input:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.2);
+    }
+
+    .registro-actions {
+        margin-top: 0.9rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .btn-guardar {
+        background: linear-gradient(120deg, #16a34a 0%, #22c55e 100%);
+        border: none;
+        color: #fff;
+        border-radius: 8px;
+        padding: 0.55rem 1.2rem;
+        font-weight: 600;
+    }
+
+    .btn-regresar {
+        background: #2563eb;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.55rem 1.2rem;
+        font-weight: 600;
+        text-decoration: none;
+        width: 220px;
+        text-align: center;
+    }
+
+    .btn-cargando {
+        background: linear-gradient(120deg, #2563eb 0%, #3b82f6 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.55rem 1rem;
+    }
+</style>
 
 
 @code {

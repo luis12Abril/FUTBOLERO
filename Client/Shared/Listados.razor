@@ -2,6 +2,8 @@
 @using OfficeOpenXml;                   @*SI MARCAN ERROR HAY QUE INSTALAR EL EPPLUS*@
 @using OfficeOpenXml.Style;
 @using System.IO;
+@using System.Globalization;
+@using System.Text;
 
 @using iText.Pdfa;
 @using iText.Kernel.Pdf;
@@ -34,7 +36,7 @@ else
 
         @if (permitirExportarExcel)
         {
-            <a @onclick="exportarExcel" class="btn btn-success" href="@excel">Exportar a Excel</a>
+            <button class="btn btn-success" @onclick="exportarExcel">Exportar a Excel</button>
         }
 
         @if (permitirExportarWord)
@@ -415,45 +417,88 @@ else
     }
 
 
-    public void exportarExcel()
+    public async Task exportarExcel()
     {
-        using (MemoryStream ms = new MemoryStream())
+        try
         {
-            using (ExcelPackage ep = new ExcelPackage())
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = 0; i < cabeceras.Length; i++)
             {
-                ep.Workbook.Worksheets.Add("Hoja");
-                ExcelWorksheet ew = ep.Workbook.Worksheets[0];
-
-                for (int i = 0; i < cabeceras.Length; i++)
+                sb.Append(EscapeCsv(cabeceras[i]));
+                if (i < cabeceras.Length - 1)
                 {
-                    ew.Column(i + 1).Width = 50;
-                    ew.Cells[1, i + 1].Value = cabeceras[i];
+                    sb.Append(",");
                 }
+            }
+            sb.AppendLine();
 
-                //INICIALIZANDO VALORES
-                int fila = 2;
-                int col = 1;
-                foreach (object item in lista)
+            foreach (object item in lista)
+            {
+                for (int col = 0; col < nombrePropiedadesMostrar.Length; col++)
                 {
-                    col = 1;
-                    foreach (string propiedad in nombrePropiedadesMostrar)
+                    string propiedad = nombrePropiedadesMostrar[col];
+                    object valor = item.GetType().GetProperty(propiedad).GetValue(item);
+                    sb.Append(EscapeCsv(valor == null ? "" : valor.ToString()));
+                    if (col < nombrePropiedadesMostrar.Length - 1)
                     {
-                        ew.Cells[fila, col].Value = item.GetType().GetProperty(propiedad).GetValue(item).ToString();
-                        col++;
+                        sb.Append(",");
                     }
-                    fila++;
                 }
+                sb.AppendLine();
+            }
 
-                // ESTO SE PONE PARA DESCARGAR
-                ep.SaveAs(ms);
-                byte[] buffer = ms.ToArray();
-                string base64 = Convert.ToBase64String(buffer);
-                excel = "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," + base64;
+            string csv = "\uFEFF" + sb.ToString();
+            string base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(csv));
+            excel = "data:text/csv;charset=utf-8;base64," + base64;
+            await jsruntime.InvokeVoidAsync("descargarExcel", excel, "ReporteExcel.csv");
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                await jsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR AL EXPORTAR EXCEL: " + ex.Message, "error");
+            }
+            catch
+            {
+                Console.WriteLine("ERROR AL EXPORTAR EXCEL: " + ex.Message);
             }
         }
     }
 
 
+    private static string EscapeCsv(string valor)
+    {
+        if (string.IsNullOrEmpty(valor))
+        {
+            return "\"\"";
+        }
+
+        string limpio = valor.Replace("\"", "\"\"");
+        return "\"" + limpio + "\"";
+    }
+
+
+    private static object ObtenerValorParaExcel(object valor)
+    {
+        if (valor == null)
+        {
+            return "";
+        }
+
+        string texto = valor.ToString();
+        if (decimal.TryParse(texto, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal numeroInvariante))
+        {
+            return numeroInvariante;
+        }
+
+        if (decimal.TryParse(texto, NumberStyles.Any, new CultureInfo("es-MX"), out decimal numeroEsMx))
+        {
+            return numeroEsMx;
+        }
+
+        return texto;
+    }
     public void exportarWord()
     {
         using (MemoryStream ms = new MemoryStream())
@@ -510,53 +555,68 @@ else
     public string pdf { get; set; }
 
 
-    public void exportarPdf()
+    public async Task exportarPdf()
     {
-        using (MemoryStream ms = new MemoryStream())
+        try
         {
-            PdfWriter writer = new PdfWriter(ms);
-            using (var pdfDoc = new PdfDocument(writer))
+            using (MemoryStream ms = new MemoryStream())
             {
-                // LLENADO DEL DOCUMENTO
-                Document doc = new Document(pdfDoc);
-                Paragraph p1 = new Paragraph(tituloReporte);
-
-                p1.SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER);
-                p1.SetFontSize(20);
-                doc.Add(p1);
-
-                Table tabla = new Table(cabeceras.Length);
-                Cell celda;
-                for (int i = 0; i < cabeceras.Length; i++)
+                PdfWriter writer = new PdfWriter(ms);
+                using (var pdfDoc = new PdfDocument(writer))
                 {
-                    celda = new Cell();
-                    celda.Add(new Paragraph(cabeceras[i]));
-                    tabla.AddHeaderCell(celda);
-                }
+                    // LLENADO DEL DOCUMENTO
+                    Document doc = new Document(pdfDoc);
+                    Paragraph p1 = new Paragraph(tituloReporte);
 
-                foreach (object item in lista)
-                {
-                    foreach (string propiedad in nombrePropiedadesMostrar)
+                    p1.SetTextAlignment(iText.Layout.Properties.TextAlignment.CENTER);
+                    p1.SetFontSize(20);
+                    doc.Add(p1);
+
+                    Table tabla = new Table(cabeceras.Length);
+                    Cell celda;
+                    for (int i = 0; i < cabeceras.Length; i++)
                     {
                         celda = new Cell();
-                        celda.Add(new Paragraph(item.GetType().GetProperty(propiedad).GetValue(item).ToString()));
-                        tabla.AddCell(celda);
+                        celda.Add(new Paragraph(cabeceras[i]));
+                        tabla.AddHeaderCell(celda);
                     }
+
+                    foreach (object item in lista)
+                    {
+                        foreach (string propiedad in nombrePropiedadesMostrar)
+                        {
+                            object valor = item.GetType().GetProperty(propiedad).GetValue(item);
+                            celda = new Cell();
+                            celda.Add(new Paragraph(valor == null ? "" : valor.ToString()));
+                            tabla.AddCell(celda);
+                        }
+                    }
+
+                    doc.Add(tabla);
+
+                    // CERRADO DEL DOCUMENTO
+                    doc.Close();
+                    writer.Close();
+
+                    // DESCARGAR EL DOCUMENTO
+                    byte[] buffer = ms.ToArray();
+                    string base64 = Convert.ToBase64String(buffer);
+
+                    pdf = "data:application/pdf;base64," + base64;
+
+                    await jsruntime.InvokeVoidAsync("descargarPdf", pdf);
                 }
-
-                doc.Add(tabla);
-
-                // CERRADO DEL DOCUMENTO
-                doc.Close();
-                writer.Close();
-
-                // DESCARGAR EL DOCUMENTO
-                byte[] buffer = ms.ToArray();
-                string base64 = Convert.ToBase64String(buffer);
-
-                pdf = "data:application/pdf;base64," + base64;
-
-                jsruntime.InvokeVoidAsync("descargarPdf", pdf);
+            }
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                await jsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR AL EXPORTAR PDF: " + ex.Message, "error");
+            }
+            catch
+            {
+                Console.WriteLine("ERROR AL EXPORTAR PDF: " + ex.Message);
             }
         }
     }

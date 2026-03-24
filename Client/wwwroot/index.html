@@ -41,6 +41,13 @@
         a.click();
     }
 
+    function descargarExcel(excel, nombreArchivo) {
+        var a = document.createElement("a");
+        a.href = excel;
+        a.download = nombreArchivo ? nombreArchivo : "ReporteExcel.csv";
+        a.click();
+    }
+
     function previewDataImagen() {
         //PERMITE LEER CUALQUIER ARCHIVO
         var reader = new FileReader();
