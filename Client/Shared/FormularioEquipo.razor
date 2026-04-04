@@ -79,7 +79,7 @@ else
                 <div class="form-group row align-items-center equipo-field-row">
                     <label class="col-lg-3 col-form-label equipo-label">Promedio de Edad</label>
                     <div class="col-lg-9">
-                        @{promedioedad = oEquipoCLS.años + " Años " + oEquipoCLS.meses + " Meses";}
+                        @{promedioedad = oEquipoCLS.años + " Años " + oEquipoCLS.meses + " Meses " + oEquipoCLS.dias + " Días";}
                         <input type="text" class="form-control equipo-input equipo-readonly" readOnly Value="@promedioedad" />
                     </div>
                 </div>
@@ -235,13 +235,13 @@ else
     .equipo-photo-preview {
         width: 100%;
         max-width: 450px;
-        height: auto;
-        max-height: 300px;
+        height: 300px;
         display: block;
         border-radius: 12px;
         box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
         border: 2px solid #fde68a;
-        object-fit: cover;
+        object-fit: contain;
+        background-color: #ffffff;
         margin-bottom: 0.6rem;
     }
 

@@ -31,6 +31,7 @@ namespace FUTBOLERO.Shared
         public string torneo { get; set; }
         public int años { get; set; } = 0;
         public int meses { get; set; } = 0;
+        public int dias { get; set; } = 0;
         public List<JugadorCLS> ListaJugadorEquipo { get; set; } = new List<JugadorCLS>();
 
         public int idtorneo { get; set; }

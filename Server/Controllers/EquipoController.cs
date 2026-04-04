@@ -480,7 +480,8 @@ namespace FUTBOLERO.Server.Controllers
 
 
                 int con = 0;
-                int meses = 0;
+                double totalDias = 0;
+                DateTime fechaActual = DateTime.Today;
                 List<JugadorCLS> listajugadores = (from jugador in baseDatos.Jugador
                                                    join equipo in baseDatos.Equipo
                                                    on jugador.Idequipo equals equipo.Idequipo
@@ -500,7 +501,7 @@ namespace FUTBOLERO.Server.Controllers
                 {
                     con = con + 1;
                     jug.numero = con;
-                    meses = meses + ((DateTime.Now.Month + DateTime.Now.Year * 12) - (jug.fnacimiento.Month + jug.fnacimiento.Year * 12));
+                    totalDias = totalDias + (fechaActual - jug.fnacimiento.Date).TotalDays;
                     oEquipoCLS.ListaJugadorEquipo.Add(jug);
                 }
 
@@ -509,12 +510,33 @@ namespace FUTBOLERO.Server.Controllers
 
                     oEquipoCLS.años = 0;
                     oEquipoCLS.meses = 0;
+                    oEquipoCLS.dias = 0;
                 }
                 else
                 {
-                    meses = meses / con;
-                    oEquipoCLS.años = meses / 12;
-                    oEquipoCLS.meses = meses % 12;
+                    int promedioDias = (int)Math.Round(totalDias / con, MidpointRounding.AwayFromZero);
+                    DateTime fechaNacimientoPromedio = fechaActual.AddDays(-promedioDias);
+
+                    int añosPromedio = fechaActual.Year - fechaNacimientoPromedio.Year;
+                    if (fechaNacimientoPromedio.AddYears(añosPromedio) > fechaActual)
+                    {
+                        añosPromedio--;
+                    }
+
+                    DateTime fechaTrasAnios = fechaNacimientoPromedio.AddYears(añosPromedio);
+
+                    int mesesPromedio = 0;
+                    while (fechaTrasAnios.AddMonths(mesesPromedio + 1) <= fechaActual)
+                    {
+                        mesesPromedio++;
+                    }
+
+                    DateTime fechaTrasMeses = fechaTrasAnios.AddMonths(mesesPromedio);
+                    int diasPromedio = (fechaActual - fechaTrasMeses).Days;
+
+                    oEquipoCLS.años = añosPromedio;
+                    oEquipoCLS.meses = mesesPromedio;
+                    oEquipoCLS.dias = diasPromedio;
                 }
 
 
