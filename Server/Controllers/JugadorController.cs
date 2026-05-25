@@ -45,6 +45,11 @@ namespace FUTBOLERO.Server.Controllers
 
         public static int regresaños(DateTime? fnac)
         {
+            if (!fnac.HasValue)
+            {
+                return 0;
+            }
+
             int años = (DateTime.Now.Year - fnac.Value.Year);
             if (fnac.Value.AddYears(años) > DateTime.Now)
             {
@@ -66,6 +71,7 @@ namespace FUTBOLERO.Server.Controllers
                 // QUE ESTE HABILITADO, QUE SEA DEL TORNEO SELECCIONADO, QUE NO SE LLAME GOL A FAVOR Y QUE SEA DIFERENTE A _SIN EQUIPO (INNER JOIN A LA TABLA EQUIPOS)
                 listaJugador = (from jugador in baseDatos.Jugador
                                 where jugador.Habilitado == 1 && jugador.Idtorneo == int.Parse(idtorneoseleccionado) && !jugador.Nombre.Contains("GOL A FAVOR")
+                                && jugador.Fnacimiento != null
                                 //orderby jugador.Fnacimiento.Value.Year
                                 group jugador by  new {jugador.Fnacimiento.Value.Year} into añoNacimiento                                
 
@@ -78,7 +84,8 @@ namespace FUTBOLERO.Server.Controllers
                 int sumaJUgadores = 0;
                 foreach(JugadoresAñosCLS JugOrden in listaJugador)
                 {
-                    JugOrden.contadoraños = baseDatos.Jugador.Where(j=> j.Habilitado == 1 && j.Idtorneo == int.Parse(idtorneoseleccionado) && int.Parse(JugOrden.años) == j.Fnacimiento.Value.Year ).Count().ToString();
+                        JugOrden.contadoraños = baseDatos.Jugador.Where(j=> j.Habilitado == 1 && j.Idtorneo == int.Parse(idtorneoseleccionado)
+                        && j.Fnacimiento != null && int.Parse(JugOrden.años) == j.Fnacimiento.Value.Year ).Count().ToString();
                     sumaJUgadores = sumaJUgadores + int.Parse(JugOrden.contadoraños);
                 }
                 listaJugador.Add(new JugadoresAñosCLS { años = "--------", contadoraños = "------" });
@@ -99,6 +106,7 @@ namespace FUTBOLERO.Server.Controllers
                 {
                     listaJugador = (from jugador in baseDatos.Jugador
                                     where jugador.Habilitado == 1 && jugador.Idtorneo == int.Parse(idtorneoseleccionado) && !jugador.Nombre.Contains("GOL A FAVOR")
+                                    && jugador.Fnacimiento != null
                                     //orderby jugador.Fnacimiento.Value.Year
                                     group jugador by new { jugador.Fnacimiento.Value.Year } into añoNacimiento
 
@@ -111,7 +119,8 @@ namespace FUTBOLERO.Server.Controllers
                     int sumaJUgadores = 0;
                     foreach (JugadoresAñosCLS JugOrden in listaJugador)
                     {
-                        JugOrden.contadoraños = baseDatos.Jugador.Where(j => j.Habilitado == 1 && j.Idtorneo == int.Parse(idtorneoseleccionado) && int.Parse(JugOrden.años) == j.Fnacimiento.Value.Year).Count().ToString();
+                        JugOrden.contadoraños = baseDatos.Jugador.Where(j => j.Habilitado == 1 && j.Idtorneo == int.Parse(idtorneoseleccionado)
+                        && j.Fnacimiento != null && int.Parse(JugOrden.años) == j.Fnacimiento.Value.Year).Count().ToString();
                         sumaJUgadores = sumaJUgadores + int.Parse(JugOrden.contadoraños);
                     }
                     listaJugador.Add(new JugadoresAñosCLS { años = "--------", contadoraños = "------" });
@@ -122,6 +131,7 @@ namespace FUTBOLERO.Server.Controllers
                     listaJugador = (from jugador in baseDatos.Jugador
                                     where jugador.Habilitado == 1 && jugador.Idtorneo == int.Parse(idtorneoseleccionado)
                                     && jugador.Idequipo == int.Parse(p_idequipo) && !jugador.Nombre.Contains("GOL A FAVOR")
+                                    && jugador.Fnacimiento != null
                           
                                     group jugador by new { jugador.Fnacimiento.Value.Year } into añoNacimiento
 
@@ -135,7 +145,7 @@ namespace FUTBOLERO.Server.Controllers
                     foreach (JugadoresAñosCLS JugOrden in listaJugador)
                     {
                         JugOrden.contadoraños = baseDatos.Jugador.Where(j => j.Habilitado == 1 && j.Idtorneo == int.Parse(idtorneoseleccionado)
-                        && j.Idequipo == int.Parse(p_idequipo) && int.Parse(JugOrden.años) == j.Fnacimiento.Value.Year).Count().ToString();
+                        && j.Idequipo == int.Parse(p_idequipo) && j.Fnacimiento != null && int.Parse(JugOrden.años) == j.Fnacimiento.Value.Year).Count().ToString();
                         sumaJugadores = sumaJugadores + int.Parse(JugOrden.contadoraños);
                     }
                     listaJugador.Add(new JugadoresAñosCLS { años = "--------", contadoraños = "------" });
@@ -367,6 +377,11 @@ namespace FUTBOLERO.Server.Controllers
 
         public static string regfechanacimientojugador(DateTime? fnacimiento)
         {
+            if (!fnacimiento.HasValue)
+            {
+                return "";
+            }
+
             string rfecha = "";
 
             rfecha = fnacimiento.Value.Day.ToString() + " de ";

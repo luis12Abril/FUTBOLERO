@@ -48,8 +48,17 @@
         a.click();
     }
 
+    function descargarArchivo(base64, nombreArchivo, tipoMime) {
+        var a = document.createElement("a");
+        a.href = "data:" + tipoMime + ";base64," + base64;
+        a.download = nombreArchivo;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
     function previewDataImagen() {
-        //PERMITE LEER CUALQUIER ARCHIVO
+        //PERMITE LEER CUALQUIER ARCHIVO..
         var reader = new FileReader();
 
         // ESTO ES PARA COMENZAR A LEER, ES UN METODO ASINCRONO

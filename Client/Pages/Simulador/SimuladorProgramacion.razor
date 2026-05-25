@@ -1,0 +1,374 @@
+@page "/SimuladorProgramacion"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+<AuthorizeView>
+    <Authorized>
+
+        @if (cargando)
+        {
+            <div class="sim-wrapper">
+                <div class="sim-card text-center py-5">
+                    <button class="btn btn-cargando" disabled>
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        Cargando equipos...
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="sim-wrapper">
+                <div class="sim-card">
+
+                    <!-- HEADER -->
+                    <div class="sim-header">
+                        <div>
+                            <h4 class="mb-1">⚽ Simulador de Programación</h4>
+                            <p class="mb-0">Propuesta generada con los equipos del torneo: <strong>@torneoNombre</strong></p>
+                        </div>
+                        @if (jornadas.Count > 0)
+                        {
+                            <span class="sim-badge">@listaEquipos.Count equipos &nbsp;·&nbsp; @jornadas.Count jornadas &nbsp;·&nbsp; @totalPartidos partidos</span>
+                        }
+                    </div>
+
+                    <!-- BODY -->
+                    <div class="sim-body">
+
+                        @if (listaEquipos.Count < 2)
+                        {
+                            <div class="alert alert-warning rounded-3">
+                                ⚠️ Se necesitan al menos <strong>2 equipos</strong> registrados en el torneo para generar la simulación.
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- JORNADAS -->
+                            <div class="jornadas-grid">
+                                @foreach (var jornada in jornadas)
+                                {
+                                    <div class="jornada-card">
+                                        <div class="jornada-titulo">
+                                            🗓️ JORNADA @jornada.Numero
+                                        </div>
+                                        <div class="jornada-partidos">
+                                            @foreach (var partido in jornada.Partidos)
+                                            {
+                                                <div class="partido-fila">
+                                                    <span class="equipo-local">@partido.Local</span>
+                                                    <span class="vs-badge">VS</span>
+                                                    <span class="equipo-visitante">@partido.Visitante</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- NOTA Y BOTON -->
+                            <div class="sim-footer">
+                                <p class="sim-nota">
+                                    📌 <strong>Nota:</strong> Esta es solo una <em>propuesta de programación</em>.
+                                    El administrador puede usarla como referencia y registrar los juegos semana a semana según las fechas reales del torneo.
+                                </p>
+                                <div class="sim-actions">
+                                    <button class="btn btn-exportar" @onclick="ExportarWord">
+                                        📄 Descargar como Word
+                                    </button>
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        }
+
+    </Authorized>
+</AuthorizeView>
+
+<style>
+    .sim-wrapper {
+        padding: 1.25rem 0;
+        background: linear-gradient(135deg, #f8fafc 0%, #eef6f5 100%);
+        border-radius: 1.25rem;
+    }
+
+    .sim-card {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 1.2rem;
+        box-shadow: 0 10px 30px rgba(45, 64, 89, 0.08);
+        overflow: hidden;
+    }
+
+    .sim-header {
+        padding: 1.2rem 1.6rem;
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 55%, #9bd8ca 100%);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .sim-badge {
+        background: rgba(255,255,255,0.25);
+        border-radius: 2rem;
+        padding: 0.3rem 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .sim-body {
+        padding: 1.5rem;
+    }
+
+    .jornadas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .jornada-card {
+        border: 1px solid #d6f0eb;
+        border-radius: 0.9rem;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(95,174,160,0.08);
+    }
+
+    .jornada-titulo {
+        background: linear-gradient(120deg, #42a890 0%, #5fb8a1 100%);
+        color: #fff;
+        padding: 0.5rem 0.9rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+    }
+
+    .jornada-partidos {
+        padding: 0.6rem 0.9rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+
+    .partido-fila {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        padding: 0.3rem 0;
+        border-bottom: 1px dashed #e3f0ee;
+    }
+
+        .partido-fila:last-child {
+            border-bottom: none;
+        }
+
+    .equipo-local {
+        font-weight: 600;
+        color: #2f3e46;
+        flex: 1;
+        text-align: right;
+    }
+
+    .equipo-visitante {
+        font-weight: 600;
+        color: #2f3e46;
+        flex: 1;
+        text-align: left;
+    }
+
+    .vs-badge {
+        background: #edf9f7;
+        color: #42a890;
+        border-radius: 0.4rem;
+        padding: 0.1rem 0.45rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 1px solid #c5e9e3;
+        flex-shrink: 0;
+    }
+
+    .sim-footer {
+        background: #f4faf9;
+        border: 1px solid #d6f0eb;
+        border-radius: 0.9rem;
+        padding: 1rem 1.2rem;
+        margin-top: 0.5rem;
+    }
+
+    .sim-nota {
+        color: #4a5568;
+        font-size: 0.9rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .sim-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+    }
+
+    .btn-exportar {
+        background: linear-gradient(120deg, #2b6cb0 0%, #3182ce 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.5rem 1.4rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        box-shadow: 0 3px 10px rgba(43,108,176,0.2);
+        transition: opacity 0.2s;
+    }
+
+        .btn-exportar:hover {
+            opacity: 0.88;
+        }
+
+    .btn-cargando {
+        background: linear-gradient(120deg, #5faea0 0%, #7cc6b4 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.65rem;
+        padding: 0.5rem 1rem;
+    }
+</style>
+
+@code {
+
+    // --- Modelos internos ---
+    public class Jornada
+    {
+        public int Numero { get; set; }
+        public List<Partido> Partidos { get; set; } = new List<Partido>();
+    }
+
+    public class Partido
+    {
+        public string Local { get; set; }
+        public string Visitante { get; set; }
+    }
+
+    // --- Variables ---
+    private List<EquipoCLS> listaEquipos = new List<EquipoCLS>();
+    private List<Jornada> jornadas = new List<Jornada>();
+    private bool cargando = true;
+    private string torneoNombre = "";
+    private int totalPartidos = 0;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    // --- Inicializar ---
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            torneoNombre = claims[1].Value;
+            var idtorneo = claims[2].Value;
+
+            listaEquipos = await http.GetFromJsonAsync<List<EquipoCLS>>(
+                "api/Equipo/ListarEquiposParticipantes/" + idtorneo);
+
+            if (listaEquipos != null && listaEquipos.Count >= 2)
+                GenerarProgramacion();
+        }
+
+        cargando = false;
+    }
+
+    // --- Algoritmo Round-Robin ---
+    private void GenerarProgramacion()
+    {
+        var lista = listaEquipos.Select(e => e.nombre).ToList();
+
+        // Si numero impar agrega equipo fantasma (DESCANSA)
+        if (lista.Count % 2 != 0)
+            lista.Add("DESCANSA");
+
+        int n = lista.Count;
+        jornadas = new List<Jornada>();
+
+        for (int ronda = 0; ronda < n - 1; ronda++)
+        {
+            var jornada = new Jornada { Numero = ronda + 1 };
+
+            for (int i = 0; i < n / 2; i++)
+            {
+                string local = lista[i];
+                string visitante = lista[n - 1 - i];
+
+                if (local != "DESCANSA" && visitante != "DESCANSA")
+                    jornada.Partidos.Add(new Partido { Local = local, Visitante = visitante });
+            }
+
+            jornadas.Add(jornada);
+
+            // Rotar lista manteniendo fijo el primer elemento
+            var ultimo = lista[n - 1];
+            lista.RemoveAt(n - 1);
+            lista.Insert(1, ultimo);
+        }
+
+        totalPartidos = jornadas.Sum(j => j.Partidos.Count);
+    }
+
+    // --- Exportar Word ---
+    private async Task ExportarWord()
+    {
+        var sb = new System.Text.StringBuilder();
+
+        sb.AppendLine("<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>");
+        sb.AppendLine("<head><meta charset='utf-8'><title>Programacion del Torneo</title>");
+        sb.AppendLine("<style>");
+        sb.AppendLine("body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; }");
+        sb.AppendLine("h1 { color: #2f6a5e; font-size: 16pt; }");
+        sb.AppendLine("h3 { background-color: #42a890; color: white; padding: 4px 8px; font-size: 11pt; }");
+        sb.AppendLine("table { width: 100%; border-collapse: collapse; margin-bottom: 12pt; }");
+        sb.AppendLine("td { padding: 4px 10px; border-bottom: 1px solid #ccc; font-size: 10pt; }");
+        sb.AppendLine(".local { text-align: right; font-weight: bold; width: 45%; }");
+        sb.AppendLine(".vs { text-align: center; color: #42a890; font-weight: bold; width: 10%; }");
+        sb.AppendLine(".visit { text-align: left; font-weight: bold; width: 45%; }");
+        sb.AppendLine("</style></head><body>");
+
+        sb.AppendLine($"<h1>&#9917; Programaci&oacute;n del Torneo: {torneoNombre}</h1>");
+        sb.AppendLine($"<p>{listaEquipos.Count} equipos &nbsp;&middot;&nbsp; {jornadas.Count} jornadas &nbsp;&middot;&nbsp; {totalPartidos} partidos en total</p>");
+        sb.AppendLine("<hr/>");
+
+        foreach (var jornada in jornadas)
+        {
+            sb.AppendLine($"<h3>JORNADA {jornada.Numero}</h3>");
+            sb.AppendLine("<table>");
+            foreach (var partido in jornada.Partidos)
+            {
+                sb.AppendLine($"<tr><td class='local'>{partido.Local}</td><td class='vs'>VS</td><td class='visit'>{partido.Visitante}</td></tr>");
+            }
+            sb.AppendLine("</table>");
+        }
+
+        sb.AppendLine("<p><em>Nota: Esta es solo una propuesta. El administrador registrar&aacute; los juegos semana a semana seg&uacute;n las fechas reales.</em></p>");
+        sb.AppendLine("</body></html>");
+
+        var htmlBytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+        var base64 = Convert.ToBase64String(htmlBytes);
+
+        await ijsruntime.InvokeVoidAsync("descargarArchivo",
+            base64,
+            $"Programacion_{torneoNombre.Replace(" ", "_")}.doc",
+            "application/msword");
+    }
+}

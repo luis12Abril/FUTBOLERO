@@ -34,7 +34,7 @@ namespace FUTBOLERO.Server.Controllers
                                    idequipo = Equipo.Idequipo,
                                    nombre = Equipo.Nombre,
                                    representante = Equipo.Representante,
-                                   puntos = (int)Equipo.Puntos + (int)Equipo.Puntosextras
+                                   puntos = (Equipo.Puntos ?? 0) + (Equipo.Puntosextras ?? 0)
                                }).ToList();
             }
             return listaEquipo;
@@ -55,7 +55,7 @@ namespace FUTBOLERO.Server.Controllers
                                    idequipo = Equipo.Idequipo,
                                    nombre = Equipo.Nombre,
                                    representante = Equipo.Representante,
-                                   puntos = (int)Equipo.Puntos + (int)Equipo.Puntosextras
+                                    puntos = (Equipo.Puntos ?? 0) + (Equipo.Puntosextras ?? 0)
                                }).ToList();
             }
             return listaEquipo;
@@ -76,7 +76,7 @@ namespace FUTBOLERO.Server.Controllers
                                    idequipo = Equipo.Idequipo,
                                    nombre = Equipo.Nombre,
                                    representante = Equipo.Representante,
-                                   puntos = (int)Equipo.Puntos + (int)Equipo.Puntosextras
+                                   puntos = (Equipo.Puntos ?? 0) + (Equipo.Puntosextras ?? 0)
                                }).ToList();
             }
             return listaEquipo;
@@ -97,7 +97,7 @@ namespace FUTBOLERO.Server.Controllers
                                    idequipo = Equipo.Idequipo,
                                    nombre = Equipo.Nombre,
                                    representante = Equipo.Representante,
-                                   puntos = (int)Equipo.Puntos + (int)Equipo.Puntosextras
+                                   puntos = (Equipo.Puntos ?? 0) + (Equipo.Puntosextras ?? 0)
                                }).ToList();
             }
             return listaEquipo;
@@ -124,7 +124,7 @@ namespace FUTBOLERO.Server.Controllers
                                        idequipo = Equipo.Idequipo,
                                        nombre = Equipo.Nombre,
                                        representante = Equipo.Representante,
-                                       puntos = (int)Equipo.Puntos + (int)Equipo.Puntosextras
+                                       puntos = (Equipo.Puntos ?? 0) + (Equipo.Puntosextras ?? 0)
                                    }).ToList();
                 }
                 else
@@ -142,7 +142,7 @@ namespace FUTBOLERO.Server.Controllers
                                        idequipo = Equipo.Idequipo,
                                        nombre = Equipo.Nombre,
                                        representante = Equipo.Representante,
-                                       puntos = (int)Equipo.Puntos + (int)Equipo.Puntosextras
+                                        puntos = (Equipo.Puntos ?? 0) + (Equipo.Puntosextras ?? 0)
                                    }).ToList();
                 }
             }
@@ -668,7 +668,7 @@ namespace FUTBOLERO.Server.Controllers
                                    idequipo = Equipo.Idequipo,
                                    nombre = Equipo.Nombre,
                                    representante = Equipo.Representante,
-                                   puntos = (int)Equipo.Puntos + (int)Equipo.Puntosextras, 
+                                   puntos = (Equipo.Puntos ?? 0) + (Equipo.Puntosextras ?? 0), 
                                    idtorneo = (int)Equipo.Idtorneo
                                }).ToList();
             }
