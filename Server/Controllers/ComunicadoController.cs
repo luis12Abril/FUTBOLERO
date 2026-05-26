@@ -100,7 +100,7 @@ namespace FUTBOLERO.Server.Controllers
                         else
                         {
                             Comunicado oComunicado = new Comunicado();
-                            oComunicado.Fechacomunicado = oComunicadoCLS.fechacomunicado;
+                            oComunicado.Fechacomunicado = DateOnly.FromDateTime(oComunicadoCLS.fechacomunicado);
                             oComunicado.Comunicadocorto = oComunicadoCLS.comunicadocorto;
                             oComunicado.Comunicadolargo = oComunicadoCLS.comunicadolargo;
                             oComunicado.Idtorneo = oComunicadoCLS.idtorneo;
@@ -129,7 +129,7 @@ namespace FUTBOLERO.Server.Controllers
                         else
                         {
                             Comunicado oComunicado = baseDatos.Comunicado.Where(p => p.Idcomunicado == oComunicadoCLS.idcomunicado).First();
-                            oComunicado.Fechacomunicado = oComunicadoCLS.fechacomunicado;
+                            oComunicado.Fechacomunicado = DateOnly.FromDateTime(oComunicadoCLS.fechacomunicado);
                             oComunicado.Comunicadocorto = oComunicadoCLS.comunicadocorto;
                             oComunicado.Comunicadolargo = oComunicadoCLS.comunicadolargo;
                             baseDatos.SaveChanges();
@@ -157,7 +157,7 @@ namespace FUTBOLERO.Server.Controllers
                                   select new ComunicadoCLS
                                   {
                                       idcomunicado = comunicado.Idcomunicado,
-                                      fechacomunicado = (DateTime)comunicado.Fechacomunicado,
+                                      fechacomunicado = comunicado.Fechacomunicado.HasValue ? comunicado.Fechacomunicado.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue,
                                       comunicadocorto = comunicado.Comunicadocorto,
                                       comunicadolargo = comunicado.Comunicadolargo,
                                       idtorneo = (int)comunicado.Idtorneo
@@ -192,17 +192,21 @@ namespace FUTBOLERO.Server.Controllers
             return rpta;
         }
 
-        public static string regfechacomunicado(DateTime? fnacimiento)
+        public static string regfechacomunicado(DateOnly? fnacimiento)
         {
             string rfecha = "";
 
-            if (fnacimiento == DateTime.Now.Date)
+            if (!fnacimiento.HasValue) return rfecha;
+
+            DateTime fnacDT = fnacimiento.Value.ToDateTime(TimeOnly.MinValue);
+
+            if (fnacimiento.Value == DateOnly.FromDateTime(DateTime.Now.Date))
             {
                 rfecha = "HOY";
             }
             else
             {
-                switch (fnacimiento.Value.DayOfWeek.ToString())
+                switch (fnacDT.DayOfWeek.ToString())
                 {
                     case "Sunday":
                         rfecha = rfecha + "Domingo";
@@ -230,9 +234,9 @@ namespace FUTBOLERO.Server.Controllers
                         break;
                 }
 
-                rfecha = rfecha + " " + fnacimiento.Value.Day.ToString() + " de ";
+                rfecha = rfecha + " " + fnacDT.Day.ToString() + " de ";
 
-                switch (fnacimiento.Value.Month)
+                switch (fnacDT.Month)
                 {
                     case 1:
                         rfecha = rfecha + "enero";
@@ -274,13 +278,13 @@ namespace FUTBOLERO.Server.Controllers
                         break;
                 }
 
-                if (fnacimiento.Value.Year >= 2000)
+                if (fnacDT.Year >= 2000)
                 {
-                    rfecha = rfecha + " del " + fnacimiento.Value.Year.ToString();
+                    rfecha = rfecha + " del " + fnacDT.Year.ToString();
                 }
                 else
                 {
-                    rfecha = rfecha + " de " + fnacimiento.Value.Year.ToString();
+                    rfecha = rfecha + " de " + fnacDT.Year.ToString();
                 }
 
             }

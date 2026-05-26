@@ -1,0 +1,331 @@
+@page "/ResumenPagosEquipos/{IdTorneo}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+<AuthorizeView Context="authCtx">
+    <Authorized>
+        <section class="resumen-page mt-3">
+            <div class="resumen-header-card">
+                <div>
+                    <p class="resumen-kicker">Panel de administración</p>
+                    <h3>💰 Resumen de Pagos</h3>
+                    <span>Estado de cuenta de todos los equipos en el torneo.</span>
+                </div>
+                <div class="resumen-acciones">
+                    <NavLink href="@($"ConfigurarCuotaTorneo/{IdTorneo}")" class="btn btn-configurar">
+                        ⚙️ Configurar Cuota
+                    </NavLink>
+                </div>
+            </div>
+
+            @if (listaEquipos == null)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <span class="ms-2">Cargando...</span>
+                </div>
+            }
+            else if (!listaEquipos.Any())
+            {
+                <div class="alert alert-info mt-3">
+                    No hay equipos con cuota asignada. 
+                    <NavLink href="@($"ConfigurarCuotaTorneo/{IdTorneo}")">Configura la cuota primero.</NavLink>
+                </div>
+            }
+            else
+            {
+                <!-- Tarjetas de resumen general -->
+                <div class="resumen-stats row g-3 mb-3">
+                    <div class="col-md-3">
+                        <div class="stat-card stat-total">
+                            <div class="stat-valor">@listaEquipos.Count</div>
+                            <div class="stat-label">Total Equipos</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card stat-liquidado">
+                            <div class="stat-valor">@listaEquipos.Count(e => e.estatusPago == "Liquidado")</div>
+                            <div class="stat-label">✅ Liquidados</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card stat-parcial">
+                            <div class="stat-valor">@listaEquipos.Count(e => e.estatusPago == "Parcial")</div>
+                            <div class="stat-label">⚠️ Pago Parcial</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card stat-sinpago">
+                            <div class="stat-valor">@listaEquipos.Count(e => e.estatusPago == "Sin pago")</div>
+                            <div class="stat-label">🔴 Sin Pago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de equipos -->
+                <div class="resumen-list-card">
+                    <div class="table-responsive">
+                        <table class="table table-hover resumen-tabla mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Equipo</th>
+                                    <th>Representante</th>
+                                    <th class="text-end">Cuota Total</th>
+                                    <th class="text-end">Pagado</th>
+                                    <th class="text-end">Pendiente</th>
+                                    <th class="text-center">Estatus</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var eq in listaEquipos)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@eq.nombreEquipo</td>
+                                        <td>@eq.representante</td>
+                                        <td class="text-end">
+                                            @if (equipoEditandoId == eq.idcuotaequipo)
+                                            {
+                                                <div class="d-flex align-items-center gap-1 justify-content-end">
+                                                    <input type="number" class="form-control form-control-sm text-end" style="width:110px"
+                                                           @bind="montoEditando" />
+                                                    <button class="btn btn-sm btn-success" @onclick="() => GuardarMonto(eq)" title="Guardar">✔</button>
+                                                    <button class="btn btn-sm btn-secondary" @onclick="CancelarEdicion" title="Cancelar">✖</button>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span>@eq.montoasignado.ToString("C2")</span>
+                                                <button class="btn btn-sm btn-outline-primary ms-1 py-0 px-1" style="font-size:0.7rem"
+                                                        @onclick="() => IniciarEdicion(eq)" title="Editar monto">✏️</button>
+                                            }
+                                        </td>
+                                        <td class="text-end text-success fw-semibold">@eq.totalPagado.ToString("C2")</td>
+                                        <td class="text-end @(eq.saldoPendiente > 0 ? "text-danger fw-semibold" : "text-success")">
+                                            @eq.saldoPendiente.ToString("C2")
+                                        </td>
+                                        <td class="text-center">
+                                            @if (eq.estatusPago == "Liquidado")
+                                            {
+                                                <span class="badge badge-liquidado">✅ Liquidado</span>
+                                            }
+                                            else if (eq.estatusPago == "Parcial")
+                                            {
+                                                <span class="badge badge-parcial">⚠️ Parcial</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-sinpago">🔴 Sin pago</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <NavLink href="@($"RegistrarPago/{eq.idcuotaequipo}/{IdTorneo}")"
+                                                     class="btn btn-sm btn-pagar">
+                                                💵 Pagos
+                                            </NavLink>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="resumen-totales">
+                                    <td colspan="2" class="fw-bold">TOTALES</td>
+                                    <td class="text-end fw-bold">@listaEquipos.Sum(e => e.montoasignado).ToString("C2")</td>
+                                    <td class="text-end fw-bold text-success">@listaEquipos.Sum(e => e.totalPagado).ToString("C2")</td>
+                                    <td class="text-end fw-bold text-danger">@listaEquipos.Sum(e => e.saldoPendiente).ToString("C2")</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            }
+        </section>
+    </Authorized>
+</AuthorizeView>
+
+<style>
+    .resumen-page { padding: 0.25rem 0; }
+
+    .resumen-header-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 45%, #f8fafc 100%);
+        border: 1px solid #dbeafe;
+        border-radius: 16px;
+        padding: 1.1rem 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 14px 28px rgba(30, 64, 175, 0.08);
+    }
+
+    .resumen-kicker {
+        margin: 0;
+        color: #2563eb;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+
+    .resumen-header-card h3 { margin: 0.2rem 0; font-weight: 700; color: #1e293b; }
+
+    .btn-configurar {
+        background: linear-gradient(135deg, #1e40af, #2563eb);
+        color: white;
+        border: none;
+        border-radius: 0.6rem;
+        padding: 0.5rem 1.2rem;
+        font-weight: 600;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+
+    .btn-configurar:hover { background: linear-gradient(135deg, #1e3a8a, #1d4ed8); color: white; }
+
+    .stat-card {
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        text-align: center;
+        border: 1px solid transparent;
+    }
+
+    .stat-valor { font-size: 2rem; font-weight: 800; }
+    .stat-label { font-size: 0.82rem; font-weight: 600; margin-top: 0.2rem; }
+
+    .stat-total    { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+    .stat-liquidado{ background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .stat-parcial  { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+    .stat-sinpago  { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+
+    .resumen-list-card {
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(30,64,175,0.06);
+        overflow: hidden;
+    }
+
+    .resumen-tabla thead th {
+        background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+        color: white;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.75rem 1rem;
+        border: none;
+    }
+
+    .resumen-tabla tbody td { padding: 0.7rem 1rem; vertical-align: middle; }
+    .resumen-tabla tbody tr:hover { background: #f0f7ff; }
+
+    .badge-liquidado { background: #dcfce7; color: #166534; border-radius: 20px; padding: 0.3rem 0.8rem; font-size: 0.8rem; }
+    .badge-parcial   { background: #fef9c3; color: #92400e; border-radius: 20px; padding: 0.3rem 0.8rem; font-size: 0.8rem; }
+    .badge-sinpago   { background: #fee2e2; color: #991b1b; border-radius: 20px; padding: 0.3rem 0.8rem; font-size: 0.8rem; }
+
+    .btn-pagar {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    .btn-pagar:hover { background: linear-gradient(135deg, #047857, #059669); color: white; }
+
+    .resumen-totales td {
+        background: #f8fafc;
+        border-top: 2px solid #dbeafe;
+        padding: 0.75rem 1rem;
+    }
+</style>
+
+@code {
+    [Parameter] public string IdTorneo { get; set; }
+
+    List<CuotaEquipoCLS> listaEquipos;
+    CuotaTorneoCLS oCuota;
+
+    // Edición inline de monto
+    int equipoEditandoId = 0;
+    decimal montoEditando = 0;
+    string msgEdicion = "";
+
+    void IniciarEdicion(CuotaEquipoCLS eq)
+    {
+        equipoEditandoId = eq.idcuotaequipo;
+        montoEditando = eq.montoasignado;
+        msgEdicion = "";
+    }
+
+    void CancelarEdicion()
+    {
+        equipoEditandoId = 0;
+        msgEdicion = "";
+    }
+
+    async Task GuardarMonto(CuotaEquipoCLS eq)
+    {
+        if (montoEditando <= 0)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "El monto debe ser mayor a $0", "error");
+            return;
+        }
+
+        eq.montoasignado = montoEditando;
+        var resultado = await http.PostAsJsonAsync("api/CuotaEquipo/GuardarCuotaEquipo", eq);
+
+        if (resultado.IsSuccessStatusCode)
+        {
+            eq.saldoPendiente = eq.montoasignado - eq.totalPagado;
+            if (eq.saldoPendiente <= 0) eq.estatusPago = "Liquidado";
+            else if (eq.totalPagado > 0) eq.estatusPago = "Parcial";
+            else eq.estatusPago = "Sin pago";
+
+            equipoEditandoId = 0;
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", $"Monto de {eq.nombreEquipo} actualizado", "success");
+        }
+        else
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeGuardar", "Error al guardar el monto", "error");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var respCuota = await http.GetAsync($"api/CuotaTorneo/ObtenerCuota/{IdTorneo}");
+            if (respCuota.IsSuccessStatusCode)
+            {
+                var content = await respCuota.Content.ReadAsStringAsync();
+                if (!string.IsNullOrWhiteSpace(content) && content != "null")
+                {
+                    oCuota = System.Text.Json.JsonSerializer.Deserialize<CuotaTorneoCLS>(
+                        content,
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+            }
+        }
+        catch { }
+
+        if (oCuota != null && oCuota.idcuotatorneo > 0)
+        {
+            try
+            {
+                listaEquipos = await http.GetFromJsonAsync<List<CuotaEquipoCLS>>(
+                    $"api/CuotaEquipo/ListarResumen/{oCuota.idcuotatorneo}");
+            }
+            catch { listaEquipos = new List<CuotaEquipoCLS>(); }
+        }
+        else
+        {
+            listaEquipos = new List<CuotaEquipoCLS>();
+        }
+    }
+}

@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace FUTBOLERO.Server.Models;
 
-public partial class Campo
+public partial class Jornadum
 {
-    public int Idcampo { get; set; }
+    public int Idjornada { get; set; }
 
     public string Nombre { get; set; }
 
-    public string Ubicacion { get; set; }
+    public DateOnly? Finiciojornada { get; set; }
 
     public int? Habilitado { get; set; }
 

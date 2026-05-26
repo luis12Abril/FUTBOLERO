@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FUTBOLERO.Server.Models
+namespace FUTBOLERO.Server.Models;
+
+public partial class Comentario
 {
-    public partial class Comentario
-    {
-        public int Idcomentario { get; set; }
-        public int? Idjuego { get; set; }
-        public string Comentario1 { get; set; }
-        public int? Idusuario { get; set; }
-        public DateTime? Fechacomentario { get; set; }
-        public int? Habilitado { get; set; }
-    }
+    public int Idcomentario { get; set; }
+
+    public int? Idjuego { get; set; }
+
+    public string Comentario1 { get; set; }
+
+    public int? Idusuario { get; set; }
+
+    public DateTime? Fechacomentario { get; set; }
+
+    public int? Habilitado { get; set; }
 }

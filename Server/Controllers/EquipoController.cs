@@ -240,14 +240,6 @@ namespace FUTBOLERO.Server.Controllers
                                         oEquipo.Puntosextras = 0;
                                         oEquipo.Usuequipo = oEquipoCLS.usuequipo.Trim();
                                         oEquipo.Vigencia = oEquipoCLS.vigencia;  
-                                        if (oEquipoCLS.codigo != "12345678*")
-                                        {
-                                            oEquipo.Claequipo = oEquipoCLS.codigo;
-                                        }
-                                        else
-                                        {
-                                            oEquipo.Claequipo = "";
-                                        }
 
 
                                         baseDatos.Equipo.Add(oEquipo);
@@ -258,7 +250,7 @@ namespace FUTBOLERO.Server.Controllers
                                         oJugador.Nombre = " GOL A FAVOR DEL EQUIPO";        // TIENE UN ESPACIO AL INICIO, ESTO ES PARA QUE AL MOSTRAR LA LISTA SALGA PRIMERO
                                         oJugador.Appaterno = " ";
                                         oJugador.Apmaterno = " ";
-                                        oJugador.Fnacimiento = DateTime.Now;
+                                        oJugador.Fnacimiento = DateOnly.FromDateTime(DateTime.Now);
                                         oJugador.Idequipo = idequipo;
                                         oJugador.Goles = 0;
                                         oJugador.Torneo = "";       // NO LO VOY A USAR
@@ -472,7 +464,7 @@ namespace FUTBOLERO.Server.Controllers
                                   fotoequipo = Equipo.Fotoequipo,
                                   usuequipo = Equipo.Usuequipo,
                                   claequipo = Equipo.Claequipo,
-                                  vigencia = (DateTime) Equipo.Vigencia,
+                                  vigencia = Equipo.Vigencia ?? DateTime.MinValue,
                                   nomusuario = Equipo.Usuequipo,
                                   nomusuariocopia = Equipo.Usuequipo,
                                   codigo = "12345678*"
@@ -487,14 +479,16 @@ namespace FUTBOLERO.Server.Controllers
                                                    on jugador.Idequipo equals equipo.Idequipo
                                                    orderby jugador.Fnacimiento, jugador.Nombre
                                                    where jugador.Idequipo == idEquipo && jugador.Habilitado == 1 && !jugador.Nombre.Contains("GOL A FAVOR")
-                                                   select new JugadorCLS
+                                                   select new { jugador })
+                                                   .AsEnumerable()
+                                                   .Select(x => new JugadorCLS
                                                    {
-                                                       idjugador = jugador.Idjugador,
-                                                       nombrecompleto = jugador.Nombre + " " + jugador.Appaterno + " " + jugador.Apmaterno,
-                                                       goles = (int)jugador.Goles,
-                                                       fnacimientocadena = jugador.Fnacimiento.Value.ToShortDateString(),
-                                                       fnacimiento = (DateTime)jugador.Fnacimiento,
-                                                       años = regresañosjugadorequipo(jugador.Fnacimiento)
+                                                       idjugador = x.jugador.Idjugador,
+                                                       nombrecompleto = x.jugador.Nombre + " " + x.jugador.Appaterno + " " + x.jugador.Apmaterno,
+                                                       goles = (int)x.jugador.Goles,
+                                                       fnacimientocadena = x.jugador.Fnacimiento.HasValue ? x.jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue).ToShortDateString() : "",
+                                                       fnacimiento = x.jugador.Fnacimiento.HasValue ? x.jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue,
+                                                       años = regresañosjugadorequipo(x.jugador.Fnacimiento)
                                                    }).ToList();
 
                 foreach (JugadorCLS jug in listajugadores)
@@ -580,10 +574,12 @@ namespace FUTBOLERO.Server.Controllers
         }
 
 
-        public static int regresañosjugadorequipo(DateTime? fnac)
+        public static int regresañosjugadorequipo(DateOnly? fnac)
         {
+            if (!fnac.HasValue) return 0;
             int años = (DateTime.Now.Year - fnac.Value.Year);
-            if (fnac.Value.AddYears(años) > DateTime.Now)
+            DateTime fnacDT = fnac.Value.ToDateTime(TimeOnly.MinValue);
+            if (fnacDT.AddYears(años) > DateTime.Now)
             {
                 return años - 1;
             }
@@ -685,7 +681,8 @@ namespace FUTBOLERO.Server.Controllers
             {
                 using (var baseDatos = new FUTBOLEANDOContext())
                 {
-                    rpta = (DateTime) baseDatos.Equipo.Where(p => p.Usuequipo.Trim() == usuariologueado.Trim() && p.Habilitado == 1).First().Vigencia;
+                    var vigenciaVal = baseDatos.Equipo.Where(p => p.Usuequipo.Trim() == usuariologueado.Trim() && p.Habilitado == 1).First().Vigencia;
+                    rpta = vigenciaVal ?? DateTime.Now;
                 }
             }
             catch (Exception ex)

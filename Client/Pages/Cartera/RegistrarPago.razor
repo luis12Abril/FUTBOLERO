@@ -1,0 +1,525 @@
+@page "/RegistrarPago/{IdCuotaEquipo}/{IdTorneo}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+<AuthorizeView Context="authCtx">
+    <Authorized>
+        @if (oCuotaEquipo == null)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <span class="ms-2">Cargando...</span>
+            </div>
+        }
+        else
+        {
+            <div class="pago-wrapper">
+
+                <!-- Tarjeta de estado de cuenta del equipo -->
+                <div class="pago-estado-card mb-3">
+                    <div class="pago-estado-header">
+                        <div>
+                            <h4 class="mb-0">⚽ @oCuotaEquipo.nombreEquipo</h4>
+                            <span class="pago-representante">Rep: @oCuotaEquipo.representante</span>
+                        </div>
+                        <NavLink href="@($"ResumenPagosEquipos/{IdTorneo}")" class="btn btn-regresar-top">
+                            ← Regresar al Resumen
+                        </NavLink>
+                    </div>
+                    <div class="pago-estado-body row g-0">
+                        <div class="col-4 pago-monto-bloque pago-total">
+                            <div class="pago-monto-label">Cuota Total</div>
+                            <div class="pago-monto-valor">@oCuotaEquipo.montoasignado.ToString("C2")</div>
+                        </div>
+                        <div class="col-4 pago-monto-bloque pago-pagado">
+                            <div class="pago-monto-label">Total Pagado</div>
+                            <div class="pago-monto-valor">@oCuotaEquipo.totalPagado.ToString("C2")</div>
+                        </div>
+                        <div class="col-4 pago-monto-bloque @(oCuotaEquipo.saldoPendiente <= 0 ? "pago-liquidado" : "pago-pendiente")">
+                            <div class="pago-monto-label">Saldo Pendiente</div>
+                            <div class="pago-monto-valor">@oCuotaEquipo.saldoPendiente.ToString("C2")</div>
+                        </div>
+                    </div>
+                    @if (oCuotaEquipo.saldoPendiente <= 0)
+                    {
+                        <div class="pago-liquidado-banner">✅ Este equipo está LIQUIDADO</div>
+                    }
+                </div>
+
+                <!-- Formulario de nuevo abono -->
+                @if (oCuotaEquipo.saldoPendiente > 0)
+                {
+                    <div class="pago-form-card mb-3">
+                        <div class="pago-form-header">
+                            <h5 class="mb-0">💵 Registrar Nuevo Abono</h5>
+                        </div>
+                        <EditForm Model="@oPago" OnValidSubmit="GuardarPago" class="pago-form-body">
+                            <DataAnnotationsValidator />
+                            <fieldset disabled="@(pagoEditandoId > 0)">
+                            @if (pagoEditandoId > 0)
+                            {
+                                <div class="aviso-bloqueado">⚠️ Termina la edición del abono antes de registrar uno nuevo.</div>
+                            }
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="modern-label">Monto del Abono *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <InputNumber class="form-control modern-input" @bind-Value="oPago.montopagado" />
+                                    </div>
+                                    <ValidationMessage For="@(()=>oPago.montopagado)" />
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="modern-label">Fecha del Pago *</label>
+                                    <InputDate class="form-control modern-input" @bind-Value="fechaPago" />
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="modern-label">Método de Pago</label>
+                                    <InputSelect class="form-control modern-input" @bind-Value="oPago.metodopago">
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Transferencia">Transferencia</option>
+                                        <option value="Depósito">Depósito</option>
+                                        <option value="Cheque">Cheque</option>
+                                    </InputSelect>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="modern-label">Referencia / Folio</label>
+                                    <InputText class="form-control modern-input" @bind-Value="oPago.referencia"
+                                        placeholder="Núm. de recibo o transferencia" />
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="modern-label">Observaciones</label>
+                                    <InputText class="form-control modern-input" @bind-Value="oPago.observaciones"
+                                        placeholder="Notas adicionales (opcional)" />
+                                </div>
+                            </div>
+
+                            <div class="pago-form-actions">
+                                <button type="submit" class="btn btn-guardar" disabled="@guardando">
+                                    @if (guardando) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                    Registrar Pago
+                                </button>
+                            </div>
+                            </fieldset>
+                        </EditForm>
+                    </div>
+                }
+                else
+                {
+                    <!-- equipo liquidado, sin formulario -->
+                }
+
+                <!-- Historial de pagos -->
+                <div class="pago-historial-card">
+                    <div class="pago-historial-header">
+                        <h5 class="mb-0">📋 Historial de Abonos</h5>
+                    </div>
+                    @if (listaPagos == null || !listaPagos.Any())
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <em>No hay pagos registrados aún.</em>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover historial-tabla mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th class="text-end">Monto</th>
+                                        <th>Método</th>
+                                        <th>Referencia</th>
+                                        <th>Observaciones</th>
+                                        <th>Registró</th>
+                                        <th class="text-center">Editar</th>
+                                        <th class="text-center">Eliminar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var p in listaPagos)
+                                    {
+                                        @if (pagoEditandoId == p.idpago)
+                                        {
+                                            <tr class="fila-editando">
+                                                <td><input type="date" class="form-control form-control-sm modern-input"
+                                                    value="@pagoEditando.fechapago.ToString("yyyy-MM-dd")"
+                                                    @onchange="e => pagoEditando.fechapago = DateTime.Parse(e.Value.ToString())" /></td>
+                                                <td><input type="number" class="form-control form-control-sm modern-input text-end"
+                                                    @bind="pagoEditando.montopagado" /></td>
+                                                <td>
+                                                    <select class="form-control form-control-sm modern-input" @bind="pagoEditando.metodopago">
+                                                        <option value="Efectivo">Efectivo</option>
+                                                        <option value="Transferencia">Transferencia</option>
+                                                        <option value="Depósito">Depósito</option>
+                                                        <option value="Cheque">Cheque</option>
+                                                    </select>
+                                                </td>
+                                                <td><input type="text" class="form-control form-control-sm modern-input"
+                                                    @bind="pagoEditando.referencia" /></td>
+                                                <td><input type="text" class="form-control form-control-sm modern-input"
+                                                    @bind="pagoEditando.observaciones" /></td>
+                                                <td>@p.usuarioregistro</td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-guardar-edit me-1" @onclick="GuardarEdicion" title="Guardar">✔</button>
+                                                    <button class="btn btn-sm btn-cancelar-edit" @onclick="CancelarEdicion" title="Cancelar">✖</button>
+                                                </td>
+                                                <td></td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td>@p.fechapago.ToString("dd/MMM/yyyy")</td>
+                                                <td class="text-end fw-bold text-success">@p.montopagado.ToString("C2")</td>
+                                                <td>@p.metodopago</td>
+                                                <td>@p.referencia</td>
+                                                <td>@p.observaciones</td>
+                                                <td>@p.usuarioregistro</td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-editar"
+                                                        @onclick="() => IniciarEdicion(p)" title="Editar">✏️</button>
+                                                </td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-eliminar"
+                                                        @onclick="() => EliminarPago(p.idpago)">🗑️</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+            </div>
+        }
+    </Authorized>
+</AuthorizeView>
+
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <div class="toast-pago-ok">
+        @mensaje
+    </div>
+}
+
+<style>
+    .toast-pago-ok {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #166534;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+        z-index: 9999;
+        animation: fadeOutToast 2s forwards;
+    }
+
+    @@keyframes fadeOutToast {
+        0%   { opacity: 1; }
+        70%  { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    .pago-wrapper { padding: 0.25rem 0; }
+
+    .pago-estado-card, .pago-form-card, .pago-historial-card {
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(30,64,175,0.06);
+        overflow: hidden;
+    }
+
+    .pago-estado-header {
+        padding: 1rem 1.25rem 0.75rem;
+        background: linear-gradient(120deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-regresar-top {
+        background: rgba(255,255,255,0.15);
+        color: white;
+        border: 2px solid rgba(255,255,255,0.6);
+        border-radius: 0.6rem;
+        padding: 0.4rem 1.1rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background 0.2s, border-color 0.2s;
+    }
+
+    .btn-regresar-top:hover {
+        background: rgba(255,255,255,0.28);
+        border-color: white;
+        color: white;
+    }
+
+    .pago-representante { font-size: 0.85rem; opacity: 0.85; }
+
+    .pago-estado-body { border-top: none; }
+
+    .pago-monto-bloque {
+        text-align: center;
+        padding: 0.9rem 0.5rem;
+        border-right: 1px solid #f0f0f0;
+    }
+
+    .pago-monto-bloque:last-child { border-right: none; }
+    .pago-monto-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #64748b; }
+    .pago-monto-valor { font-size: 1.4rem; font-weight: 800; margin-top: 0.15rem; }
+
+    .pago-total    .pago-monto-valor { color: #1e40af; }
+    .pago-pagado   .pago-monto-valor { color: #059669; }
+    .pago-pendiente .pago-monto-valor { color: #dc2626; }
+    .pago-liquidado .pago-monto-valor { color: #059669; }
+
+    .pago-liquidado-banner {
+        background: #f0fdf4;
+        color: #166534;
+        font-weight: 700;
+        text-align: center;
+        padding: 0.6rem;
+        border-top: 1px solid #bbf7d0;
+        font-size: 0.95rem;
+    }
+
+    .pago-form-header, .pago-historial-header {
+        padding: 0.9rem 1.25rem;
+        background: linear-gradient(120deg, #f8fafc 0%, #eff6ff 100%);
+        border-bottom: 1px solid #dbeafe;
+        font-weight: 700;
+        color: #1e40af;
+    }
+
+    .pago-form-body { padding: 1.25rem; }
+
+    .modern-label { font-weight: 600; font-size: 0.85rem; color: #374151; margin-bottom: 0.3rem; display: block; }
+    .modern-input { border-radius: 0.6rem; border: 1.5px solid #d1d5db; font-size: 0.95rem; }
+    .modern-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+
+    .pago-form-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .btn-guardar {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white; border: none; border-radius: 0.6rem;
+        padding: 0.5rem 1.4rem; font-weight: 600;
+    }
+
+    .btn-guardar:hover { background: linear-gradient(135deg, #047857, #059669); color: white; }
+
+    .btn-regresar {
+        background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;
+        border-radius: 0.6rem; padding: 0.5rem 1.2rem; font-weight: 600; text-decoration: none;
+    }
+
+    .btn-regresar:hover { background: #e2e8f0; color: #1e293b; }
+
+    .historial-tabla thead th {
+        background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+        color: white; font-size: 0.78rem; font-weight: 700;
+        text-transform: uppercase; padding: 0.65rem 1rem; border: none;
+    }
+
+    .historial-tabla tbody td { padding: 0.65rem 1rem; vertical-align: middle; font-size: 0.9rem; }
+    .historial-tabla tbody tr:hover { background: #f0f7ff; }
+
+    .btn-eliminar {
+        background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;
+        border-radius: 0.4rem; font-size: 0.8rem;
+    }
+
+    .btn-eliminar:hover { background: #fecaca; color: #7f1d1d; }
+
+    .btn-editar {
+        background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+        border-radius: 0.4rem; font-size: 0.8rem;
+    }
+
+    .btn-editar:hover { background: #dbeafe; color: #1e40af; }
+
+    .btn-guardar-edit {
+        background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7;
+        border-radius: 0.4rem; font-size: 0.8rem; font-weight: 700;
+    }
+
+    .btn-cancelar-edit {
+        background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;
+        border-radius: 0.4rem; font-size: 0.8rem;
+    }
+
+    .fila-editando { background: #fefce8 !important; }
+
+    .pago-form-body fieldset:disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .aviso-bloqueado {
+        background: #fef9c3;
+        color: #854d0e;
+        border: 1px solid #fde68a;
+        border-radius: 0.6rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+</style>
+
+@code {
+    [Parameter] public string IdCuotaEquipo { get; set; }
+
+    [Parameter] public string IdTorneo { get; set; }
+    CuotaEquipoCLS oCuotaEquipo;
+    List<PagoEquipoCLS> listaPagos = new();
+    PagoEquipoCLS oPago = new PagoEquipoCLS();
+    DateTime fechaPago = DateTime.Today;
+    PagoEquipoCLS pagoEditando = null;
+    int pagoEditandoId = 0;
+    bool guardando = false;
+    string mensaje = "";
+    string claseMensaje = "alert-success";
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+    string usuarioActual = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+        if (user.Identity.IsAuthenticated)
+            usuarioActual = user.Identity.Name ?? "";
+
+        await CargarDatos();
+    }
+
+    async Task CargarDatos()
+    {
+        oCuotaEquipo = await http.GetFromJsonAsync<CuotaEquipoCLS>(
+            $"api/CuotaEquipo/ObtenerCuotaEquipo/{IdCuotaEquipo}");
+
+        listaPagos = await http.GetFromJsonAsync<List<PagoEquipoCLS>>(
+            $"api/PagoEquipo/ListarPagos/{IdCuotaEquipo}");
+
+        fechaPago = DateTime.Today;
+        oPago = new PagoEquipoCLS
+        {
+            idcuotaequipo = int.Parse(IdCuotaEquipo),
+            idtorneo = 0,
+            metodopago = "Efectivo",
+            fechapago = DateTime.Today,
+            usuarioregistro = usuarioActual
+        };
+    }
+
+    async Task GuardarPago()
+    {
+        guardando = true;
+        mensaje = "";
+
+        // Validar que no exceda el saldo pendiente
+        if (oPago.montopagado > oCuotaEquipo.saldoPendiente)
+        {
+            mensaje = $"⚠️ El monto no puede exceder el saldo pendiente ({oCuotaEquipo.saldoPendiente:C2}).";
+            claseMensaje = "alert-warning";
+            guardando = false;
+            return;
+        }
+
+        oPago.usuarioregistro = usuarioActual;
+        oPago.fechapago = fechaPago;
+
+        var resultado = await http.PostAsJsonAsync("api/PagoEquipo/RegistrarPago", oPago);
+        if (resultado.IsSuccessStatusCode)
+        {
+            await CargarDatos();
+            mensaje = "✅ Pago registrado correctamente.";
+            StateHasChanged();
+            await Task.Delay(2000);
+            mensaje = "";
+        }
+        else
+        {
+            mensaje = "❌ Error al registrar el pago.";
+        }
+        guardando = false;
+    }
+
+    void IniciarEdicion(PagoEquipoCLS p)
+    {
+        pagoEditandoId = p.idpago;
+        pagoEditando = new PagoEquipoCLS
+        {
+            idpago = p.idpago,
+            idcuotaequipo = p.idcuotaequipo,
+            montopagado = p.montopagado,
+            fechapago = p.fechapago,
+            metodopago = p.metodopago,
+            referencia = p.referencia,
+            observaciones = p.observaciones,
+            usuarioregistro = p.usuarioregistro
+        };
+    }
+
+    void CancelarEdicion()
+    {
+        pagoEditandoId = 0;
+        pagoEditando = null;
+    }
+
+    async Task GuardarEdicion()
+    {
+        var resultado = await http.PutAsJsonAsync("api/PagoEquipo/ActualizarPago", pagoEditando);
+        if (resultado.IsSuccessStatusCode)
+        {
+            pagoEditandoId = 0;
+            pagoEditando = null;
+            await CargarDatos();
+        }
+        else
+        {
+            mensaje = "❌ Error al actualizar el pago.";
+            claseMensaje = "alert-danger";
+        }
+    }
+
+    async Task EliminarPago(int idpago)
+    {
+        bool confirmar = await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar",
+            "¿Eliminar pago?",
+            "¿Deseas eliminar este pago del historial? Esta acción no se puede deshacer.",
+            "warning");
+        if (!confirmar) return;
+
+        var resultado = await http.DeleteAsync($"api/PagoEquipo/EliminarPago/{idpago}");
+        if (resultado.IsSuccessStatusCode)
+            await CargarDatos();
+    }
+}

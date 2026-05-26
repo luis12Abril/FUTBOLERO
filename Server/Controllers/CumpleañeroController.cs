@@ -34,9 +34,9 @@ namespace FUTBOLERO.Server.Controllers
                                     idjugador = jugador.Idjugador,
                                     nombrejugador = jugador.Nombre + " " + jugador.Appaterno + " " + jugador.Apmaterno,
                                     nombreequipo = equipo.Nombre,
-                                    fnacimiento = (DateTime)jugador.Fnacimiento.Value.AddYears(DateTime.Now.Year - jugador.Fnacimiento.Value.Year),
-                                    fnacimientocadena = jugador.Fnacimiento.Value.ToShortDateString(),
-                                    años = (DateTime.Now.Year) - jugador.Fnacimiento.Value.Year
+                                    fnacimiento = jugador.Fnacimiento.HasValue ? jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue).AddYears(DateTime.Now.Year - jugador.Fnacimiento.Value.Year) : DateTime.MinValue,
+                                    fnacimientocadena = jugador.Fnacimiento.HasValue ? jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue).ToShortDateString() : "",
+                                    años = jugador.Fnacimiento.HasValue ? (DateTime.Now.Year) - jugador.Fnacimiento.Value.Year : 0
                                 }).ToList();
 
                 listaCumpleañero = (from jugador in listaInicial
@@ -77,9 +77,9 @@ namespace FUTBOLERO.Server.Controllers
                                         idjugador = jugador.Idjugador,
                                         nombrejugador = jugador.Nombre + " " + jugador.Appaterno + " " + jugador.Apmaterno,
                                         nombreequipo = equipo.Nombre,
-                                        fnacimiento = (DateTime)jugador.Fnacimiento.Value.AddYears(DateTime.Now.Year - jugador.Fnacimiento.Value.Year),
-                                        fnacimientocadena = jugador.Fnacimiento.Value.ToShortDateString(),
-                                        años = (DateTime.Now.Year) - jugador.Fnacimiento.Value.Year
+                                        fnacimiento = jugador.Fnacimiento.HasValue ? jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue).AddYears(DateTime.Now.Year - jugador.Fnacimiento.Value.Year) : DateTime.MinValue,
+                                        fnacimientocadena = jugador.Fnacimiento.HasValue ? jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue).ToShortDateString() : "",
+                                        años = jugador.Fnacimiento.HasValue ? (DateTime.Now.Year) - jugador.Fnacimiento.Value.Year : 0
                                     }).ToList();
 
                     listaCumpleañero = (from jugador in listaInicial
@@ -108,13 +108,13 @@ namespace FUTBOLERO.Server.Controllers
                                         idjugador = jugador.Idjugador,
                                         nombrejugador = jugador.Nombre + " " + jugador.Appaterno + " " + jugador.Apmaterno,
                                         nombreequipo = equipo.Nombre,
-                                        fnacimiento = (DateTime)jugador.Fnacimiento.Value.AddYears(DateTime.Now.Year - jugador.Fnacimiento.Value.Year),
-                                        fnacimientocadena = jugador.Fnacimiento.Value.ToShortDateString(),
-                                        años = (DateTime.Now.Year) - jugador.Fnacimiento.Value.Year
+                                        fnacimiento = jugador.Fnacimiento.HasValue ? jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue).AddYears(DateTime.Now.Year - jugador.Fnacimiento.Value.Year) : DateTime.MinValue,
+                                        fnacimientocadena = jugador.Fnacimiento.HasValue ? jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue).ToShortDateString() : "",
+                                        años = jugador.Fnacimiento.HasValue ? (DateTime.Now.Year) - jugador.Fnacimiento.Value.Year : 0
                                     }).ToList();
 
                     listaCumpleañero = (from jugador in listaInicial
-                                        where jugador.fnacimiento >= DateTime.Now.Date && jugador.fnacimiento < DateTime.Now.Date.AddDays(14)
+                                        where jugador.fnacimiento >= DateTime.Now.Date
                                         select new ProximosCumpleañerosCLS
                                         {
                                             idjugador = jugador.idjugador,
@@ -134,7 +134,9 @@ namespace FUTBOLERO.Server.Controllers
         {
             string rfecha = "";
 
-            if (fnacimiento == DateTime.Now.Date)
+            if (!fnacimiento.HasValue) return rfecha;
+
+            if (fnacimiento.Value.Date == DateTime.Now.Date)
             {
                 rfecha = "HOY";
             }

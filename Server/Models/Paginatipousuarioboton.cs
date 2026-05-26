@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace FUTBOLERO.Server.Models
+namespace FUTBOLERO.Server.Models;
+
+public partial class Paginatipousuarioboton
 {
-    public partial class Paginatipousuarioboton
-    {
-        public int Idpaginatipousuarioboton { get; set; }
-        public int? Idpaginatipousuario { get; set; }
-        public int? Idboton { get; set; }
-        public int? Habilitado { get; set; }
-    }
+    public int Idpaginatipousuarioboton { get; set; }
+
+    public int? Idpaginatipousuario { get; set; }
+
+    public int? Idboton { get; set; }
+
+    public int? Habilitado { get; set; }
 }

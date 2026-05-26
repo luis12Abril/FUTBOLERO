@@ -43,7 +43,7 @@ namespace FUTBOLERO.Server.Controllers
             return listaJugador;
         }
 
-        public static int regresaños(DateTime? fnac)
+        public static int regresaños(DateOnly? fnac)
         {
             if (!fnac.HasValue)
             {
@@ -51,7 +51,8 @@ namespace FUTBOLERO.Server.Controllers
             }
 
             int años = (DateTime.Now.Year - fnac.Value.Year);
-            if (fnac.Value.AddYears(años) > DateTime.Now)
+            DateTime fnacDT = fnac.Value.ToDateTime(TimeOnly.MinValue);
+            if (fnacDT.AddYears(años) > DateTime.Now)
             {
                 return años - 1;
             }
@@ -270,7 +271,7 @@ namespace FUTBOLERO.Server.Controllers
                             oJugador.Nombre = oJugadorCLS.nombre;
                             oJugador.Appaterno = oJugadorCLS.appaterno;
                             oJugador.Apmaterno = oJugadorCLS.apmaterno;
-                            oJugador.Fnacimiento = oJugadorCLS.fnacimiento;
+                            oJugador.Fnacimiento = DateOnly.FromDateTime(oJugadorCLS.fnacimiento);
                             oJugador.Idequipo = idEquipo;
                             oJugador.Goles = 0;
                             oJugador.Torneo = "";       // NO LO VOY A USAR
@@ -309,7 +310,7 @@ namespace FUTBOLERO.Server.Controllers
                             oJugador.Nombre = oJugadorCLS.nombre;
                             oJugador.Appaterno = oJugadorCLS.appaterno;
                             oJugador.Apmaterno = oJugadorCLS.apmaterno;
-                            oJugador.Fnacimiento = oJugadorCLS.fnacimiento;
+                            oJugador.Fnacimiento = DateOnly.FromDateTime(oJugadorCLS.fnacimiento);
                             oJugador.Idequipo = idEquipo;
                             baseDatos.SaveChanges();
                             rpta = 1;
@@ -339,7 +340,7 @@ namespace FUTBOLERO.Server.Controllers
                                    nombre = Jugador.Nombre,
                                    appaterno = Jugador.Appaterno,
                                    apmaterno = Jugador.Apmaterno,
-                                   fnacimiento = (DateTime)Jugador.Fnacimiento,
+                                   fnacimiento = Jugador.Fnacimiento.HasValue ? Jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue,
                                    idequipo = Jugador.Idequipo.ToString()
 
                                }).First();
@@ -375,7 +376,7 @@ namespace FUTBOLERO.Server.Controllers
 
 
 
-        public static string regfechanacimientojugador(DateTime? fnacimiento)
+        public static string regfechanacimientojugador(DateOnly? fnacimiento)
         {
             if (!fnacimiento.HasValue)
             {
@@ -440,6 +441,8 @@ namespace FUTBOLERO.Server.Controllers
             return rfecha;
         }
 
+        private static DateTime DateOnlyToDateTime(DateOnly? d) =>
+            d.HasValue ? d.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue;
 
         [HttpGet]
         [Route("api/Jugador/ListarJugadorEquipo/{idequipo}")]
@@ -613,7 +616,7 @@ namespace FUTBOLERO.Server.Controllers
                                 oJugador.Nombre = nombre.Trim();
                                 oJugador.Appaterno = appaterno.Trim();
                                 oJugador.Apmaterno = apMaternoGuardar;
-                                oJugador.Fnacimiento = fechaNacimiento.Value;
+                                oJugador.Fnacimiento = DateOnly.FromDateTime(fechaNacimiento.Value);
                                 oJugador.Idequipo = idEquipoInt;
                                 oJugador.Goles = 0;
                                 oJugador.Torneo = "";

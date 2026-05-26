@@ -1,0 +1,276 @@
+@page "/ConfigurarCuotaTorneo/{IdTorneo}"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject NavigationManager navigation
+@inject IJSRuntime ijsruntime
+
+<AuthorizeView Context="authCtx">
+    <Authorized>
+        <div class="cuota-form-wrapper">
+            <div class="cuota-form-card">
+                <div class="cuota-form-header">
+                    <h4 class="mb-1">💰 Cuota del Torneo</h4>
+                    <p class="mb-0">Define el monto que deben pagar los equipos para participar.</p>
+                </div>
+
+                @if (oCuota == null)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <span class="ms-2">Cargando...</span>
+                    </div>
+                }
+                else
+                {
+                    <EditForm Model="@oCuota" OnValidSubmit="GuardarCuota" class="cuota-form-body">
+                        <DataAnnotationsValidator />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="modern-label">Monto Base por Equipo *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber class="form-control modern-input" @bind-Value="oCuota.montobase" />
+                                </div>
+                                <ValidationMessage For="@(()=>oCuota.montobase)" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="modern-label">Fecha Límite de Pago</label>
+                                <InputDate class="form-control modern-input" @bind-Value="fechaLimite" />
+                            </div>
+
+                            <div class="col-12">
+                                <label class="modern-label">Concepto</label>
+                                <InputText class="form-control modern-input" @bind-Value="oCuota.concepto"
+                                    placeholder="Ej: Inscripción + Arbitraje + Gastos administrativos" />
+                                <ValidationMessage For="@(()=>oCuota.concepto)" />
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(mensaje))
+                        {
+                            <div class="alert @claseMensaje mt-3">@mensaje</div>
+                        }
+
+                        <div class="cuota-form-actions">
+                            <button type="submit" class="btn btn-guardar" disabled="@guardando">
+                                @if (guardando)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                Guardar Cuota
+                            </button>
+
+                            @if (oCuota.idcuotatorneo > 0)
+                            {
+                                <button type="button" class="btn btn-asignar" @onclick="AsignarATodos" disabled="@guardando">
+                                    ⚡ Asignar a Todos los Equipos
+                                </button>
+                            }
+
+                            <NavLink href="@($"ResumenPagosEquipos/{IdTorneo}")" class="btn btn-resumen">
+                                📊 Ver Resumen de Pagos
+                            </NavLink>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+<style>
+    .cuota-form-wrapper {
+        padding: 1.25rem 0;
+    }
+
+    .cuota-form-card {
+        max-width: 750px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 1.2rem;
+        box-shadow: 0 10px 30px rgba(45, 64, 89, 0.08);
+        overflow: hidden;
+    }
+
+    .cuota-form-header {
+        padding: 1.2rem 1.4rem;
+        background: linear-gradient(120deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%);
+        color: #ffffff;
+    }
+
+    .cuota-form-body {
+        padding: 1.4rem;
+    }
+
+    .modern-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #374151;
+        margin-bottom: 0.3rem;
+        display: block;
+    }
+
+    .modern-input {
+        border-radius: 0.6rem;
+        border: 1.5px solid #d1d5db;
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+    }
+
+    .modern-input:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .cuota-form-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .btn-guardar {
+        background: linear-gradient(135deg, #1e40af, #2563eb);
+        color: white;
+        border: none;
+        border-radius: 0.6rem;
+        padding: 0.5rem 1.4rem;
+        font-weight: 600;
+    }
+
+    .btn-guardar:hover { background: linear-gradient(135deg, #1e3a8a, #1d4ed8); color: white; }
+
+    .btn-asignar {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+        border: none;
+        border-radius: 0.6rem;
+        padding: 0.5rem 1.4rem;
+        font-weight: 600;
+    }
+
+    .btn-asignar:hover { background: linear-gradient(135deg, #047857, #059669); color: white; }
+
+    .btn-resumen {
+        background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+        color: white;
+        border: none;
+        border-radius: 0.6rem;
+        padding: 0.5rem 1.4rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .btn-resumen:hover { background: linear-gradient(135deg, #6d28d9, #7c3aed); color: white; }
+</style>
+
+@code {
+    [Parameter] public string IdTorneo { get; set; }
+
+    CuotaTorneoCLS oCuota = new CuotaTorneoCLS();
+    DateTime fechaLimite = DateTime.Today.AddMonths(1);
+    bool guardando = false;
+    string mensaje = "";
+    string claseMensaje = "alert-success";
+
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+    string usuarioActual = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+        if (user.Identity.IsAuthenticated)
+            usuarioActual = user.Identity.Name ?? "";
+
+        try
+        {
+            var respCuota = await http.GetAsync($"api/CuotaTorneo/ObtenerCuota/{IdTorneo}");
+            if (respCuota.IsSuccessStatusCode)
+            {
+                var content = await respCuota.Content.ReadAsStringAsync();
+                if (!string.IsNullOrWhiteSpace(content) && content != "null")
+                {
+                    oCuota = System.Text.Json.JsonSerializer.Deserialize<CuotaTorneoCLS>(
+                        content,
+                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+            }
+        }
+        catch { }
+
+        if (oCuota == null)
+        {
+            oCuota = new CuotaTorneoCLS
+            {
+                idtorneo = int.Parse(IdTorneo),
+                activo = true
+            };
+        }
+
+        if (oCuota.fechalimite.HasValue)
+            fechaLimite = oCuota.fechalimite.Value;
+    }
+
+    async Task GuardarCuota()
+    {
+        guardando = true;
+        mensaje = "";
+        oCuota.fechalimite = fechaLimite;
+        oCuota.idtorneo = int.Parse(IdTorneo);
+
+        var resultado = await http.PostAsJsonAsync("api/CuotaTorneo/GuardarCuota", oCuota);
+        if (resultado.IsSuccessStatusCode)
+        {
+            var idGenerado = await resultado.Content.ReadFromJsonAsync<int>();
+            oCuota.idcuotatorneo = idGenerado;
+
+            // Si ya hay equipos asignados, actualizar su monto base (sin quitar abonos)
+            if (oCuota.idcuotatorneo > 0)
+            {
+                await http.PostAsync(
+                    $"api/CuotaEquipo/ActualizarMontoATodos/{oCuota.idcuotatorneo}/{oCuota.montobase}", null);
+            }
+
+            mensaje = "✅ Cuota guardada y monto actualizado en todos los equipos.";
+            claseMensaje = "alert-success";
+        }
+        else
+        {
+            mensaje = "❌ Ocurrió un error al guardar la cuota.";
+            claseMensaje = "alert-danger";
+        }
+        guardando = false;
+    }
+
+    async Task AsignarATodos()
+    {
+        bool confirmar = await ijsruntime.InvokeAsync<bool>("ConfirmarBorrar",
+            "¿Asignar cuota a todos?",
+            "¿Deseas asignar el monto base a todos los equipos del torneo que aún no tienen cuota asignada?",
+            "question");
+        if (!confirmar) return;
+
+        guardando = true;
+        var resultado = await http.PostAsync(
+            $"api/CuotaEquipo/AsignarATodos/{oCuota.idcuotatorneo}/{IdTorneo}", null);
+
+        if (resultado.IsSuccessStatusCode)
+        {
+            guardando = false;
+            navigation.NavigateTo($"ResumenPagosEquipos/{IdTorneo}");
+        }
+        else
+        {
+            mensaje = "❌ Error al asignar cuotas.";
+            claseMensaje = "alert-danger";
+            guardando = false;
+        }
+    }
+}

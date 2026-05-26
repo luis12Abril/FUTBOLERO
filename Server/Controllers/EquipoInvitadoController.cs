@@ -115,14 +115,16 @@ namespace FUTBOLERO.Server.Controllers
                                                    on jugador.Idequipo equals equipo.Idequipo
                                                    orderby jugador.Fnacimiento, jugador.Nombre
                                                    where jugador.Idequipo == idEquipo && jugador.Habilitado == 1 && !jugador.Nombre.Contains("GOL A FAVOR")
-                                                   select new JugadorCLS
+                                                   select new { jugador })
+                                                   .AsEnumerable()
+                                                   .Select(x => new JugadorCLS
                                                    {
-                                                       idjugador = jugador.Idjugador,
-                                                       nombrecompleto = jugador.Nombre + " " + jugador.Appaterno + " " + jugador.Apmaterno,
-                                                       goles = (int)jugador.Goles,
-                                                       fnacimientocadena = jugador.Fnacimiento.Value.ToShortDateString(),
-                                                       fnacimiento = (DateTime)jugador.Fnacimiento,
-                                                       años = regresañosjugadorequipoinvitado(jugador.Fnacimiento)
+                                                       idjugador = x.jugador.Idjugador,
+                                                       nombrecompleto = x.jugador.Nombre + " " + x.jugador.Appaterno + " " + x.jugador.Apmaterno,
+                                                       goles = (int)x.jugador.Goles,
+                                                       fnacimientocadena = x.jugador.Fnacimiento.HasValue ? x.jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue).ToShortDateString() : "",
+                                                       fnacimiento = x.jugador.Fnacimiento.HasValue ? x.jugador.Fnacimiento.Value.ToDateTime(TimeOnly.MinValue) : DateTime.MinValue,
+                                                       años = regresañosjugadorequipoinvitado(x.jugador.Fnacimiento)
                                                    }).ToList();
 
                 foreach (JugadorCLS jug in listajugadores)
@@ -151,10 +153,12 @@ namespace FUTBOLERO.Server.Controllers
         }
 
 
-        public static int regresañosjugadorequipoinvitado(DateTime? fnac)
+        public static int regresañosjugadorequipoinvitado(DateOnly? fnac)
         {
+            if (!fnac.HasValue) return 0;
             int años = (DateTime.Now.Year - fnac.Value.Year);
-            if (fnac.Value.AddYears(años) > DateTime.Now)
+            DateTime fnacDT = fnac.Value.ToDateTime(TimeOnly.MinValue);
+            if (fnacDT.AddYears(años) > DateTime.Now)
             {
                 return años - 1;
             }

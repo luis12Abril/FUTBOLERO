@@ -47,6 +47,9 @@ namespace FUTBOLERO.Server.Models
         public virtual DbSet<Torneocolegio> Torneocolegio { get; set; }
         public virtual DbSet<Usuario> Usuario { get; set; }
         public virtual DbSet<Usuariotorneo> Usuariotorneo { get; set; }
+        public virtual DbSet<Cuotatorneo> Cuotatorneo { get; set; }
+        public virtual DbSet<Cuotaequipo> Cuotaequipo { get; set; }
+        public virtual DbSet<Pagoequipo> Pagoequipo { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -889,6 +892,44 @@ namespace FUTBOLERO.Server.Models
                 entity.Property(e => e.Idtorneo).HasColumnName("IDTORNEO");
 
                 entity.Property(e => e.Idusuario).HasColumnName("IDUSUARIO");
+            });
+
+            modelBuilder.Entity<Cuotatorneo>(entity =>
+            {
+                entity.HasKey(e => e.Idcuotatorneo);
+                entity.ToTable("CUOTATORNEO");
+                entity.Property(e => e.Idcuotatorneo).HasColumnName("IDCUOTATORNEO");
+                entity.Property(e => e.Idtorneo).HasColumnName("IDTORNEO");
+                entity.Property(e => e.Montobase).HasColumnName("MONTOBASE").HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Concepto).HasColumnName("CONCEPTO").HasMaxLength(200).IsUnicode(false);
+                entity.Property(e => e.Fechalimite).HasColumnName("FECHALIMITE").HasColumnType("date");
+                entity.Property(e => e.Activo).HasColumnName("ACTIVO");
+            });
+
+            modelBuilder.Entity<Cuotaequipo>(entity =>
+            {
+                entity.HasKey(e => e.Idcuotaequipo);
+                entity.ToTable("CUOTAEQUIPO");
+                entity.Property(e => e.Idcuotaequipo).HasColumnName("IDCUOTAEQUIPO");
+                entity.Property(e => e.Idcuotatorneo).HasColumnName("IDCUOTATORNEO");
+                entity.Property(e => e.Idequipo).HasColumnName("IDEQUIPO");
+                entity.Property(e => e.Montoasignado).HasColumnName("MONTOASIGNADO").HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Observaciones).HasColumnName("OBSERVACIONES").HasMaxLength(300).IsUnicode(false);
+            });
+
+            modelBuilder.Entity<Pagoequipo>(entity =>
+            {
+                entity.HasKey(e => e.Idpago);
+                entity.ToTable("PAGOEQUIPO");
+                entity.Property(e => e.Idpago).HasColumnName("IDPAGO");
+                entity.Property(e => e.Idcuotaequipo).HasColumnName("IDCUOTAEQUIPO");
+                entity.Property(e => e.Idtorneo).HasColumnName("IDTORNEO");
+                entity.Property(e => e.Montopagado).HasColumnName("MONTOPAGADO").HasColumnType("decimal(10,2)");
+                entity.Property(e => e.Fechapago).HasColumnName("FECHAPAGO");
+                entity.Property(e => e.Referencia).HasColumnName("REFERENCIA").HasMaxLength(100).IsUnicode(false);
+                entity.Property(e => e.Metodopago).HasColumnName("METODOPAGO").HasMaxLength(50).IsUnicode(false);
+                entity.Property(e => e.Observaciones).HasColumnName("OBSERVACIONES").HasMaxLength(300).IsUnicode(false);
+                entity.Property(e => e.Usuarioregistro).HasColumnName("USUARIOREGISTRO").HasMaxLength(50).IsUnicode(false);
             });
 
             OnModelCreatingPartial(modelBuilder);
