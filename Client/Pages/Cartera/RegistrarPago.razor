@@ -24,9 +24,20 @@
                             <h4 class="mb-0">⚽ @oCuotaEquipo.nombreEquipo</h4>
                             <span class="pago-representante">Rep: @oCuotaEquipo.representante</span>
                         </div>
-                        <NavLink href="@($"ResumenPagosEquipos/{IdTorneo}")" class="btn btn-regresar-top">
-                            ← Regresar al Resumen
-                        </NavLink>
+                        <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                            @if (listaPagos != null && listaPagos.Any())
+                            {
+                                <button class="btn btn-exportar-word-pago" @onclick="ExportarWord">
+                                    📄 Exportar a Word
+                                </button>
+                                <button class="btn btn-exportar-excel-pago" @onclick="ExportarExcel">
+                                    📊 Exportar a Excel
+                                </button>
+                            }
+                            <NavLink href="@($"ResumenPagosEquipos/{IdTorneo}")" class="btn btn-regresar-top">
+                                ← Regresar al Resumen
+                            </NavLink>
+                        </div>
                     </div>
                     <div class="pago-estado-body row g-0">
                         <div class="col-4 pago-monto-bloque pago-total">
@@ -390,6 +401,20 @@
         font-weight: 600;
         margin-bottom: 0.75rem;
     }
+
+    .btn-exportar-word-pago {
+        background: linear-gradient(135deg, #1d4ed8, #2563eb);
+        color: white; border: none; border-radius: 0.6rem;
+        padding: 0.45rem 1rem; font-weight: 600; font-size: 0.85rem; white-space: nowrap;
+    }
+    .btn-exportar-word-pago:hover { background: linear-gradient(135deg, #1e3a8a, #1d4ed8); color: white; }
+
+    .btn-exportar-excel-pago {
+        background: linear-gradient(135deg, #15803d, #16a34a);
+        color: white; border: none; border-radius: 0.6rem;
+        padding: 0.45rem 1rem; font-weight: 600; font-size: 0.85rem; white-space: nowrap;
+    }
+    .btn-exportar-excel-pago:hover { background: linear-gradient(135deg, #166534, #15803d); color: white; }
 </style>
 
 @code {
@@ -521,5 +546,164 @@
         var resultado = await http.DeleteAsync($"api/PagoEquipo/EliminarPago/{idpago}");
         if (resultado.IsSuccessStatusCode)
             await CargarDatos();
+    }
+
+    private async Task ExportarExcel()
+    {
+        var sb = new System.Text.StringBuilder();
+
+        sb.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        sb.AppendLine("<?mso-application progid=\"Excel.Sheet\"?>");
+        sb.AppendLine("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"");
+        sb.AppendLine("  xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"");
+        sb.AppendLine("  xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
+
+        sb.AppendLine("<Styles>");
+        sb.AppendLine("  <Style ss:ID=\"sTitulo\"><Font ss:Bold=\"1\" ss:Size=\"14\" ss:Color=\"#1E40AF\"/></Style>");
+        sb.AppendLine("  <Style ss:ID=\"sInfo\"><Font ss:Bold=\"1\" ss:Size=\"10\"/></Style>");
+        sb.AppendLine("  <Style ss:ID=\"sEncabezado\"><Alignment ss:Horizontal=\"Center\"/><Font ss:Bold=\"1\" ss:Color=\"#FFFFFF\" ss:Size=\"10\"/><Interior ss:Color=\"#1E40AF\" ss:Pattern=\"Solid\"/><Borders><Border ss:Position=\"Bottom\" ss:LineStyle=\"Continuous\" ss:Weight=\"1\"/></Borders></Style>");
+        sb.AppendLine("  <Style ss:ID=\"sDato\"><Alignment ss:Vertical=\"Center\"/><Font ss:Size=\"10\"/><Borders><Border ss:Position=\"Bottom\" ss:LineStyle=\"Continuous\" ss:Weight=\"1\" ss:Color=\"#DDDDDD\"/></Borders></Style>");
+        sb.AppendLine("  <Style ss:ID=\"sDatoAlt\"><Alignment ss:Vertical=\"Center\"/><Font ss:Size=\"10\"/><Interior ss:Color=\"#EFF6FF\" ss:Pattern=\"Solid\"/><Borders><Border ss:Position=\"Bottom\" ss:LineStyle=\"Continuous\" ss:Weight=\"1\" ss:Color=\"#DDDDDD\"/></Borders></Style>");
+        sb.AppendLine("  <Style ss:ID=\"sDatoNum\"><Alignment ss:Horizontal=\"Right\"/><Font ss:Size=\"10\" ss:Color=\"#166534\"/><NumberFormat ss:Format=\"&quot;$&quot;#,##0.00\"/><Borders><Border ss:Position=\"Bottom\" ss:LineStyle=\"Continuous\" ss:Weight=\"1\" ss:Color=\"#DDDDDD\"/></Borders></Style>");
+        sb.AppendLine("  <Style ss:ID=\"sDatoNumAlt\"><Alignment ss:Horizontal=\"Right\"/><Font ss:Size=\"10\" ss:Color=\"#166534\"/><Interior ss:Color=\"#EFF6FF\" ss:Pattern=\"Solid\"/><NumberFormat ss:Format=\"&quot;$&quot;#,##0.00\"/><Borders><Border ss:Position=\"Bottom\" ss:LineStyle=\"Continuous\" ss:Weight=\"1\" ss:Color=\"#DDDDDD\"/></Borders></Style>");
+        sb.AppendLine("  <Style ss:ID=\"sTotalNum\"><Alignment ss:Horizontal=\"Right\"/><Font ss:Bold=\"1\" ss:Size=\"10\"/><Interior ss:Color=\"#DBEAFE\" ss:Pattern=\"Solid\"/><NumberFormat ss:Format=\"&quot;$&quot;#,##0.00\"/><Borders><Border ss:Position=\"Top\" ss:LineStyle=\"Continuous\" ss:Weight=\"2\" ss:Color=\"#1E40AF\"/></Borders></Style>");
+        sb.AppendLine("  <Style ss:ID=\"sTotalLabel\"><Font ss:Bold=\"1\" ss:Size=\"10\"/><Interior ss:Color=\"#DBEAFE\" ss:Pattern=\"Solid\"/><Borders><Border ss:Position=\"Top\" ss:LineStyle=\"Continuous\" ss:Weight=\"2\" ss:Color=\"#1E40AF\"/></Borders></Style>");
+        sb.AppendLine("</Styles>");
+
+        sb.AppendLine("<Worksheet ss:Name=\"Historial de Pagos\">");
+        sb.AppendLine("<Table>");
+        // Anchos: Fecha=90, Monto=90, Método=90, Referencia=130, Observaciones=160
+        sb.AppendLine("  <Column ss:Width=\"90\"/>");
+        sb.AppendLine("  <Column ss:Width=\"90\"/>");
+        sb.AppendLine("  <Column ss:Width=\"90\"/>");
+        sb.AppendLine("  <Column ss:Width=\"130\"/>");
+        sb.AppendLine("  <Column ss:Width=\"160\"/>");
+
+        // Título
+        sb.AppendLine("  <Row ss:Height=\"22\">");
+        sb.AppendLine($"    <Cell ss:StyleID=\"sTitulo\" ss:MergeAcross=\"4\"><Data ss:Type=\"String\">Historial de Pagos &#8211; {oCuotaEquipo.nombreEquipo}</Data></Cell>");
+        sb.AppendLine("  </Row>");
+        sb.AppendLine("  <Row><Cell ss:MergeAcross=\"4\"><Data ss:Type=\"String\">Rep: " + oCuotaEquipo.representante + "</Data></Cell></Row>");
+        sb.AppendLine("  <Row ss:Height=\"8\"><Cell><Data ss:Type=\"String\"></Data></Cell></Row>");
+
+        // Resumen financiero
+        sb.AppendLine("  <Row>");
+        sb.AppendLine($"    <Cell ss:StyleID=\"sInfo\" ss:MergeAcross=\"4\"><Data ss:Type=\"String\">Cuota Total: {oCuotaEquipo.montoasignado:C2}   |   Total Pagado: {oCuotaEquipo.totalPagado:C2}   |   Saldo Pendiente: {oCuotaEquipo.saldoPendiente:C2}</Data></Cell>");
+        sb.AppendLine("  </Row>");
+        sb.AppendLine("  <Row ss:Height=\"8\"><Cell><Data ss:Type=\"String\"></Data></Cell></Row>");
+
+        // Encabezados
+        sb.AppendLine("  <Row ss:Height=\"18\">");
+        foreach (var h in new[] { "FECHA", "MONTO", "M\u00c9TODO", "REFERENCIA", "OBSERVACIONES" })
+            sb.AppendLine($"    <Cell ss:StyleID=\"sEncabezado\"><Data ss:Type=\"String\">{h}</Data></Cell>");
+        sb.AppendLine("  </Row>");
+
+        // Filas de datos
+        int idx = 0;
+        foreach (var p in listaPagos)
+        {
+            bool alt = idx % 2 == 1;
+            string sd = alt ? "sDatoAlt" : "sDato";
+            string sn = alt ? "sDatoNumAlt" : "sDatoNum";
+            sb.AppendLine("  <Row ss:Height=\"16\">");
+            sb.AppendLine($"    <Cell ss:StyleID=\"{sd}\"><Data ss:Type=\"String\">{p.fechapago:dd/MMM/yyyy}</Data></Cell>");
+            sb.AppendLine($"    <Cell ss:StyleID=\"{sn}\"><Data ss:Type=\"Number\">{p.montopagado.ToString(System.Globalization.CultureInfo.InvariantCulture)}</Data></Cell>");
+            sb.AppendLine($"    <Cell ss:StyleID=\"{sd}\"><Data ss:Type=\"String\">{p.metodopago}</Data></Cell>");
+            sb.AppendLine($"    <Cell ss:StyleID=\"{sd}\"><Data ss:Type=\"String\">{p.referencia}</Data></Cell>");
+            sb.AppendLine($"    <Cell ss:StyleID=\"{sd}\"><Data ss:Type=\"String\">{p.observaciones}</Data></Cell>");
+            sb.AppendLine("  </Row>");
+            idx++;
+        }
+
+        // Fila total
+        sb.AppendLine("  <Row ss:Height=\"18\">");
+        sb.AppendLine("    <Cell ss:StyleID=\"sTotalLabel\"><Data ss:Type=\"String\">TOTAL PAGADO</Data></Cell>");
+        sb.AppendLine("    <Cell ss:StyleID=\"sTotalNum\"><Data ss:Type=\"Number\">" + listaPagos.Sum(p => p.montopagado).ToString(System.Globalization.CultureInfo.InvariantCulture) + "</Data></Cell>");
+        for (int i = 0; i < 3; i++)
+            sb.AppendLine("    <Cell ss:StyleID=\"sTotalLabel\"><Data ss:Type=\"String\"></Data></Cell>");
+        sb.AppendLine("  </Row>");
+
+        sb.AppendLine("</Table></Worksheet></Workbook>");
+
+        var base64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sb.ToString()));
+        await ijsruntime.InvokeVoidAsync("descargarArchivo", base64,
+            $"Pagos_{oCuotaEquipo.nombreEquipo.Replace(" ", "_")}.xls", "application/vnd.ms-excel");
+    }
+
+    private async Task ExportarWord()
+    {
+        string fechaHoy = DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-MX"));
+        var sb = new System.Text.StringBuilder();
+
+        sb.AppendLine("<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>");
+        sb.AppendLine("<head><meta charset='utf-8'><title>Historial de Pagos</title><style>");
+        sb.AppendLine("@page { size: letter; margin: 2.5cm 2cm 2cm 2.5cm; }");
+        sb.AppendLine("body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; color: #1e293b; }");
+        sb.AppendLine(".inf-header { border-bottom: 3px solid #1e40af; padding-bottom: 10px; margin-bottom: 16px; }");
+        sb.AppendLine(".inf-titulo { font-size: 18pt; font-weight: bold; color: #1e40af; margin: 0 0 2px 0; }");
+        sb.AppendLine(".inf-sub { font-size: 10pt; color: #64748b; margin: 0; }");
+        sb.AppendLine(".inf-fecha { font-size: 9pt; color: #94a3b8; }");
+        sb.AppendLine(".cards { width: 100%; border-collapse: collapse; margin-bottom: 16px; }");
+        sb.AppendLine(".cards td { width: 33%; text-align: center; padding: 10px 6px; }");
+        sb.AppendLine(".c-total { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; border-radius: 8px; }");
+        sb.AppendLine(".c-pagado { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 8px; }");
+        sb.AppendLine(".c-pend { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 8px; }");
+        sb.AppendLine(".c-num { font-size: 18pt; font-weight: 800; display: block; }");
+        sb.AppendLine(".c-lbl { font-size: 8.5pt; font-weight: 700; display: block; margin-top: 2px; }");
+        sb.AppendLine(".tabla { width: 100%; border-collapse: collapse; font-size: 10pt; }");
+        sb.AppendLine(".tabla thead th { background: #1e40af; color: white; padding: 6px 10px; font-size: 9pt; text-transform: uppercase; }");
+        sb.AppendLine(".tabla thead th.num { text-align: right; }");
+        sb.AppendLine(".tabla tbody td { padding: 5px 10px; border-bottom: 1px solid #e2e8f0; }");
+        sb.AppendLine(".tabla tbody tr.alt td { background: #f0f7ff; }");
+        sb.AppendLine(".num { text-align: right; color: #166534; font-weight: 600; }");
+        sb.AppendLine(".totales td { background: #dbeafe; font-weight: bold; border-top: 2px solid #1e40af; padding: 6px 10px; }");
+        sb.AppendLine(".pie { margin-top: 20px; border-top: 1px solid #cbd5e1; padding-top: 8px; font-size: 8.5pt; color: #94a3b8; text-align: center; }");
+        sb.AppendLine("</style></head><body>");
+
+        // Encabezado
+        sb.AppendLine("<div class='inf-header'><table width='100%'><tr>");
+        sb.AppendLine($"  <td><p class='inf-titulo'>&#128181; Historial de Pagos</p>");
+        sb.AppendLine($"      <p class='inf-sub'>&#9917; {oCuotaEquipo.nombreEquipo} &nbsp;&middot;&nbsp; Rep: {oCuotaEquipo.representante}</p></td>");
+        sb.AppendLine($"  <td style='text-align:right'><span class='inf-fecha'>{fechaHoy}</span></td>");
+        sb.AppendLine("</tr></table></div>");
+
+        // Tarjetas resumen financiero
+        sb.AppendLine("<table class='cards'><tr>");
+        sb.AppendLine($"  <td class='c-total'><span class='c-num'>{oCuotaEquipo.montoasignado:C2}</span><span class='c-lbl'>Cuota Total</span></td>");
+        sb.AppendLine($"  <td class='c-pagado'><span class='c-num'>{oCuotaEquipo.totalPagado:C2}</span><span class='c-lbl'>&#10003; Total Pagado</span></td>");
+        sb.AppendLine($"  <td class='c-pend'><span class='c-num'>{oCuotaEquipo.saldoPendiente:C2}</span><span class='c-lbl'>&#9679; Saldo Pendiente</span></td>");
+        sb.AppendLine("</tr></table>");
+
+        // Tabla de abonos
+        sb.AppendLine("<table class='tabla'><thead><tr>");
+        sb.AppendLine("  <th>Fecha</th><th class='num'>Monto</th><th>M&eacute;todo</th><th>Referencia</th><th>Observaciones</th>");
+        sb.AppendLine("</tr></thead><tbody>");
+
+        int idx = 0;
+        foreach (var p in listaPagos)
+        {
+            string rowClass = idx % 2 == 1 ? " class='alt'" : "";
+            sb.AppendLine($"<tr{rowClass}>");
+            sb.AppendLine($"  <td>{p.fechapago:dd/MMM/yyyy}</td>");
+            sb.AppendLine($"  <td class='num'>{p.montopagado:C2}</td>");
+            sb.AppendLine($"  <td>{p.metodopago}</td>");
+            sb.AppendLine($"  <td>{p.referencia}</td>");
+            sb.AppendLine($"  <td>{p.observaciones}</td>");
+            sb.AppendLine("</tr>");
+            idx++;
+        }
+
+        sb.AppendLine("</tbody><tfoot><tr class='totales'>");
+        sb.AppendLine("  <td>TOTAL PAGADO</td>");
+        sb.AppendLine($"  <td class='num'>{listaPagos.Sum(p => p.montopagado):C2}</td>");
+        sb.AppendLine("  <td colspan='3'></td>");
+        sb.AppendLine("</tr></tfoot></table>");
+
+        sb.AppendLine($"<div class='pie'>Documento generado el {fechaHoy} &nbsp;&middot;&nbsp; Sistema de Administraci&oacute;n de Torneos &nbsp;&middot;&nbsp; Confidencial</div>");
+        sb.AppendLine("</body></html>");
+
+        var base64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sb.ToString()));
+        await ijsruntime.InvokeVoidAsync("descargarArchivo", base64,
+            $"Pagos_{oCuotaEquipo.nombreEquipo.Replace(" ", "_")}.doc", "application/msword");
     }
 }

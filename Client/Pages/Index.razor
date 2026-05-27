@@ -79,8 +79,11 @@
             // SE LE SUMA UNA VISITA MAS AL USUARIO
             int visitas = await http.GetFromJsonAsync<int>("api/Usuario/VisitasUsuario/" + rpta);
 
+            // OBTENEMOS EL TIPO DE USUARIO PARA CONTROLAR EL MENU
+            int idtipousuario = await http.GetFromJsonAsync<int>("api/Usuario/RegresaIdTipoUsuario/" + rpta);
+
             // LLAMAMOS AL METODO ENTRAR
-            ((Autenticacion)auth).Entrar(rpta.ToString(), "99", "Cuadrangular");      /*rpta.ToString() ES EL ID DEL USUARIO*/
+            ((Autenticacion)auth).Entrar(rpta.ToString(), "99", "Cuadrangular", idtipousuario.ToString());      /*rpta.ToString() ES EL ID DEL USUARIO*/
 
             // YA NO LO NECESITO PORQUE NO VOY A PAGINA PRINCIPAL
             //int idPersona = await http.GetFromJsonAsync<int>("api/Persona/ObtenerIdPersona/" + rpta.ToString());

@@ -347,7 +347,8 @@ else
 
 
 
-            ((Autenticacion)auth).Entrar(user.Identity.Name, nombreTorneo, idtorneocadena);      /*user.Identity.Name ES EL ID DEL USUARIO*/
+            ((Autenticacion)auth).Entrar(user.Identity.Name, nombreTorneo, idtorneocadena,
+                (await http.GetFromJsonAsync<int>("api/Usuario/RegresaIdTipoUsuario/" + user.Identity.Name)).ToString());      /*user.Identity.Name ES EL ID DEL USUARIO*/
 
             // SE LE SUMA UNA VISITA MAS AL TORNEO
             int visitas = await http.GetFromJsonAsync<int>("api/Torneo/VisitasTorneo/" + idtorneocadena);

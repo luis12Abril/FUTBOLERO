@@ -22,15 +22,16 @@ namespace FUTBOLERO.Client.Service
 
         }
 
-        public void Entrar(string iiduser, string torneo, string idtorneo)
+        public void Entrar(string iiduser, string torneo, string idtorneo, string idtipousuario)
         {
             // Para tener una sesion activa solo agregamos esta linea
 
             var identity = new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.Name,iiduser),
-                new Claim(ClaimTypes.Role,torneo),
-                new Claim("mitorneo",idtorneo)
+                new Claim(ClaimTypes.Name, iiduser),
+                new Claim(ClaimTypes.Role, torneo),
+                new Claim("mitorneo", idtorneo),
+                new Claim("idtipousuario", idtipousuario)
             }, "auth");
 
             //identity.AddClaim(new Claim(ClaimTypes.Role, "LUIS"));
