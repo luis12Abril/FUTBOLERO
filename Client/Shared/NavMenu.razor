@@ -34,7 +34,7 @@
                     </NavLink>
                 </li>
 
-                @if (idtipousuario == 1 || idtipousuario == 3)
+                @if (esAdminCartera)
                 {
                     <li class="nav-item px-2">
                         <NavLink class="nav-link" href="@($"ResumenPagosEquipos/{idtorneoseleccionado}")" Match="NavLinkMatch.All">
@@ -53,6 +53,7 @@
 @code {
     public string idtorneoseleccionado;
     public int idtipousuario = 0;
+    public bool esAdminCartera = false;
 
     private bool collapseNavMenu = true;
 
@@ -106,6 +107,10 @@
             // LEEMOS EL TIPO DE USUARIO DESDE EL CLAIM
             var claimTipo = claims.FirstOrDefault(c => c.Type == "idtipousuario");
             if (claimTipo != null) int.TryParse(claimTipo.Value, out idtipousuario);
+
+            // LEEMOS SI EL USUARIO ES ADMINISTRADOR DE CARTERA DEL TORNEO SELECCIONADO
+            var claimAdmin = claims.FirstOrDefault(c => c.Type == "esAdminCartera");
+            esAdminCartera = claimAdmin?.Value == "1";
 
             string iidUsuario = user.Identity.Name;
 

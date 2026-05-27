@@ -524,7 +524,7 @@ namespace FUTBOLERO.Server.Controllers
         public int RegresaIdTipoUsuario(int idusuario)          //tenia RegresaIdColegio
         {
             int rpta = 0;
-                      
+
             try
             {
                 using (var baseDatos = new FUTBOLEANDOContext())
@@ -538,6 +538,38 @@ namespace FUTBOLERO.Server.Controllers
             }
 
             return rpta;
+        }
+
+        // Devuelve 1 si el usuario es idtipousuario 1 o 3 Y ademas es admin del torneo seleccionado
+        [HttpGet]
+        [Route("api/Usuario/EsAdminTorneo/{idusuario}/{idtorneo}")]
+        public int EsAdminTorneo(int idusuario, int idtorneo)
+        {
+            try
+            {
+                using (var baseDatos = new FUTBOLEANDOContext())
+                {
+                    var usuario = baseDatos.Usuario
+                        .Where(p => p.Idusuario == idusuario && p.Habilitado == 1)
+                        .FirstOrDefault();
+
+                    if (usuario == null) return 0;
+
+                    // Solo aplica para idtipousuario 1 o 3
+                    if (usuario.Idtipousuario != 1 && usuario.Idtipousuario != 3) return 0;
+
+                    // Verifica que sea administrador del torneo seleccionado
+                    int existe = baseDatos.Usuariotorneo
+                        .Where(p => p.Idusuario == idusuario && p.Idtorneo == idtorneo && p.Habilitado == 1)
+                        .Count();
+
+                    return existe > 0 ? 1 : 0;
+                }
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         [HttpGet]
