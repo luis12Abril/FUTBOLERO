@@ -78,7 +78,7 @@ else
 
                     <div class="form-group torneo-field">
                         <label>Torneos</label>
-                        <InputSelect class="form-control torneo-select" @bind-Value="@idTorneo">
+                        <InputSelect class="form-control torneo-select" ValueChanged="@((string idTorneo)=>CambiaTorneo(idTorneo))" ValueExpression="@(()=>idTorneo)" Value="@idTorneo">
                             <option value="0">--- Seleccione ---</option>
                             @foreach (TorneoCLS otorneoCLS in oListaTorneos)
                             {
@@ -233,27 +233,22 @@ else
 
     private List<TorneoCLS> oListaTorneos = new List<TorneoCLS>();
     private string idTorneo = "";
+    private const string ClaveEstado = "futbolero.seleccionetorneo.estado";
+    private const string ClaveMunicipio = "futbolero.seleccionetorneo.municipio";
+    private const string ClaveLiga = "futbolero.seleccionetorneo.liga";
+    private const string ClaveTorneo = "futbolero.seleccionetorneo.torneo";
+    private bool yaRestaurado = false;
 
     public TorneoCLS oTorneoCLS = new TorneoCLS();
 
 
     protected override async Task OnInitializedAsync()
     {
-        //oTorneoSeleccionadoCLS.idestado = "0";
-
-        //listadoTorneo = await http.GetFromJsonAsync<TorneoCLS[]>("api/Torneo/ListarTorneo");
-
         oListaEstados = await http.GetFromJsonAsync<List<EstadoCLS>>("api/TorneoSeleccionado/EstadoSeleccionado2");
-
-
-
-
         listaEstados = await http.GetFromJsonAsync<List<TorneoSeleccionadoCLS>>("api/TorneoSeleccionado/EstadoSeleccionado");
         verMunicipio = true;
-        //listaMunicipio = await http.GetFromJsonAsync<List<MunicipioCLS>>("api/Municipio/ListarMunicipio");
-        //listaLiga = await http.GetFromJsonAsync<List<LigaCLS>>("api/Liga/ListarLiga");
-        //listaTorneo = await http.GetFromJsonAsync<List<TorneoCLS>>("api/Torneo/ListarTorneoSeleccione");
-
+        // Los estados ya están cargados, ahora restauramos la última selección
+        await RestaurarUltimaSeleccionAsync();
     }
 
     //protected override async Task OnParametersSetAsync()
@@ -269,8 +264,8 @@ else
 
     public async Task CambiaEstado(string valorEstado)
     {
-        idEstado = valorEstado;
-        if (string.IsNullOrEmpty(valorEstado))
+        idEstado = NormalizarValorSeleccion(valorEstado);
+        if (string.IsNullOrEmpty(idEstado))
         {
             oListaMunicipios.Clear();
             idMunicipio = "";
@@ -283,20 +278,21 @@ else
         {
             oListaMunicipios.Clear();
             idMunicipio = "";
-            oListaMunicipios = await http.GetFromJsonAsync<List<MunicipioCLS>>("api/TorneoSeleccionado/MunicipioEstado2/" + valorEstado);
+            oListaMunicipios = await http.GetFromJsonAsync<List<MunicipioCLS>>("api/TorneoSeleccionado/MunicipioEstado2/" + idEstado);
             oListaLigas.Clear();
             idLiga = "";
             oListaTorneos.Clear();
             idTorneo = "";
         }
+        await GuardarUltimaSeleccionAsync();
 
     }
 
 
     public async Task CambiaMunicipio(string valorMunicipio)
     {
-        idMunicipio = valorMunicipio;
-        if (string.IsNullOrEmpty(valorMunicipio))
+        idMunicipio = NormalizarValorSeleccion(valorMunicipio);
+        if (string.IsNullOrEmpty(idMunicipio))
         {
             oListaLigas.Clear();
             idLiga = "";
@@ -309,15 +305,16 @@ else
             idLiga = "";
             oListaTorneos.Clear();
             idTorneo = "";
-            oListaLigas = await http.GetFromJsonAsync<List<LigaCLS>>("api/TorneoSeleccionado/LigaMunicipio/" + valorMunicipio);
+            oListaLigas = await http.GetFromJsonAsync<List<LigaCLS>>("api/TorneoSeleccionado/LigaMunicipio/" + idMunicipio);
         }
+        await GuardarUltimaSeleccionAsync();
 
     }
 
     public async Task CambiaLiga(string valorLiga)
     {
-        idLiga = valorLiga;
-        if (string.IsNullOrEmpty(valorLiga))
+        idLiga = NormalizarValorSeleccion(valorLiga);
+        if (string.IsNullOrEmpty(idLiga))
         {
             oListaTorneos.Clear();
             idTorneo = "";
@@ -326,9 +323,16 @@ else
         {
             oListaTorneos.Clear();
             idTorneo = "";
-            oListaTorneos = await http.GetFromJsonAsync<List<TorneoCLS>>("api/TorneoSeleccionado/MiTorneo/" + valorLiga);
+            oListaTorneos = await http.GetFromJsonAsync<List<TorneoCLS>>("api/TorneoSeleccionado/MiTorneo/" + idLiga);
         }
+        await GuardarUltimaSeleccionAsync();
 
+    }
+
+    public async Task CambiaTorneo(string valorTorneo)
+    {
+        idTorneo = NormalizarValorSeleccion(valorTorneo);
+        await GuardarUltimaSeleccionAsync();
     }
 
 
@@ -355,6 +359,8 @@ else
             // SE LE SUMA UNA VISITA MAS AL TORNEO
             int visitas = await http.GetFromJsonAsync<int>("api/Torneo/VisitasTorneo/" + idtorneocadena);
 
+            await GuardarUltimaSeleccionAsync();
+
             string paginaEnviar = "ListaPosiciones";
             int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
             ruta = paginaEnviar + "/" + idPag;
@@ -363,6 +369,52 @@ else
         }
 
 
+    }
+
+    private async Task RestaurarUltimaSeleccionAsync()
+    {
+        string estadoGuardado = NormalizarValorSeleccion(await ijsruntime.InvokeAsync<string>("ObtenerDeLocalStorage", ClaveEstado));
+        if (!EsSeleccionValida(estadoGuardado) || !oListaEstados.Any(x => x.idestado.ToString() == estadoGuardado))
+            return;
+
+        idEstado = estadoGuardado;
+        oListaMunicipios = await http.GetFromJsonAsync<List<MunicipioCLS>>("api/TorneoSeleccionado/MunicipioEstado2/" + idEstado);
+
+        string municipioGuardado = NormalizarValorSeleccion(await ijsruntime.InvokeAsync<string>("ObtenerDeLocalStorage", ClaveMunicipio));
+        if (!EsSeleccionValida(municipioGuardado) || !oListaMunicipios.Any(x => x.idmunicipio.ToString() == municipioGuardado))
+            return;
+
+        idMunicipio = municipioGuardado;
+        oListaLigas = await http.GetFromJsonAsync<List<LigaCLS>>("api/TorneoSeleccionado/LigaMunicipio/" + idMunicipio);
+
+        string ligaGuardada = NormalizarValorSeleccion(await ijsruntime.InvokeAsync<string>("ObtenerDeLocalStorage", ClaveLiga));
+        if (!EsSeleccionValida(ligaGuardada) || !oListaLigas.Any(x => x.idliga.ToString() == ligaGuardada))
+            return;
+
+        idLiga = ligaGuardada;
+        oListaTorneos = await http.GetFromJsonAsync<List<TorneoCLS>>("api/TorneoSeleccionado/MiTorneo/" + idLiga);
+
+        string torneoGuardado = NormalizarValorSeleccion(await ijsruntime.InvokeAsync<string>("ObtenerDeLocalStorage", ClaveTorneo));
+        if (EsSeleccionValida(torneoGuardado) && oListaTorneos.Any(x => x.idtorneo.ToString() == torneoGuardado))
+            idTorneo = torneoGuardado;
+    }
+
+    private static string NormalizarValorSeleccion(string valor)
+    {
+        return string.IsNullOrWhiteSpace(valor) || valor == "0" ? "" : valor;
+    }
+
+    private static bool EsSeleccionValida(string valor)
+    {
+        return !string.IsNullOrWhiteSpace(valor) && valor != "0";
+    }
+
+    private async Task GuardarUltimaSeleccionAsync()
+    {
+        await ijsruntime.InvokeVoidAsync("GuardarEnLocalStorage", ClaveEstado, idEstado ?? "");
+        await ijsruntime.InvokeVoidAsync("GuardarEnLocalStorage", ClaveMunicipio, idMunicipio ?? "");
+        await ijsruntime.InvokeVoidAsync("GuardarEnLocalStorage", ClaveLiga, idLiga ?? "");
+        await ijsruntime.InvokeVoidAsync("GuardarEnLocalStorage", ClaveTorneo, idTorneo ?? "");
     }
 
 
