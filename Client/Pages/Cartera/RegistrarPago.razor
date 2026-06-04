@@ -148,7 +148,6 @@
                                         <th>Método</th>
                                         <th>Referencia</th>
                                         <th>Observaciones</th>
-                                        <th>Registró</th>
                                         <th class="text-center">Editar</th>
                                         <th class="text-center">Eliminar</th>
                                     </tr>
@@ -161,7 +160,7 @@
                                             <tr class="fila-editando">
                                                 <td><input type="date" class="form-control form-control-sm modern-input"
                                                     value="@pagoEditando.fechapago.ToString("yyyy-MM-dd")"
-                                                    @onchange="e => pagoEditando.fechapago = DateTime.Parse(e.Value.ToString())" /></td>
+                                                    @onchange="CambiarFechaEdicion" /></td>
                                                 <td><input type="number" class="form-control form-control-sm modern-input text-end"
                                                     @bind="pagoEditando.montopagado" /></td>
                                                 <td>
@@ -176,7 +175,6 @@
                                                     @bind="pagoEditando.referencia" /></td>
                                                 <td><input type="text" class="form-control form-control-sm modern-input"
                                                     @bind="pagoEditando.observaciones" /></td>
-                                                <td>@p.usuarioregistro</td>
                                                 <td class="text-center">
                                                     <button class="btn btn-sm btn-guardar-edit me-1" @onclick="GuardarEdicion" title="Guardar">✔</button>
                                                     <button class="btn btn-sm btn-cancelar-edit" @onclick="CancelarEdicion" title="Cancelar">✖</button>
@@ -192,7 +190,6 @@
                                                 <td>@p.metodopago</td>
                                                 <td>@p.referencia</td>
                                                 <td>@p.observaciones</td>
-                                                <td>@p.usuarioregistro</td>
                                                 <td class="text-center">
                                                     <button class="btn btn-sm btn-editar"
                                                         @onclick="() => IniciarEdicion(p)" title="Editar">✏️</button>
@@ -495,6 +492,16 @@
             mensaje = "❌ Error al registrar el pago.";
         }
         guardando = false;
+    }
+
+    void CambiarFechaEdicion(ChangeEventArgs e)
+    {
+        if (DateTime.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd",
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out var dt))
+        {
+            pagoEditando.fechapago = dt;
+        }
     }
 
     void IniciarEdicion(PagoEquipoCLS p)
