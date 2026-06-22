@@ -9,6 +9,11 @@
 .tmp.driveupload/
 .tmp.drivedownload/
 
+# ==========================================
+# PANTALLAS - Capturas/imágenes locales (solo Google Drive)
+# ==========================================
+PANTALLAS/
+
 # User-specific files
 *.rsuser
 *.suo

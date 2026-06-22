@@ -38,6 +38,10 @@
                         {
                             <button class="btn btn-success" @onclick="ExportarExcelPosiciones">Exportar a Excel</button>
                         }
+                        @if (permitirExportarWord)
+                        {
+                            <button class="btn btn-info" @onclick="ExportarWordPosiciones">📄 Exportar a Word</button>
+                        }
                         @if (permitirExportarPDF)
                         {
                             <button class="btn btn-warning" @onclick="ExportarPdfPosiciones">Exportar a PDF</button>
@@ -48,7 +52,7 @@
                               nombrePropiedadesMostrar=propiedades
                               lista=listadoPosiciones
                               permitirExportarExcel=false
-                              permitirExportarWord=@permitirExportarWord
+                              permitirExportarWord=false
                               permitirExportarPdf=false
                               tituloReporte="Tabla de Posiciones" />
                 </div>
@@ -135,6 +139,7 @@
     public string mensaje = "NADA";
 
     public string idtorneoseleccionado;
+    private string torneoNombre = "";
 
     public PosicionesCLS[] listadoPosiciones;
 
@@ -168,6 +173,7 @@
         {
             var claims = user.Claims.ToList();
             var torneoseleccionadocadena = claims[1].Value;
+            torneoNombre = torneoseleccionadocadena;
 
             // AQUI ESTOY RECIENDO EN CADENA EL ID DE TORNEO SELECCIONADO
             idtorneoseleccionado = claims[2].Value;
@@ -221,6 +227,81 @@
         catch (Exception ex)
         {
             await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR AL EXPORTAR PDF: " + ex.Message, "error");
+        }
+    }
+
+
+    public async Task ExportarWordPosiciones()
+    {
+        try
+        {
+            var sb = new System.Text.StringBuilder();
+
+            sb.AppendLine("<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>");
+            sb.AppendLine("<head><meta charset='utf-8'><title>Tabla de Posiciones</title>");
+            sb.AppendLine("<style>");
+            sb.AppendLine("body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; margin: 30px; }");
+            sb.AppendLine("h1 { color: #1e3a8a; font-size: 17pt; margin-bottom: 4px; }");
+            sb.AppendLine("p { color: #475569; font-size: 10pt; margin: 4px 0 14px 0; }");
+            sb.AppendLine("table { width: 100%; border-collapse: collapse; margin-top: 8px; }");
+            sb.AppendLine("th { background-color: #1e3a8a; color: #ffffff; padding: 7px 10px; font-size: 10pt; text-align: center; border: 1px solid #1e3a8a; }");
+            sb.AppendLine("td { padding: 5px 10px; border: 1px solid #dde3ee; font-size: 10pt; text-align: center; }");
+            sb.AppendLine(".td-equipo { text-align: left; font-weight: 700; color: #1e293b; }");
+            sb.AppendLine(".td-pos { font-weight: 700; color: #64748b; width: 30px; }");
+            sb.AppendLine(".td-ptos { font-weight: 700; color: #1d4ed8; }");
+            sb.AppendLine(".fila-par { background-color: #f0f5ff; }");
+            sb.AppendLine(".fila-impar { background-color: #ffffff; }");
+            sb.AppendLine("</style></head><body>");
+
+            string fechaReporte = DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-MX"));
+            sb.AppendLine($"<h1>&#9917; Tabla de Posiciones &ndash; {torneoNombre}</h1>");
+            sb.AppendLine($"<p>{listadoPosiciones.Length} equipos registrados &nbsp;&middot;&nbsp; Generado el {fechaReporte}</p>");
+            sb.AppendLine("<hr style='border:none; border-top:2px solid #1e3a8a; margin-bottom:10px;'/>");
+
+            sb.AppendLine("<table>");
+            sb.AppendLine("<thead><tr>");
+            sb.AppendLine("<th>#</th><th>EQUIPO</th>");
+            sb.AppendLine("<th>JJ</th><th>JG</th><th>JE</th><th>JEGP</th><th>JP</th>");
+            sb.AppendLine("<th>GF</th><th>GC</th><th>DG</th><th>PE</th><th>PTOS</th>");
+            sb.AppendLine("</tr></thead><tbody>");
+
+            int pos = 1;
+            foreach (var equipo in listadoPosiciones)
+            {
+                string filaCss = pos % 2 == 0 ? "fila-par" : "fila-impar";
+                sb.AppendLine($"<tr class='{filaCss}'>");
+                sb.AppendLine($"<td class='td-pos'>{pos}</td>");
+                sb.AppendLine($"<td class='td-equipo'>{equipo.nombre}</td>");
+                sb.AppendLine($"<td>{equipo.jugados}</td>");
+                sb.AppendLine($"<td>{equipo.ganados}</td>");
+                sb.AppendLine($"<td>{equipo.empatados}</td>");
+                sb.AppendLine($"<td>{equipo.empatadosganados}</td>");
+                sb.AppendLine($"<td>{equipo.perdidos}</td>");
+                sb.AppendLine($"<td>{equipo.golesafavor}</td>");
+                sb.AppendLine($"<td>{equipo.golesencontra}</td>");
+                sb.AppendLine($"<td>{equipo.diferenciagoles}</td>");
+                sb.AppendLine($"<td>{equipo.puntosextras}</td>");
+                sb.AppendLine($"<td class='td-ptos'>{equipo.puntos}</td>");
+                sb.AppendLine("</tr>");
+                pos++;
+            }
+
+            sb.AppendLine("</tbody></table>");
+            sb.AppendLine("<hr style='border:none; border-top:1px solid #cbd5e1; margin-top:14px;'/>");
+            sb.AppendLine("<p><em>Reporte generado autom&aacute;ticamente por el sistema Futboleando.</em></p>");
+            sb.AppendLine("</body></html>");
+
+            var htmlBytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var base64 = Convert.ToBase64String(htmlBytes);
+
+            await ijsruntime.InvokeVoidAsync("descargarArchivo",
+                base64,
+                $"TablaPosiciones_{torneoNombre.Replace(" ", "_")}_{DateTime.Now:ddMMyyyy}.doc",
+                "application/msword");
+        }
+        catch (Exception ex)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR AL EXPORTAR WORD: " + ex.Message, "error");
         }
     }
 

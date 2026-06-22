@@ -49,12 +49,20 @@
     }
 
     function descargarArchivo(base64, nombreArchivo, tipoMime) {
+        var bytes = atob(base64);
+        var buffer = new Uint8Array(bytes.length);
+        for (var i = 0; i < bytes.length; i++) {
+            buffer[i] = bytes.charCodeAt(i);
+        }
+        var blob = new Blob([buffer], { type: tipoMime });
+        var url = URL.createObjectURL(blob);
         var a = document.createElement("a");
-        a.href = "data:" + tipoMime + ";base64," + base64;
+        a.href = url;
         a.download = nombreArchivo;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     function previewDataImagen() {
