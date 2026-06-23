@@ -2,8 +2,9 @@
 @inject NavigationManager navigate;
 @inject AuthenticationStateProvider auth;
 @using FUTBOLERO.Client.Service;
-
 @using FUTBOLERO.Shared;
+@using System.Security.Claims;
+@implements IDisposable
 
 <div class="sidebar" style="overflow-y: scroll;">
     <NavMenu />
@@ -14,7 +15,7 @@
         <AuthorizeView>
             <Authorized>
                 <div class="d-flex justify-content-between align-middle col-xl-12" style=" vertical-align: middle;">
-                    <p style="font-size:20px; color:white; font-weight:bold; align-items:center;">@misvalorescascada.torneocascada</p>
+                    <p style="font-size:20px; color:white; font-weight:bold; align-items:center;">@context.User.FindFirst(ClaimTypes.Role)?.Value</p>
                     <button class="btn btn-danger" @onclick="CerrarSesion">Cerrar Sesión</button>
                 </div>
 
@@ -39,6 +40,33 @@
 @code{
 
     MisValoresCascada misvalorescascada = new MisValoresCascada();
+
+    protected override void OnInitialized()
+    {
+        auth.AuthenticationStateChanged += OnAuthStateChanged;
+    }
+
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        var state = await task;
+        var user = state.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            var torneo = user.FindFirst(ClaimTypes.Role)?.Value;
+            if (!string.IsNullOrWhiteSpace(torneo))
+                misvalorescascada.torneocascada = torneo;
+        }
+        else
+        {
+            misvalorescascada.torneocascada = " ";
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        auth.AuthenticationStateChanged -= OnAuthStateChanged;
+    }
 
     public void CerrarSesion()
     {

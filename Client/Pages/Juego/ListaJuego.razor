@@ -19,8 +19,13 @@
                     <h3>Juegos</h3>
                     <span>Administra los partidos programados y su estatus en el torneo.</span>
                 </div>
-                <div class="catalogo-badge">
-                    <span>Catálogo</span>
+                <div class="catalogo-header-right">
+                    <div class="catalogo-badge">
+                        <span>Catálogo</span>
+                    </div>
+                    <button class="catalogo-help-btn" @onclick="() => showHelp = true" title="Ayuda">
+                        <span>?</span>
+                    </button>
                 </div>
             </div>
 
@@ -50,6 +55,167 @@
                 </div>
             }
         </section>
+
+        @* ── MODAL DE AYUDA ── *@
+        @if (showHelp)
+        {
+            <div class="ayuda-overlay" @onclick="() => showHelp = false">
+                <div class="ayuda-modal" @onclick:stopPropagation="true">
+
+                    <div class="ayuda-modal-header">
+                        <div>
+                            <span class="ayuda-kicker">Guía de uso</span>
+                            <h4>Módulo de Juegos</h4>
+                        </div>
+                        <button class="ayuda-close-btn" @onclick="() => showHelp = false">✕</button>
+                    </div>
+
+                    <div class="ayuda-modal-body">
+
+                        <div class="ayuda-section">
+                            <h5>⚽ ¿Qué es esta pantalla?</h5>
+                            <p>
+                                La pantalla <strong>Juegos</strong> es donde se administran los partidos del torneo.
+                                Desde aquí puedes <strong>programar nuevos juegos</strong> y también
+                                <strong>capturar el resultado</strong> una vez que el partido ha concluido.
+                                La búsqueda se hace por jornada usando el selector desplegable.
+                            </p>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🔍 Buscar juegos por jornada</h5>
+                            <p>
+                                Selecciona una <strong>jornada</strong> en el selector desplegable para ver
+                                únicamente los partidos de esa fecha. Si dejas el selector vacío
+                                se muestran todos los juegos del torneo.
+                            </p>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>➕ Programar un juego nuevo</h5>
+                            <p>Haz clic en <strong>Agregar</strong> y completa el formulario con los siguientes datos:</p>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Campo</th><th>Obligatorio</th><th>Descripción</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Jornada</td><td>✅ Sí</td><td>Fecha o etapa del torneo a la que pertenece el partido.</td></tr>
+                                    <tr><td>Equipo 01</td><td>✅ Sí</td><td>Primer equipo que participará en el partido.</td></tr>
+                                    <tr><td>Equipo 02</td><td>✅ Sí</td><td>Segundo equipo contrincante.</td></tr>
+                                    <tr><td>Campo</td><td>✅ Sí</td><td>Lugar donde se jugará el partido. Si aún no se define, selecciona <em>PENDIENTE</em>.</td></tr>
+                                    <tr><td>Arbitro</td><td>✅ Sí</td><td>Arbitro asignado al partido.</td></tr>
+                                    <tr><td>Horario</td><td>✅ Sí</td><td>Fecha y hora en que se jugará el partido.</td></tr>
+                                </tbody>
+                            </table>
+                            <div class="ayuda-tip">
+                                📌 Al crear un juego, el estatus queda automáticamente en <strong>PENDIENTE</strong>
+                                y los checks de puntos y goles vienen activados por defecto.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>✏️ Editar un juego — capturar el resultado</h5>
+                            <p>
+                                Haz clic en <strong>Editar</strong> en la fila del partido. En modo edición
+                                encontrarás todos los campos del alta más las siguientes secciones adicionales:
+                            </p>
+
+                            <p><strong>Resultado por equipo:</strong></p>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Elemento</th><th>Descripción</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Goles</td><td>Número de goles anotados por el equipo en el partido.</td></tr>
+                                    <tr><td>PE (Puntos Extra)</td><td>Puntos adicionales por penales u otro criterio definido por el torneo.</td></tr>
+                                    <tr><td>Radios G / E / P / GP / GA</td><td>Resultado individual del equipo: <strong>G</strong> = Ganó, <strong>E</strong> = Empató, <strong>P</strong> = Perdió, <strong>GP</strong> = Ganó por Penales, <strong>GA</strong> = Ganó por Admin (administrativa).</td></tr>
+                                </tbody>
+                            </table>
+
+                            <p style="margin-top:0.7rem"><strong>Estatus del juego:</strong> cambia el estatus de <em>PENDIENTE</em> a <em>JUGADO</em> cuando el partido ya concluyó y toda la información está capturada.</p>
+
+                            <p><strong>Goles por jugador:</strong> después del resultado aparece la lista de jugadores de ambos equipos para registrar quién anotó y cuántos goles.
+                            Esto alimenta la tabla de goleadores del torneo.</p>
+
+                            <p><strong>Comentarios:</strong> puedes agregar notas o incidencias del partido (tarjetas, lesiones, etc.). Los comentarios quedan visibles en el historial del juego.</p>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>📊 Cuenta para PUNTOS y Cuenta para GOLES</h5>
+                            <p>
+                                En la parte inferior del formulario hay dos opciones clave que controlan
+                                si el partido impacta o no las tablas del torneo:
+                            </p>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Opción</th><th>Check activado ✅</th><th>Check desactivado ❌</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Cuenta para PUNTOS</strong></td>
+                                        <td>El resultado del partido <strong>sí modifica</strong> la tabla de posiciones (puntos, ganados, perdidos, etc.).</td>
+                                        <td>El partido <strong>no afecta</strong> la tabla de posiciones. Útil en fases de Liguilla o finales.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Cuenta para GOLES</strong></td>
+                                        <td>Los goles de este partido <strong>sí cuentan</strong> para la tabla de goleadores del torneo.</td>
+                                        <td>Los goles <strong>no se acumulan</strong> en la tabla de goleadores. Útil si el torneo decide que solo cuentan los goles del rol regular.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="ayuda-tip ayuda-tip-warning">
+                                ⚠️ <strong>¿Cuándo desactivarlos?</strong> Cuando el torneo entra en fase de
+                                <strong>Liguilla o eliminación directa</strong>, los partidos de esa fase
+                                generalmente <strong>no deben contar para posiciones</strong>, por lo que
+                                debes quitar el check de <em>Cuenta para PUNTOS</em>. Para el check de
+                                <em>Cuenta para GOLES</em> depende de cada organización: algunas solo
+                                cuentan los goles del rol regular, otras cuentan hasta el último partido.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🗑️ Eliminar un juego</h5>
+                            <p>
+                                Haz clic en <strong>Eliminar</strong> en la fila del partido.
+                                El sistema mostrará un mensaje de confirmación con los nombres de los equipos
+                                antes de proceder. Solo puedes eliminar un juego que no tenga restricciones activas.
+                            </p>
+                            <div class="ayuda-tip ayuda-tip-warning">
+                                ⚠️ Al eliminar un juego con estatus <strong>JUGADO</strong> y checks activos,
+                                el sistema revierte automáticamente los puntos y goles que ese partido
+                                había acumulado en las tablas.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>📤 Exportar el listado</h5>
+                            <p>Si tienes permiso, puedes exportar el listado de juegos en: <strong>Excel</strong>, <strong>Word</strong> y <strong>PDF</strong>.</p>
+                        </div>
+
+                        <div class="ayuda-section ayuda-section-faq">
+                            <h5>❓ Preguntas frecuentes</h5>
+                            <p><strong>¿Por qué un juego JUGADO no aparece en la tabla de posiciones?</strong><br />
+                            Verifica que el check <em>Cuenta para PUNTOS</em> esté activado. Si está desactivado, el resultado no se contabiliza en posiciones aunque el estatus sea JUGADO.</p>
+                            <p><strong>¿Puedo cambiar el resultado después de guardarlo?</strong><br />
+                            Sí. Edita el juego, corrige los goles y el resultado, y vuelve a guardar. Las tablas se recalcularán automáticamente.</p>
+                            <p><strong>¿Qué significa GP (Ganó por Penales)?</strong><br />
+                            Indica que el equipo ganó el partido mediante tanda de penales. Suele usarse en fases eliminatorias donde el marcador quedó empatado al final del tiempo reglamentario.</p>
+                            <p><strong>¿Qué son los Puntos Extra (PE)?</strong><br />
+                            Son puntos adicionales que algunos torneos asignan por criterios especiales. Solo úsalos si el reglamento de tu torneo los contempla.</p>
+                            <p><strong>¿Por qué no veo los botones de Agregar / Editar / Eliminar?</strong><br />
+                            Tu usuario no tiene ese permiso asignado. Contacta al administrador del sistema.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="ayuda-modal-footer">
+                        <button class="btn ayuda-btn-cerrar" @onclick="() => showHelp = false">Cerrar guía</button>
+                    </div>
+
+                </div>
+            </div>
+        }
+
     </Authorized>
 </AuthorizeView>
 
@@ -91,6 +257,12 @@
         font-size: 0.93rem;
     }
 
+    .catalogo-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
     .catalogo-badge span {
         display: inline-block;
         background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
@@ -100,6 +272,31 @@
         font-size: 0.78rem;
         font-weight: 700;
         box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+    }
+
+    .catalogo-help-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid #2563eb;
+        background: #fff;
+        color: #2563eb;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.18);
+        transition: background 0.2s, color 0.2s, transform 0.15s;
+        line-height: 1;
+        padding: 0;
+    }
+
+    .catalogo-help-btn:hover {
+        background: #2563eb;
+        color: #fff;
+        transform: scale(1.1);
     }
 
     .catalogo-list-card {
@@ -124,6 +321,188 @@
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .catalogo-header-right {
+            align-self: flex-end;
+        }
+
+        .ayuda-modal {
+            max-height: 92vh;
+        }
+    }
+
+    /* ── MODAL DE AYUDA ── */
+    .ayuda-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .ayuda-modal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 700px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(30, 64, 175, 0.18);
+        overflow: hidden;
+    }
+
+    .ayuda-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.1rem 1.4rem 0.9rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+        border-bottom: 1px solid #dbeafe;
+    }
+
+    .ayuda-kicker {
+        display: block;
+        color: #2563eb;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 0.15rem;
+    }
+
+    .ayuda-modal-header h4 {
+        margin: 0;
+        color: #1e3a8a;
+        font-weight: 800;
+        font-size: 1.15rem;
+    }
+
+    .ayuda-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .ayuda-close-btn:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .ayuda-modal-body {
+        overflow-y: auto;
+        padding: 1.2rem 1.4rem;
+        flex: 1;
+    }
+
+    .ayuda-section {
+        margin-bottom: 1.4rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .ayuda-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .ayuda-section h5 {
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: 0.97rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ayuda-section p {
+        color: #475569;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .ayuda-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin: 0.5rem 0;
+    }
+
+    .ayuda-table th {
+        background: linear-gradient(90deg, #eff6ff, #eef2ff);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+        border-bottom: 2px solid #dbeafe;
+    }
+
+    .ayuda-table td {
+        padding: 0.4rem 0.7rem;
+        color: #475569;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
+    }
+
+    .ayuda-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .ayuda-tip {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        border-radius: 0 8px 8px 0;
+        padding: 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        color: #1e40af;
+        margin-top: 0.6rem;
+    }
+
+    .ayuda-tip-warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .ayuda-section-faq p {
+        margin-bottom: 0.75rem;
+    }
+
+    .ayuda-modal-footer {
+        padding: 0.85rem 1.4rem;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        background: #f8fafc;
+    }
+
+    .ayuda-btn-cerrar {
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 0.4rem 1.3rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: opacity 0.2s;
+    }
+
+    .ayuda-btn-cerrar:hover {
+        opacity: 0.88;
     }
 </style>
 
@@ -152,6 +531,8 @@
     public bool permitirExportarExcel = false;
     public bool permitirExportarWord = false;
     public bool permitirExportarPDF = false;
+
+    public bool showHelp = false;
 
     List<int> listaBotones = new List<int>();
 

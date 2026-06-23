@@ -37,6 +37,7 @@
                             <NavLink href="@($"ResumenPagosEquipos/{IdTorneo}")" class="btn btn-regresar-top">
                                 ← Regresar al Resumen
                             </NavLink>
+                            <button class="pago-help-btn" @onclick="() => showHelp = true" title="Ayuda">?</button>
                         </div>
                     </div>
                     <div class="pago-estado-body row g-0">
@@ -211,6 +212,116 @@
         }
     </Authorized>
 </AuthorizeView>
+
+@* ── MODAL DE AYUDA (fuera del if de carga para estar siempre disponible) ── *@
+@if (showHelp)
+{
+    <div class="ayuda-overlay" @onclick="() => showHelp = false">
+        <div class="ayuda-modal" @onclick:stopPropagation="true">
+
+            <div class="ayuda-modal-header">
+                <div>
+                    <span class="ayuda-kicker">Guía de uso</span>
+                    <h4>Registrar Pagos del Equipo</h4>
+                </div>
+                <button class="ayuda-close-btn" @onclick="() => showHelp = false">✕</button>
+            </div>
+
+            <div class="ayuda-modal-body">
+
+                <div class="ayuda-section">
+                    <h5>💵 ¿Qué es esta pantalla?</h5>
+                    <p>
+                        Aquí puedes ver el <strong>estado de cuenta individual de un equipo</strong>:
+                        cuánto debe, cuánto ha pagado y cuánto le falta. También puedes
+                        <strong>registrar nuevos abonos</strong>, editarlos y eliminarlos.
+                    </p>
+                </div>
+
+                <div class="ayuda-section">
+                    <h5>📊 Tarjeta de estado de cuenta</h5>
+                    <p>En la parte superior verás tres bloques con el resumen financiero del equipo:</p>
+                    <table class="ayuda-table">
+                        <thead><tr><th>Bloque</th><th>Descripción</th></tr></thead>
+                        <tbody>
+                            <tr><td>Cuota Total</td><td>El monto total que el equipo debe cubrir.</td></tr>
+                            <tr><td>Total Pagado</td><td>Suma de todos los abonos registrados.</td></tr>
+                            <tr><td>Saldo Pendiente</td><td>Lo que aún falta por pagar. Se muestra en rojo si hay deuda, verde si está liquidado.</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="ayuda-tip">
+                        ✅ Cuando el saldo pendiente llega a cero, aparece el banner <strong>“Este equipo está LIQUIDADO”</strong> y el formulario de nuevo abono se oculta.
+                    </div>
+                </div>
+
+                <div class="ayuda-section">
+                    <h5>💵 Registrar un nuevo abono</h5>
+                    <p>Llena el formulario con los siguientes datos y presiona <strong>Registrar Pago</strong>:</p>
+                    <table class="ayuda-table">
+                        <thead><tr><th>Campo</th><th>Obligatorio</th><th>Descripción</th></tr></thead>
+                        <tbody>
+                            <tr><td>Monto del Abono</td><td>✅ Sí</td><td>Cantidad que paga en este abono. No puede exceder el saldo pendiente.</td></tr>
+                            <tr><td>Fecha del Pago</td><td>✅ Sí</td><td>Fecha en que se recibió el dinero.</td></tr>
+                            <tr><td>Método de Pago</td><td>❌ No</td><td>Efectivo, Transferencia, Depósito o Cheque.</td></tr>
+                            <tr><td>Referencia / Folio</td><td>❌ No</td><td>Número de recibo, folio de transferencia u otro identificador.</td></tr>
+                            <tr><td>Observaciones</td><td>❌ No</td><td>Notas adicionales del pago (opcional).</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="ayuda-tip ayuda-tip-warning">
+                        ⚠️ Si hay una edición de abono en curso, el formulario de nuevo abono estará bloqueado hasta que termines o canceles esa edición.
+                    </div>
+                </div>
+
+                <div class="ayuda-section">
+                    <h5>🗒️ Historial de abonos</h5>
+                    <p>
+                        Debajo del formulario verás la tabla con todos los abonos registrados:
+                        fecha, monto, método, referencia y observaciones.
+                    </p>
+                    <table class="ayuda-table">
+                        <thead><tr><th>Botón</th><th>Acción</th></tr></thead>
+                        <tbody>
+                            <tr><td>✏️ Editar</td><td>Convierte la fila en campos editables. Presiona ✔ para guardar o ✖ para cancelar.</td></tr>
+                            <tr><td>🗑️ Eliminar</td><td>Elimina el abono del historial tras confirmación. Actualiza el saldo automáticamente.</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="ayuda-tip">
+                        📌 Editar o eliminar un abono recalcula automáticamente el saldo pendiente y el estatus del equipo.
+                    </div>
+                </div>
+
+                <div class="ayuda-section">
+                    <h5>📤 Exportar historial</h5>
+                    <p>Los botones de exportación aparecen cuando el equipo tiene al menos un abono registrado:</p>
+                    <table class="ayuda-table">
+                        <tbody>
+                            <tr><td>📄 <strong>Word</strong></td><td>Documento con tarjeta de estado de cuenta e historial detallado de abonos.</td></tr>
+                            <tr><td>📊 <strong>Excel</strong></td><td>Hoja de cálculo con totales calculados, listo para imprimir o archivar.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="ayuda-section ayuda-section-faq">
+                    <h5>❓ Preguntas frecuentes</h5>
+                    <p><strong>¿Por qué el formulario está bloqueado?</strong><br />
+                    Hay una edición de abono activa en el historial. Guárdala o canélala con ✔ o ✖ para poder agregar un nuevo abono.</p>
+                    <p><strong>¿Qué pasa si el monto del abono supera el saldo pendiente?</strong><br />
+                    El sistema rechaza el pago con un aviso. Solo puedes ingresar hasta el monto del saldo pendiente.</p>
+                    <p><strong>¿Cómo regreso a ver todos los equipos?</strong><br />
+                    Usa el botón <strong>← Regresar al Resumen</strong> en la parte superior derecha.</p>
+                    <p><strong>¿Se puede cambiar la cuota total del equipo desde aquí?</strong><br />
+                    No. El monto de la cuota se ajusta desde el <strong>Resumen de Pagos</strong>, usando el ícono ✏️ en la columna Cuota Total.</p>
+                </div>
+
+            </div>
+
+            <div class="ayuda-modal-footer">
+                <button class="btn ayuda-btn-cerrar" @onclick="() => showHelp = false">Cerrar guía</button>
+            </div>
+
+        </div>
+    </div>
+}
 
 @if (!string.IsNullOrEmpty(mensaje))
 {
@@ -412,6 +523,194 @@
         padding: 0.45rem 1rem; font-weight: 600; font-size: 0.85rem; white-space: nowrap;
     }
     .btn-exportar-excel-pago:hover { background: linear-gradient(135deg, #166534, #15803d); color: white; }
+
+    /* ── BOTÓN AYUDA ── */
+    .pago-help-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.7);
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, border-color 0.2s, transform 0.15s;
+        line-height: 1;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+    .pago-help-btn:hover {
+        background: rgba(255,255,255,0.3);
+        border-color: white;
+        transform: scale(1.1);
+    }
+
+    /* ── MODAL DE AYUDA ── */
+    .ayuda-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .ayuda-modal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 700px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(30, 64, 175, 0.18);
+        overflow: hidden;
+    }
+
+    .ayuda-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.1rem 1.4rem 0.9rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+        border-bottom: 1px solid #dbeafe;
+    }
+
+    .ayuda-kicker {
+        display: block;
+        color: #2563eb;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 0.15rem;
+    }
+
+    .ayuda-modal-header h4 {
+        margin: 0;
+        color: #1e3a8a;
+        font-weight: 800;
+        font-size: 1.15rem;
+    }
+
+    .ayuda-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .ayuda-close-btn:hover { background: #fee2e2; color: #dc2626; }
+
+    .ayuda-modal-body {
+        overflow-y: auto;
+        padding: 1.2rem 1.4rem;
+        flex: 1;
+    }
+
+    .ayuda-section {
+        margin-bottom: 1.4rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .ayuda-section:last-child { border-bottom: none; margin-bottom: 0; }
+
+    .ayuda-section h5 {
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: 0.97rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ayuda-section p {
+        color: #475569;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .ayuda-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin: 0.5rem 0;
+    }
+
+    .ayuda-table th {
+        background: linear-gradient(90deg, #eff6ff, #eef2ff);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+        border-bottom: 2px solid #dbeafe;
+    }
+
+    .ayuda-table td {
+        padding: 0.4rem 0.7rem;
+        color: #475569;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
+    }
+
+    .ayuda-table tr:last-child td { border-bottom: none; }
+
+    .ayuda-tip {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        border-radius: 0 8px 8px 0;
+        padding: 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        color: #1e40af;
+        margin-top: 0.6rem;
+    }
+
+    .ayuda-tip-warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .ayuda-section-faq p { margin-bottom: 0.75rem; }
+
+    .ayuda-modal-footer {
+        padding: 0.85rem 1.4rem;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        background: #f8fafc;
+    }
+
+    .ayuda-btn-cerrar {
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 0.4rem 1.3rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: opacity 0.2s;
+    }
+
+    .ayuda-btn-cerrar:hover { opacity: 0.88; }
 </style>
 
 @code {
@@ -427,6 +726,7 @@
     bool guardando = false;
     string mensaje = "";
     string claseMensaje = "alert-success";
+    bool showHelp = false;
 
     [CascadingParameter]
     private Task<AuthenticationState> auth { get; set; }

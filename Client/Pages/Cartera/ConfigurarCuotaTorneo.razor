@@ -9,8 +9,11 @@
         <div class="cuota-form-wrapper">
             <div class="cuota-form-card">
                 <div class="cuota-form-header">
-                    <h4 class="mb-1">💰 Cuota del Torneo</h4>
-                    <p class="mb-0">Define el monto que deben pagar los equipos para participar.</p>
+                    <div>
+                        <h4 class="mb-1">💰 Cuota del Torneo</h4>
+                        <p class="mb-0">Define el monto que deben pagar los equipos para participar.</p>
+                    </div>
+                    <button class="cuota-help-btn" @onclick="() => showHelp = true" title="Ayuda">?</button>
                 </div>
 
                 @if (oCuota == null)
@@ -77,11 +80,103 @@
                 }
             </div>
         </div>
-    </Authorized>
-</AuthorizeView>
+            @* ── MODAL DE AYUDA ── *@
+            @if (showHelp)
+            {
+                <div class="ayuda-overlay" @onclick="() => showHelp = false">
+                    <div class="ayuda-modal" @onclick:stopPropagation="true">
 
-<style>
-    .cuota-form-wrapper {
+                        <div class="ayuda-modal-header">
+                            <div>
+                                <span class="ayuda-kicker">Guía de uso</span>
+                                <h4>Configurar Cuota del Torneo</h4>
+                            </div>
+                            <button class="ayuda-close-btn" @onclick="() => showHelp = false">✕</button>
+                        </div>
+
+                        <div class="ayuda-modal-body">
+
+                            <div class="ayuda-section">
+                                <h5>💰 ¿Qué es esta pantalla?</h5>
+                                <p>
+                                    Aquí defines la <strong>cuota de inscripción</strong> que cada equipo debe cubrir para
+                                    participar en el torneo. Una vez configurada, puedes asignarla a todos los equipos en
+                                    un solo clic y después registrar sus pagos desde el Resumen de Pagos.
+                                </p>
+                            </div>
+
+                            <div class="ayuda-section">
+                                <h5>📝 Campos del formulario</h5>
+                                <table class="ayuda-table">
+                                    <thead>
+                                        <tr><th>Campo</th><th>Obligatorio</th><th>Descripción</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Monto Base por Equipo</td><td>✅ Sí</td><td>Cantidad que cada equipo debe pagar. Se escribe sin signo $.</td></tr>
+                                        <tr><td>Fecha Límite de Pago</td><td>❌ No</td><td>Fecha tope para que los equipos liquiden su cuota.</td></tr>
+                                        <tr><td>Concepto</td><td>❌ No</td><td>Descripción de lo que incluye el cobro (ej: Inscripción + Arbitraje + Gastos administrativos).</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="ayuda-section">
+                                <h5>💾 Botón — Guardar Cuota</h5>
+                                <p>
+                                    Guarda la configuración y actualiza automáticamente el monto en todos los equipos
+                                    que ya tenían cuota asignada, <strong>sin eliminar los abonos ya registrados</strong>.
+                                </p>
+                                <div class="ayuda-tip">
+                                    📌 Si cambias el monto base, todos los equipos verán el nuevo monto reflejado inmediatamente en su saldo pendiente.
+                                </div>
+                            </div>
+
+                            <div class="ayuda-section">
+                                <h5>⚡ Botón — Asignar a Todos los Equipos</h5>
+                                <p>
+                                    Este botón aparece <strong>solo después de guardar la cuota por primera vez</strong>.
+                                    Al presionarlo, el sistema asigna la cuota a todos los equipos del torneo que
+                                    <strong>aún no tienen cuota asignada</strong> (no afecta a los que ya la tienen).
+                                    El sistema pedirá confirmación antes de proceder.
+                                </p>
+                                <p>Al finalizar, serás redirigido automáticamente al <strong>Resumen de Pagos</strong>.</p>
+                                <div class="ayuda-tip ayuda-tip-warning">
+                                    ⚠️ Si un equipo ya fue asignado previamente, este botón no lo modifica ni duplica su cuota.
+                                </div>
+                            </div>
+
+                            <div class="ayuda-section">
+                                <h5>📊 Botón — Ver Resumen de Pagos</h5>
+                                <p>
+                                    Te lleva a la pantalla donde puedes consultar el estado de cuenta de todos los equipos,
+                                    ver cuánto han pagado, cuánto les falta y registrar nuevos abonos.
+                                </p>
+                            </div>
+
+                            <div class="ayuda-section ayuda-section-faq">
+                                <h5>❓ Preguntas frecuentes</h5>
+                                <p><strong>¿Puedo cambiar el monto después de haberlo asignado?</strong><br />
+                                Sí. Modifica el monto y presiona <strong>Guardar Cuota</strong>. El nuevo monto se aplica a todos los equipos y sus abonos anteriores se conservan.</p>
+                                <p><strong>¿Qué pasa si un equipo ya tiene abonos y cambio el monto?</strong><br />
+                                Los abonos no se eliminan. Solo cambia el total a cubrir, por lo que el saldo pendiente se recalcula automáticamente.</p>
+                                <p><strong>¿Puedo asignar un monto diferente a un equipo en particular?</strong><br />
+                                Sí. Desde el <strong>Resumen de Pagos</strong> puedes editar el monto de cada equipo individualmente con el ícono ✏️.</p>
+                            </div>
+
+                        </div>
+
+                        <div class="ayuda-modal-footer">
+                            <button class="btn ayuda-btn-cerrar" @onclick="() => showHelp = false">Cerrar guía</button>
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+        </Authorized>
+    </AuthorizeView>
+
+    <style>
+        .cuota-form-wrapper {
         padding: 1.25rem 0;
     }
 
@@ -99,6 +194,34 @@
         padding: 1.2rem 1.4rem;
         background: linear-gradient(120deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%);
         color: #ffffff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .cuota-help-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.7);
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, border-color 0.2s, transform 0.15s;
+        line-height: 1;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+    .cuota-help-btn:hover {
+        background: rgba(255,255,255,0.3);
+        border-color: white;
+        transform: scale(1.1);
     }
 
     .cuota-form-body {
@@ -167,6 +290,174 @@
     }
 
     .btn-resumen:hover { background: linear-gradient(135deg, #6d28d9, #7c3aed); color: white; }
+
+    /* ── MODAL DE AYUDA ── */
+    .ayuda-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .ayuda-modal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 680px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(30, 64, 175, 0.18);
+        overflow: hidden;
+    }
+
+    .ayuda-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.1rem 1.4rem 0.9rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+        border-bottom: 1px solid #dbeafe;
+    }
+
+    .ayuda-kicker {
+        display: block;
+        color: #2563eb;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 0.15rem;
+    }
+
+    .ayuda-modal-header h4 {
+        margin: 0;
+        color: #1e3a8a;
+        font-weight: 800;
+        font-size: 1.15rem;
+    }
+
+    .ayuda-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .ayuda-close-btn:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .ayuda-modal-body {
+        overflow-y: auto;
+        padding: 1.2rem 1.4rem;
+        flex: 1;
+    }
+
+    .ayuda-section {
+        margin-bottom: 1.4rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .ayuda-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .ayuda-section h5 {
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: 0.97rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ayuda-section p {
+        color: #475569;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .ayuda-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin: 0.5rem 0;
+    }
+
+    .ayuda-table th {
+        background: linear-gradient(90deg, #eff6ff, #eef2ff);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+        border-bottom: 2px solid #dbeafe;
+    }
+
+    .ayuda-table td {
+        padding: 0.4rem 0.7rem;
+        color: #475569;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
+    }
+
+    .ayuda-table tr:last-child td { border-bottom: none; }
+
+    .ayuda-tip {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        border-radius: 0 8px 8px 0;
+        padding: 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        color: #1e40af;
+        margin-top: 0.6rem;
+    }
+
+    .ayuda-tip-warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .ayuda-section-faq p { margin-bottom: 0.75rem; }
+
+    .ayuda-modal-footer {
+        padding: 0.85rem 1.4rem;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        background: #f8fafc;
+    }
+
+    .ayuda-btn-cerrar {
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 0.4rem 1.3rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: opacity 0.2s;
+    }
+
+    .ayuda-btn-cerrar:hover { opacity: 0.88; }
 </style>
 
 @code {
@@ -177,6 +468,7 @@
     bool guardando = false;
     string mensaje = "";
     string claseMensaje = "alert-success";
+    bool showHelp = false;
 
     [CascadingParameter]
     private Task<AuthenticationState> auth { get; set; }

@@ -17,8 +17,13 @@
                     <h3>Estatus de Juego</h3>
                     <span>Administra los estatus disponibles para los juegos del torneo.</span>
                 </div>
-                <div class="catalogo-badge">
-                    <span>Catálogo</span>
+                <div class="catalogo-header-right">
+                    <div class="catalogo-badge">
+                        <span>Catálogo</span>
+                    </div>
+                    <button class="catalogo-help-btn" @onclick="() => showHelp = true" title="Ayuda">
+                        <span>?</span>
+                    </button>
                 </div>
             </div>
 
@@ -47,6 +52,146 @@
                 </div>
             }
         </section>
+
+        @* ── MODAL DE AYUDA ── *@
+        @if (showHelp)
+        {
+            <div class="ayuda-overlay" @onclick="() => showHelp = false">
+                <div class="ayuda-modal" @onclick:stopPropagation="true">
+
+                    <div class="ayuda-modal-header">
+                        <div>
+                            <span class="ayuda-kicker">Guía de uso</span>
+                            <h4>Módulo de Estatus de Juego</h4>
+                        </div>
+                        <button class="ayuda-close-btn" @onclick="() => showHelp = false">✕</button>
+                    </div>
+
+                    <div class="ayuda-modal-body">
+
+                        <div class="ayuda-section">
+                            <h5>🎮 ¿Qué es esta pantalla?</h5>
+                            <p>
+                                La pantalla <strong>Estatus de Juego</strong> administra los posibles estados
+                                en que puede encontrarse un partido del torneo. El estatus de un juego
+                                determina si ese partido <strong>aplica o no para la tabla de posiciones</strong>.
+                            </p>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🔒 Estatus reservados del sistema</h5>
+                            <p>
+                                Al crearse el torneo el sistema genera automáticamente dos estatus
+                                que <strong>no pueden eliminarse</strong> porque son esenciales para el funcionamiento:
+                            </p>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Estatus</th><th>¿Aplica para posiciones?</th><th>Significado</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>PENDIENTE</strong></td>
+                                        <td>🚫 No aplica</td>
+                                        <td>El juego aún no tiene toda la información confirmada (goles, resultado, etc.). Mientras esté en PENDIENTE, <strong>no se contabiliza en la tabla de posiciones</strong>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>JUGADO</strong></td>
+                                        <td>✅ Sí aplica</td>
+                                        <td>El juego ya tiene toda la información necesaria capturada. Al marcarlo como JUGADO, <strong>sí se contabiliza en la tabla de posiciones</strong>.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="ayuda-tip">
+                                📌 Un juego recién programado siempre comienza en estado <strong>PENDIENTE</strong>.
+                                El administrador lo cambia a <strong>JUGADO</strong> una vez que captura el resultado final.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>➕ ¿Se pueden agregar más estatus?</h5>
+                            <p>
+                                Sí. Puedes agregar estatus adicionales como <em>SUSPENDIDO</em>,
+                                <em>NO SE JUGÓ</em>, <em>APLAZADO</em>, etc. Para ello haz clic en
+                                <strong>Agregar</strong> e ingresa el nombre del nuevo estatus.
+                            </p>
+                            <div class="ayuda-tip ayuda-tip-warning">
+                                ⚠️ <strong>Recomendación:</strong> Se sugiere trabajar únicamente con los dos
+                                estatus del sistema (<em>PENDIENTE</em> y <em>JUGADO</em>) para mantener
+                                la consistencia de la tabla de posiciones. Los estatus adicionales
+                                <strong>no cuentan para posiciones</strong> y pueden generar confusión
+                                si no se gestionan con cuidado.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🔍 Buscar un estatus</h5>
+                            <p>
+                                Usa la <strong>barra de búsqueda</strong> para filtrar estatus por nombre.
+                                Escribe parte del nombre y el listado se actualizará automáticamente.
+                                Si borras el texto y buscas de nuevo, regresa al listado completo.
+                            </p>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>✏️ Editar un estatus</h5>
+                            <p>
+                                Haz clic en el botón <strong>Editar</strong> en la fila del estatus que
+                                deseas modificar. Podrás cambiar su nombre. Presiona <strong>Guardar</strong>
+                                para confirmar.
+                            </p>
+                            <div class="ayuda-tip ayuda-tip-warning">
+                                ⚠️ Evita renombrar <em>PENDIENTE</em> o <em>JUGADO</em> ya que el sistema
+                                los identifica por su nombre para calcular la tabla de posiciones.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🗑️ Eliminar un estatus</h5>
+                            <p>
+                                Haz clic en el botón <strong>Eliminar</strong> en la fila correspondiente.
+                                El sistema pedirá confirmación antes de borrar.
+                            </p>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Resultado</th><th>Mensaje</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>✅ Eliminado correctamente</td><td>OK, EL ESTATUS SE ELIMINÓ</td></tr>
+                                    <tr><td>⚠️ Tiene juegos con ese estatus</td><td>NO SE PUEDE BORRAR, HAY JUEGOS CON ESE ESTATUS</td></tr>
+                                    <tr><td>🔒 Estatus PENDIENTE</td><td>PENDIENTE NO SE DEBE BORRAR</td></tr>
+                                    <tr><td>🔒 Estatus JUGADO</td><td>JUGADO NO SE DEBE BORRAR</td></tr>
+                                    <tr><td>❌ Error inesperado</td><td>OCURRIÓ UN ERROR, NO SE PUDO BORRAR</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>📤 Exportar el listado</h5>
+                            <p>Si tienes permiso, puedes exportar el listado de estatus en: <strong>Excel</strong>, <strong>Word</strong> y <strong>PDF</strong>.</p>
+                        </div>
+
+                        <div class="ayuda-section ayuda-section-faq">
+                            <h5>❓ Preguntas frecuentes</h5>
+                            <p><strong>¿Por qué no puedo borrar PENDIENTE o JUGADO?</strong><br />
+                            Son estatus reservados del sistema. Sin ellos el flujo de captura de juegos y el cálculo de posiciones no funcionarían correctamente.</p>
+                            <p><strong>¿Un juego en PENDIENTE afecta la tabla de posiciones?</strong><br />
+                            No. Solo los juegos en estado <strong>JUGADO</strong> se contabilizan en la tabla de posiciones.</p>
+                            <p><strong>¿Puedo crear un estatus SUSPENDIDO?</strong><br />
+                            Sí, pero los juegos con ese estatus no aplicarán para la tabla de posiciones. Se recomienda usarlo solo si realmente lo necesitas y con criterio claro.</p>
+                            <p><strong>¿Por qué no veo los botones de Agregar / Editar / Eliminar?</strong><br />
+                            Tu usuario no tiene ese permiso asignado. Contacta al administrador del sistema.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="ayuda-modal-footer">
+                        <button class="btn ayuda-btn-cerrar" @onclick="() => showHelp = false">Cerrar guía</button>
+                    </div>
+
+                </div>
+            </div>
+        }
+
     </Authorized>
 </AuthorizeView>
 
@@ -88,6 +233,12 @@
         font-size: 0.93rem;
     }
 
+    .catalogo-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
     .catalogo-badge span {
         display: inline-block;
         background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
@@ -97,6 +248,31 @@
         font-size: 0.78rem;
         font-weight: 700;
         box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+    }
+
+    .catalogo-help-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid #2563eb;
+        background: #fff;
+        color: #2563eb;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.18);
+        transition: background 0.2s, color 0.2s, transform 0.15s;
+        line-height: 1;
+        padding: 0;
+    }
+
+    .catalogo-help-btn:hover {
+        background: #2563eb;
+        color: #fff;
+        transform: scale(1.1);
     }
 
     .catalogo-list-card {
@@ -121,6 +297,188 @@
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .catalogo-header-right {
+            align-self: flex-end;
+        }
+
+        .ayuda-modal {
+            max-height: 92vh;
+        }
+    }
+
+    /* ── MODAL DE AYUDA ── */
+    .ayuda-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .ayuda-modal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 680px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(30, 64, 175, 0.18);
+        overflow: hidden;
+    }
+
+    .ayuda-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.1rem 1.4rem 0.9rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+        border-bottom: 1px solid #dbeafe;
+    }
+
+    .ayuda-kicker {
+        display: block;
+        color: #2563eb;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 0.15rem;
+    }
+
+    .ayuda-modal-header h4 {
+        margin: 0;
+        color: #1e3a8a;
+        font-weight: 800;
+        font-size: 1.15rem;
+    }
+
+    .ayuda-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .ayuda-close-btn:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .ayuda-modal-body {
+        overflow-y: auto;
+        padding: 1.2rem 1.4rem;
+        flex: 1;
+    }
+
+    .ayuda-section {
+        margin-bottom: 1.4rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .ayuda-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .ayuda-section h5 {
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: 0.97rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ayuda-section p {
+        color: #475569;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .ayuda-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin: 0.5rem 0;
+    }
+
+    .ayuda-table th {
+        background: linear-gradient(90deg, #eff6ff, #eef2ff);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+        border-bottom: 2px solid #dbeafe;
+    }
+
+    .ayuda-table td {
+        padding: 0.4rem 0.7rem;
+        color: #475569;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
+    }
+
+    .ayuda-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .ayuda-tip {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        border-radius: 0 8px 8px 0;
+        padding: 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        color: #1e40af;
+        margin-top: 0.6rem;
+    }
+
+    .ayuda-tip-warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .ayuda-section-faq p {
+        margin-bottom: 0.75rem;
+    }
+
+    .ayuda-modal-footer {
+        padding: 0.85rem 1.4rem;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        background: #f8fafc;
+    }
+
+    .ayuda-btn-cerrar {
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 0.4rem 1.3rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: opacity 0.2s;
+    }
+
+    .ayuda-btn-cerrar:hover {
+        opacity: 0.88;
     }
 </style>
 
@@ -146,6 +504,8 @@
     public bool permitirExportarExcel = false;
     public bool permitirExportarWord = false;
     public bool permitirExportarPDF = false;
+
+    public bool showHelp = false;
 
     List<int> listaBotones = new List<int>();
 
