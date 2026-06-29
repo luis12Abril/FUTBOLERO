@@ -28,10 +28,15 @@
                             <h4 class="mb-1">⚽ Simulador de Programación</h4>
                             <p class="mb-0">Propuesta generada con los equipos del torneo: <strong>@torneoNombre</strong></p>
                         </div>
-                        @if (jornadas.Count > 0)
-                        {
-                            <span class="sim-badge">@listaEquipos.Count equipos &nbsp;·&nbsp; @jornadas.Count jornadas &nbsp;·&nbsp; @totalPartidos partidos</span>
-                        }
+                        <div class="sim-header-right">
+                            @if (jornadas.Count > 0)
+                            {
+                                <span class="sim-badge">@listaEquipos.Count equipos &nbsp;·&nbsp; @jornadas.Count jornadas &nbsp;·&nbsp; @totalPartidos partidos</span>
+                            }
+                            <button class="sim-help-btn" @onclick="() => showHelp = true" title="Ayuda">
+                                <span>?</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- BODY -->
@@ -92,11 +97,101 @@
             </div>
         }
 
-    </Authorized>
-</AuthorizeView>
+            @* ── MODAL DE AYUDA ── *@
+            @if (showHelp)
+            {
+                <div class="ayuda-overlay" @onclick="() => showHelp = false">
+                    <div class="ayuda-modal" @onclick:stopPropagation="true">
 
-<style>
-    .sim-wrapper {
+                        <div class="ayuda-modal-header">
+                            <div>
+                                <span class="ayuda-kicker">Guía de uso</span>
+                                <h4>Simulador de Programación</h4>
+                            </div>
+                            <button class="ayuda-close-btn" @onclick="() => showHelp = false">✕</button>
+                        </div>
+
+                        <div class="ayuda-modal-body">
+
+                            <div class="ayuda-section">
+                                <h5>📋 ¿Qué es esta pantalla?</h5>
+                                <p>
+                                    El <strong>Simulador de Programación</strong> genera automáticamente una propuesta de
+                                    calendario de partidos para el torneo activo, usando el algoritmo <strong>Round-Robin</strong>
+                                    (todos contra todos). Es solo una simulación de referencia para apoyar al administrador
+                                    a la hora de planificar y registrar los juegos semana a semana según las fechas reales del torneo.
+                                </p>
+                                <div class="ayuda-tip">
+                                    ℹ️ <strong>Importante:</strong> Esta programación <em>no se guarda</em> en el sistema ni crea
+                                    juegos automáticamente. Es solo una propuesta visual de apoyo.
+                                </div>
+                            </div>
+
+                            <div class="ayuda-section">
+                                <h5>⚽ ¿Cómo funciona el algoritmo?</h5>
+                                <p>
+                                    El sistema toma todos los equipos del torneo y genera jornadas donde cada equipo juega
+                                    exactamente una vez por fecha, rotando los rivales hasta que todos se hayan enfrentado entre sí.
+                                </p>
+                                <table class="ayuda-table">
+                                    <thead>
+                                        <tr><th>Dato</th><th>Descripción</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Equipos</td><td>Total de equipos participantes en el torneo.</td></tr>
+                                        <tr><td>Jornadas</td><td>Número de fechas necesarias para que todos se enfrenten.</td></tr>
+                                        <tr><td>Partidos</td><td>Total de encuentros en toda la programación.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="ayuda-section">
+                                <h5>😴 ¿Qué significa “DESCANSA”?</h5>
+                                <p>
+                                    Cuando el número total de equipos es <strong>impar</strong>, en cada jornada un equipo
+                                    diferente queda sin rival. Ese equipo aparece al final de la tarjeta con la etiqueta:
+                                </p>
+                                <div class="ayuda-tip ayuda-tip-warning">
+                                    😴 <strong>DESCANSA: NOMBRE DEL EQUIPO</strong> — este equipo no juega en esa jornada.
+                                    El equipo que descansa rota automáticamente en cada fecha para ser justo con todos.
+                                </div>
+                            </div>
+
+                            <div class="ayuda-section">
+                                <h5>📄 Exportar a Word</h5>
+                                <p>
+                                    El botón <strong>Descargar como Word</strong> genera un documento <em>.doc</em> con
+                                    toda la programación: nombre del torneo, total de equipos, jornadas, partidos y
+                                    — si aplica — el equipo que descansa en cada jornada.
+                                    Útil para imprimir o compartir la propuesta con los participantes.
+                                </p>
+                            </div>
+
+                            <div class="ayuda-section ayuda-section-faq">
+                                <h5>❓ Preguntas frecuentes</h5>
+                                <p><strong>¿Por qué no aparece ninguna jornada?</strong><br />
+                                Se necesitan al menos <strong>2 equipos</strong> registrados en el torneo para generar la simulación.</p>
+                                <p><strong>¿Puedo modificar la programación generada?</strong><br />
+                                No desde aquí. Esta pantalla solo muestra la propuesta. Los juegos reales se registran en el módulo de <strong>Juegos</strong>.</p>
+                                <p><strong>¿La programación cambia si agrego más equipos?</strong><br />
+                                Sí. Al recargar la página se recalcula automáticamente con todos los equipos actuales del torneo.</p>
+                            </div>
+
+                        </div>
+
+                        <div class="ayuda-modal-footer">
+                            <button class="btn ayuda-btn-cerrar" @onclick="() => showHelp = false">Cerrar guía</button>
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+        </Authorized>
+    </AuthorizeView>
+
+    <style>
+        .sim-wrapper {
         padding: 1.25rem 0;
         background: linear-gradient(135deg, #f8fafc 0%, #eef6f5 100%);
         border-radius: 1.25rem;
@@ -260,6 +355,213 @@
         border-radius: 0.65rem;
         padding: 0.5rem 1rem;
     }
+
+    .sim-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .sim-help-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: background 0.2s, color 0.2s, transform 0.15s;
+        line-height: 1;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
+        .sim-help-btn:hover {
+            background: rgba(255, 255, 255, 0.92);
+            color: #42a890;
+            transform: scale(1.1);
+        }
+
+    /* ── MODAL DE AYUDA ── */
+    .ayuda-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .ayuda-modal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 680px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(30, 64, 175, 0.18);
+        overflow: hidden;
+    }
+
+    .ayuda-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.1rem 1.4rem 0.9rem;
+        background: linear-gradient(135deg, #edf9f7 0%, #d6f0eb 100%);
+        border-bottom: 1px solid #c5e9e3;
+    }
+
+    .ayuda-kicker {
+        display: block;
+        color: #2d7a6a;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 0.15rem;
+    }
+
+    .ayuda-modal-header h4 {
+        margin: 0;
+        color: #1a4a3e;
+        font-weight: 800;
+        font-size: 1.15rem;
+    }
+
+    .ayuda-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+
+        .ayuda-close-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+    .ayuda-modal-body {
+        overflow-y: auto;
+        padding: 1.2rem 1.4rem;
+        flex: 1;
+    }
+
+    .ayuda-section {
+        margin-bottom: 1.4rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .ayuda-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+    .ayuda-section h5 {
+        color: #1a4a3e;
+        font-weight: 700;
+        font-size: 0.97rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ayuda-section p {
+        color: #475569;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .ayuda-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin: 0.5rem 0;
+    }
+
+    .ayuda-table th {
+        background: linear-gradient(90deg, #edf9f7, #d6f0eb);
+        color: #1a4a3e;
+        font-weight: 700;
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+        border-bottom: 2px solid #c5e9e3;
+    }
+
+    .ayuda-table td {
+        padding: 0.4rem 0.7rem;
+        color: #475569;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
+    }
+
+        .ayuda-table tr:last-child td {
+            border-bottom: none;
+        }
+
+    .ayuda-tip {
+        background: #edf9f7;
+        border-left: 3px solid #42a890;
+        border-radius: 0 8px 8px 0;
+        padding: 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        color: #1a4a3e;
+        margin-top: 0.6rem;
+    }
+
+    .ayuda-tip-warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .ayuda-section-faq p {
+        margin-bottom: 0.75rem;
+    }
+
+    .ayuda-modal-footer {
+        padding: 0.85rem 1.4rem;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        background: #f8fafc;
+    }
+
+    .ayuda-btn-cerrar {
+        background: linear-gradient(90deg, #42a890 0%, #2d7a6a 100%);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 0.4rem 1.3rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(66, 168, 144, 0.3);
+        transition: opacity 0.2s;
+    }
+
+        .ayuda-btn-cerrar:hover {
+            opacity: 0.88;
+        }
 </style>
 
 @code {
@@ -284,6 +586,7 @@
     private bool cargando = true;
     private string torneoNombre = "";
     private int totalPartidos = 0;
+    private bool showHelp = false;
 
     [CascadingParameter]
     private Task<AuthenticationState> auth { get; set; }
@@ -366,6 +669,7 @@
         sb.AppendLine(".local { text-align: right; font-weight: bold; width: 45%; }");
         sb.AppendLine(".vs { text-align: center; color: #42a890; font-weight: bold; width: 10%; }");
         sb.AppendLine(".visit { text-align: left; font-weight: bold; width: 45%; }");
+        sb.AppendLine(".descansa { background-color: #fff8e1; border: 1px dashed #c8a200; padding: 3px 10px; font-size: 9pt; color: #7a5800; font-weight: bold; margin-top: 4pt; display: inline-block; }");
         sb.AppendLine("</style></head><body>");
 
         sb.AppendLine($"<h1>&#9917; Programaci&oacute;n del Torneo: {torneoNombre}</h1>");
@@ -381,6 +685,8 @@
                 sb.AppendLine($"<tr><td class='local'>{partido.Local}</td><td class='vs'>VS</td><td class='visit'>{partido.Visitante}</td></tr>");
             }
             sb.AppendLine("</table>");
+            if (!string.IsNullOrEmpty(jornada.EquipoDescansa))
+                sb.AppendLine($"<p class='descansa'>&#128564; DESCANSA: {jornada.EquipoDescansa}</p>");
         }
 
         sb.AppendLine("<p><em>Nota: Esta es solo una propuesta. El administrador registrar&aacute; los juegos semana a semana seg&uacute;n las fechas reales.</em></p>");
