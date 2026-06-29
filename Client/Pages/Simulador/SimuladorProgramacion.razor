@@ -62,6 +62,12 @@
                                                     <span class="equipo-visitante">@partido.Visitante</span>
                                                 </div>
                                             }
+                                            @if (!string.IsNullOrEmpty(jornada.EquipoDescansa))
+                                            {
+                                                <div class="descansa-fila">
+                                                    😴 DESCANSA: <strong>@jornada.EquipoDescansa</strong>
+                                                </div>
+                                            }
                                         </div>
                                     </div>
                                 }
@@ -174,6 +180,18 @@
             border-bottom: none;
         }
 
+    .descansa-fila {
+        text-align: center;
+        background: #fff8e1;
+        border: 1px dashed #f6c026;
+        border-radius: 0.45rem;
+        padding: 0.28rem 0.6rem;
+        font-size: 0.82rem;
+        color: #856404;
+        margin-top: 0.35rem;
+        font-weight: 600;
+    }
+
     .equipo-local {
         font-weight: 600;
         color: #2f3e46;
@@ -251,6 +269,7 @@
     {
         public int Numero { get; set; }
         public List<Partido> Partidos { get; set; } = new List<Partido>();
+        public string EquipoDescansa { get; set; } = "";
     }
 
     public class Partido
@@ -312,7 +331,11 @@
                 string local = lista[i];
                 string visitante = lista[n - 1 - i];
 
-                if (local != "DESCANSA" && visitante != "DESCANSA")
+                if (local == "DESCANSA")
+                    jornada.EquipoDescansa = visitante;
+                else if (visitante == "DESCANSA")
+                    jornada.EquipoDescansa = local;
+                else
                     jornada.Partidos.Add(new Partido { Local = local, Visitante = visitante });
             }
 

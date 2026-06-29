@@ -11,22 +11,30 @@
 </div>
 
 <div class="main">
-    <div class="top-row px-4 bg-secondary">
+    <div class="top-header-bar">
         <AuthorizeView>
             <Authorized>
-                <div class="d-flex justify-content-between align-middle col-xl-12" style=" vertical-align: middle;">
-                    <p style="font-size:20px; color:white; font-weight:bold; align-items:center;">@context.User.FindFirst(ClaimTypes.Role)?.Value</p>
-                    <button class="btn btn-danger" @onclick="CerrarSesion">Cerrar Sesión</button>
+                <div class="header-inner">
+                    <div class="header-torneo">
+                        <span class="header-icon">⚽</span>
+                        <span class="header-nombre">@context.User.FindFirst(ClaimTypes.Role)?.Value</span>
+                    </div>
+                    <button class="btn-cerrar-sesion" @onclick="CerrarSesion">
+                        🚪 Cerrar Sesión
+                    </button>
                 </div>
-
             </Authorized>
             <NotAuthorized>
-                <div style="display:flex; justify-content:space-between;">
-                    <p></p>
-                    <button class="btn btn-primary" @onclick="IniciarSesion">Iniciar Sesión</button>
+                <div class="header-inner">
+                    <div class="header-torneo">
+                        <span class="header-icon">⚽</span>
+                        <span class="header-nombre">Bienvenido</span>
+                    </div>
+                    <button class="btn-iniciar-sesion" @onclick="IniciarSesion">
+                        Iniciar Sesión
+                    </button>
                 </div>
             </NotAuthorized>
-
         </AuthorizeView>
     </div>
     <div class="content px-4">
@@ -36,6 +44,79 @@
     </div>
 
 </div>
+
+<style>
+    .top-header-bar {
+        background: linear-gradient(90deg, #0f2b27 0%, #1a4a3e 35%, #2d7a6a 75%, #42a890 100%);
+        padding: 0.6rem 1.6rem;
+        box-shadow: 0 3px 14px rgba(0, 0, 0, 0.28);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .header-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-torneo {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .header-icon {
+        font-size: 1.45rem;
+        filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+        line-height: 1;
+    }
+
+    .header-nombre {
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        text-shadow: 0 1px 5px rgba(0, 0, 0, 0.35);
+    }
+
+    .btn-cerrar-sesion {
+        background: linear-gradient(135deg, #b83232 0%, #e05252 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.6rem;
+        padding: 0.42rem 1.15rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(200, 50, 50, 0.4);
+        transition: opacity 0.2s, transform 0.15s;
+        letter-spacing: 0.3px;
+    }
+
+        .btn-cerrar-sesion:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+
+    .btn-iniciar-sesion {
+        background: linear-gradient(135deg, #2b6cb0 0%, #3182ce 100%);
+        border: none;
+        color: #fff;
+        border-radius: 0.6rem;
+        padding: 0.42rem 1.15rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(49, 130, 206, 0.4);
+        transition: opacity 0.2s, transform 0.15s;
+    }
+
+        .btn-iniciar-sesion:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+</style>
 
 @code{
 
