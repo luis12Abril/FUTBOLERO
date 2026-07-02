@@ -17,8 +17,13 @@
                     <h3>Goleadores</h3>
                     <span>Consulta y filtra la tabla de goleadores del torneo.</span>
                 </div>
-                <div class="catalogo-badge">
-                    <span>Catálogo</span>
+                <div class="catalogo-header-right">
+                    <div class="catalogo-badge">
+                        <span>Catálogo</span>
+                    </div>
+                    <button class="catalogo-help-btn" @onclick="() => showHelp = true" title="Ayuda">
+                        <span>?</span>
+                    </button>
                 </div>
             </div>
 
@@ -45,6 +50,174 @@
                 </div>
             }
         </section>
+
+        @* ── MODAL DE AYUDA ── *@
+        @if (showHelp)
+        {
+            <div class="ayuda-overlay" @onclick="() => showHelp = false">
+                <div class="ayuda-modal" @onclick:stopPropagation="true">
+
+                    <div class="ayuda-modal-header">
+                        <div>
+                            <span class="ayuda-kicker">Guía de uso</span>
+                            <h4>⚽ Tabla de Goleadores</h4>
+                        </div>
+                        <button class="ayuda-close-btn" @onclick="() => showHelp = false">✕</button>
+                    </div>
+
+                    <div class="ayuda-modal-body">
+
+                        <div class="ayuda-section">
+                            <h5>⚽ ¿Qué es esta pantalla?</h5>
+                            <p>
+                                La <strong>Tabla de Goleadores</strong> muestra el ranking de jugadores
+                                ordenados de mayor a menor según la cantidad de goles anotados en el
+                                torneo activo. Es una de las estadísticas más consultadas por equipos,
+                                jugadores y aficionados, ya que refleja el desempeño ofensivo individual
+                                a lo largo de la competencia.
+                            </p>
+                            <div class="ayuda-tip">
+                                📌 Esta pantalla es de <strong>solo consulta</strong>. Los goles se
+                                registran automáticamente al capturar el resultado de cada juego en el
+                                módulo <em>Juegos</em>.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>✅ ¿Cuándo cuenta un gol para la tabla de goleadores?</h5>
+                            <p>
+                                <strong>No todos los goles de todos los partidos se suman a la tabla.</strong>
+                                Para que los goles de un partido sean contabilizados, el administrador
+                                debe activar la opción <strong>"Cuenta para los GOLES"</strong> al
+                                registrar o editar ese juego en el módulo <em>Juegos</em>.
+                            </p>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Opción en el juego</th><th>Efecto en la tabla de goleadores</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>✅ <strong>"Cuenta para los GOLES"</strong> activada</td>
+                                        <td>Los goles de ese partido <strong>sí suman</strong> al marcador individual de cada goleador.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>❌ <strong>"Cuenta para los GOLES"</strong> desactivada</td>
+                                        <td>Los goles de ese partido <strong>no se toman en cuenta</strong> para la tabla de goleadores, aunque sí puedan contar para puntos.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="ayuda-tip ayuda-tip-warning">
+                                ⚠️ Si un jugador anotó goles en un partido pero no aparece en el listado
+                                o su conteo es menor al esperado, verifica que el juego tenga activada
+                                la opción <em>"Cuenta para los GOLES"</em> en el módulo <em>Juegos</em>.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🏆 ¿Qué juegos se incluyen en el conteo?</h5>
+                            <p>
+                                El alcance de la tabla de goleadores depende de cómo el administrador
+                                configure cada juego. Existen dos enfoques comunes según el torneo:
+                            </p>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Modalidad</th><th>¿Qué juegos cuentan?</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>📅 <strong>Solo fase regular</strong></td>
+                                        <td>Únicamente los juegos de la fase regular (jornadas normales). Los partidos de liguilla o finales <strong>no se activan</strong> con "Cuenta para los GOLES".</td>
+                                    </tr>
+                                    <tr>
+                                        <td>🥇 <strong>Todos los juegos</strong></td>
+                                        <td>Se activa la opción en todos los partidos, incluyendo semifinales, finales y liguilla. El goleador refleja el torneo completo.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="ayuda-tip">
+                                💡 El administrador decide qué partidos cuentan para la tabla. Consulta
+                                con él si tienes dudas sobre qué fase está incluida en el conteo actual.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>📋 Columnas del listado</h5>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Columna</th><th>Descripción</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>NOMBRE</strong></td>
+                                        <td>Nombre completo del jugador goleador.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>EQUIPO</strong></td>
+                                        <td>Equipo al que pertenece el jugador en el torneo.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>GOLES</strong></td>
+                                        <td>Total de goles anotados en los partidos donde la opción <em>"Cuenta para los GOLES"</em> está activa.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🔍 Filtrar por equipo</h5>
+                            <p>
+                                Usa el <strong>selector de equipo</strong> para ver únicamente los
+                                goleadores de un plantel específico. Ideal para conocer el desempeño
+                                ofensivo de un equipo en particular o para que el capitán consulte
+                                a sus propios jugadores.
+                            </p>
+                            <p>
+                                Selecciona la opción vacía del selector para regresar al listado
+                                completo de todos los equipos.
+                            </p>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>📤 Exportar el listado</h5>
+                            <p>
+                                Si tienes permiso, puedes exportar la tabla de goleadores en
+                                <strong>Excel</strong>, <strong>Word</strong> y <strong>PDF</strong>.
+                                Útil para publicarla en redes sociales de la liga, grupos de WhatsApp
+                                o imprimirla para colocarla en las instalaciones del torneo.
+                            </p>
+                        </div>
+
+                        <div class="ayuda-section ayuda-section-faq">
+                            <h5>❓ Preguntas frecuentes</h5>
+                            <p><strong>¿Por qué no aparece ningún goleador?</strong><br />
+                            Puede que ningún juego tenga activada la opción <em>"Cuenta para los GOLES"</em>,
+                            o que aún no se hayan registrado goles individuales en los partidos del
+                            módulo <em>Juegos</em>.</p>
+                            <p><strong>¿Por qué un jugador tiene menos goles de los esperados?</strong><br />
+                            Alguno de sus partidos puede tener desactivada la opción <em>"Cuenta para los GOLES"</em>.
+                            Verifica cada juego en el módulo <em>Juegos</em>.</p>
+                            <p><strong>¿Los goles de liguilla o finales cuentan?</strong><br />
+                            Depende de la configuración del torneo. Si el administrador activó
+                            <em>"Cuenta para los GOLES"</em> en esos partidos, sí cuentan.
+                            De lo contrario, no se incluyen en el total.</p>
+                            <p><strong>¿Puedo ver goleadores de torneos anteriores?</strong><br />
+                            No. El listado corresponde únicamente al torneo activo. Para consultar
+                            torneos anteriores debes seleccionarlos desde la pantalla de selección.</p>
+                            <p><strong>¿Cuándo se actualiza la tabla?</strong><br />
+                            Cada vez que entras a esta pantalla o cambias el filtro de equipo,
+                            los datos se consultan en tiempo real desde la base de datos.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="ayuda-modal-footer">
+                        <button class="btn ayuda-btn-cerrar" @onclick="() => showHelp = false">Cerrar guía</button>
+                    </div>
+
+                </div>
+            </div>
+        }
+
     </Authorized>
 </AuthorizeView>
 
@@ -86,6 +259,12 @@
         font-size: 0.93rem;
     }
 
+    .catalogo-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
     .catalogo-badge span {
         display: inline-block;
         background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
@@ -95,6 +274,31 @@
         font-size: 0.78rem;
         font-weight: 700;
         box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+    }
+
+    .catalogo-help-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid #2563eb;
+        background: #fff;
+        color: #2563eb;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.18);
+        transition: background 0.2s, color 0.2s, transform 0.15s;
+        line-height: 1;
+        padding: 0;
+    }
+
+    .catalogo-help-btn:hover {
+        background: #2563eb;
+        color: #fff;
+        transform: scale(1.1);
     }
 
     .catalogo-list-card {
@@ -119,6 +323,188 @@
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .catalogo-header-right {
+            align-self: flex-end;
+        }
+
+        .ayuda-modal {
+            max-height: 92vh;
+        }
+    }
+
+    /* ── MODAL DE AYUDA ── */
+    .ayuda-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .ayuda-modal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 700px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(30, 64, 175, 0.18);
+        overflow: hidden;
+    }
+
+    .ayuda-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.1rem 1.4rem 0.9rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+        border-bottom: 1px solid #dbeafe;
+    }
+
+    .ayuda-kicker {
+        display: block;
+        color: #2563eb;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 0.15rem;
+    }
+
+    .ayuda-modal-header h4 {
+        margin: 0;
+        color: #1e3a8a;
+        font-weight: 800;
+        font-size: 1.15rem;
+    }
+
+    .ayuda-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .ayuda-close-btn:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .ayuda-modal-body {
+        overflow-y: auto;
+        padding: 1.2rem 1.4rem;
+        flex: 1;
+    }
+
+    .ayuda-section {
+        margin-bottom: 1.4rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .ayuda-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .ayuda-section h5 {
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: 0.97rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ayuda-section p {
+        color: #475569;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .ayuda-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin: 0.5rem 0;
+    }
+
+    .ayuda-table th {
+        background: linear-gradient(90deg, #eff6ff, #eef2ff);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+        border-bottom: 2px solid #dbeafe;
+    }
+
+    .ayuda-table td {
+        padding: 0.4rem 0.7rem;
+        color: #475569;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
+    }
+
+    .ayuda-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .ayuda-tip {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        border-radius: 0 8px 8px 0;
+        padding: 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        color: #1e40af;
+        margin-top: 0.6rem;
+    }
+
+    .ayuda-tip-warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .ayuda-section-faq p {
+        margin-bottom: 0.75rem;
+    }
+
+    .ayuda-modal-footer {
+        padding: 0.85rem 1.4rem;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        background: #f8fafc;
+    }
+
+    .ayuda-btn-cerrar {
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 0.4rem 1.3rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: opacity 0.2s;
+    }
+
+    .ayuda-btn-cerrar:hover {
+        opacity: 0.88;
     }
 </style>
 
@@ -157,6 +543,8 @@
     public bool permitirExportarExcel = false;
     public bool permitirExportarWord = false;
     public bool permitirExportarPDF = false;
+
+    public bool showHelp = false;
 
     List<int> listaBotones = new List<int>();
 

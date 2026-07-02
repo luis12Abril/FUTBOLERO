@@ -17,8 +17,13 @@
                     <h3>Próximos Cumpleañeros</h3>
                     <span>Consulta los próximos cumpleaños de los jugadores registrados.</span>
                 </div>
-                <div class="catalogo-badge">
-                    <span>Catálogo</span>
+                <div class="catalogo-header-right">
+                    <div class="catalogo-badge">
+                        <span>Catálogo</span>
+                    </div>
+                    <button class="catalogo-help-btn" @onclick="() => showHelp = true" title="Ayuda">
+                        <span>?</span>
+                    </button>
                 </div>
             </div>
 
@@ -45,6 +50,158 @@
                 </div>
             }
         </section>
+
+        @* ── MODAL DE AYUDA ── *@
+        @if (showHelp)
+        {
+            <div class="ayuda-overlay" @onclick="() => showHelp = false">
+                <div class="ayuda-modal" @onclick:stopPropagation="true">
+
+                    <div class="ayuda-modal-header">
+                        <div>
+                            <span class="ayuda-kicker">Guía de uso</span>
+                            <h4>🎂 Próximos Cumpleañeros</h4>
+                        </div>
+                        <button class="ayuda-close-btn" @onclick="() => showHelp = false">✕</button>
+                    </div>
+
+                    <div class="ayuda-modal-body">
+
+                        <div class="ayuda-section">
+                            <h5>🎉 ¿Qué es esta pantalla?</h5>
+                            <p>
+                                La pantalla <strong>Próximos Cumpleañeros</strong> muestra los jugadores
+                                del torneo cuyo cumpleaños se aproxima, ordenados por fecha. Es una
+                                herramienta de <strong>seguimiento y atención personalizada</strong>
+                                hacia los participantes del torneo.
+                            </p>
+                            <div class="ayuda-tip">
+                                🎈 Esta pantalla es de <strong>solo consulta</strong>. Los datos se
+                                calculan automáticamente a partir de las fechas de nacimiento capturadas
+                                en el módulo de <em>Jugadores</em>.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🌟 ¿Por qué es importante esta información?</h5>
+                            <p>
+                                Conocer los próximos cumpleaños de los jugadores va más allá de un
+                                simple dato — es una oportunidad para <strong>fortalecer el vínculo
+                                entre la liga y sus participantes</strong>:
+                            </p>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Acción</th><th>Impacto</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>🎊 Felicitar al jugador el día de su cumpleaños</td>
+                                        <td>Genera sentido de pertenencia y lealtad hacia el torneo.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>📱 Compartir en redes sociales del torneo</td>
+                                        <td>Aumenta la visibilidad e interacción en las redes de la liga.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>🏅 Reconocimiento especial en la jornada</td>
+                                        <td>El jugador se siente valorado y el equipo lo celebra en cancha.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>📊 Verificar edad para categoría</td>
+                                        <td>Detectar si un jugador cumple años antes del inicio del torneo y cambia de categoría.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="ayuda-tip ayuda-tip-success">
+                                💡 <strong>Consejo:</strong> Revisa esta pantalla antes de cada jornada
+                                y aprovecha para mencionar los cumpleañeros de la semana durante
+                                los partidos o en los grupos de WhatsApp de los equipos.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>📋 Columnas del listado</h5>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Columna</th><th>Descripción</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>JUGADOR</strong></td>
+                                        <td>Nombre completo del jugador que está próximo a cumplir años.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>EQUIPO</strong></td>
+                                        <td>Equipo al que pertenece el jugador dentro del torneo.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>F. NACIMIENTO</strong></td>
+                                        <td>Fecha de nacimiento registrada en el sistema.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>SU CUMPLEAÑOS</strong></td>
+                                        <td>Fecha en que el jugador cumplirá años este ciclo (día y mes).</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>CUMPLE</strong></td>
+                                        <td>Edad que cumplirá el jugador en su próximo cumpleaños.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🔍 Filtrar por equipo</h5>
+                            <p>
+                                Usa el <strong>selector de equipo</strong> para ver únicamente los
+                                jugadores de un plantel específico que estén próximos a cumplir años.
+                                Ideal para que el capitán del equipo pueda identificar rápidamente
+                                a sus jugadores cumpleañeros.
+                            </p>
+                            <p>
+                                Selecciona la opción vacía del selector para regresar al listado
+                                completo de todos los equipos del torneo.
+                            </p>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>📤 Exportar el listado</h5>
+                            <p>
+                                Si tienes permiso, puedes exportar la lista de próximos cumpleañeros
+                                en <strong>Excel</strong>, <strong>Word</strong> y <strong>PDF</strong>.
+                                Úsalo para compartirlo con los coordinadores de cada equipo o
+                                publicarlo en los canales oficiales de la liga.
+                            </p>
+                        </div>
+
+                        <div class="ayuda-section ayuda-section-faq">
+                            <h5>❓ Preguntas frecuentes</h5>
+                            <p><strong>¿Por qué no aparece ningún jugador?</strong><br />
+                            Puede deberse a que los jugadores no tienen fecha de nacimiento capturada,
+                            o a que no hay cumpleaños próximos en el período que muestra el sistema.
+                            Verifica que las fechas estén registradas en el módulo de <em>Jugadores</em>.</p>
+                            <p><strong>¿Cuántos días de anticipación muestra el sistema?</strong><br />
+                            El sistema muestra los jugadores cuyos cumpleaños están próximos según
+                            la configuración del torneo. Consulta con el administrador si necesitas
+                            ampliar o reducir el rango de días.</p>
+                            <p><strong>¿Puedo ver cumpleañeros de otros torneos?</strong><br />
+                            No. El listado corresponde únicamente al torneo activo seleccionado
+                            al iniciar sesión. Para cambiar de torneo regresa a la pantalla de selección.</p>
+                            <p><strong>¿Qué pasa si un jugador no tiene fecha de nacimiento?</strong><br />
+                            No aparecerá en este listado. Para corregirlo, edita el jugador desde
+                            el módulo <em>Jugadores</em> y agrega su fecha de nacimiento.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="ayuda-modal-footer">
+                        <button class="btn ayuda-btn-cerrar" @onclick="() => showHelp = false">Cerrar guía</button>
+                    </div>
+
+                </div>
+            </div>
+        }
+
     </Authorized>
 </AuthorizeView>
 
@@ -86,6 +243,12 @@
         font-size: 0.93rem;
     }
 
+    .catalogo-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
     .catalogo-badge span {
         display: inline-block;
         background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
@@ -95,6 +258,31 @@
         font-size: 0.78rem;
         font-weight: 700;
         box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+    }
+
+    .catalogo-help-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid #2563eb;
+        background: #fff;
+        color: #2563eb;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.18);
+        transition: background 0.2s, color 0.2s, transform 0.15s;
+        line-height: 1;
+        padding: 0;
+    }
+
+    .catalogo-help-btn:hover {
+        background: #2563eb;
+        color: #fff;
+        transform: scale(1.1);
     }
 
     .catalogo-list-card {
@@ -119,6 +307,194 @@
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .catalogo-header-right {
+            align-self: flex-end;
+        }
+
+        .ayuda-modal {
+            max-height: 92vh;
+        }
+    }
+
+    /* ── MODAL DE AYUDA ── */
+    .ayuda-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .ayuda-modal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 700px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(30, 64, 175, 0.18);
+        overflow: hidden;
+    }
+
+    .ayuda-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.1rem 1.4rem 0.9rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+        border-bottom: 1px solid #dbeafe;
+    }
+
+    .ayuda-kicker {
+        display: block;
+        color: #2563eb;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 0.15rem;
+    }
+
+    .ayuda-modal-header h4 {
+        margin: 0;
+        color: #1e3a8a;
+        font-weight: 800;
+        font-size: 1.15rem;
+    }
+
+    .ayuda-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .ayuda-close-btn:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .ayuda-modal-body {
+        overflow-y: auto;
+        padding: 1.2rem 1.4rem;
+        flex: 1;
+    }
+
+    .ayuda-section {
+        margin-bottom: 1.4rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .ayuda-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .ayuda-section h5 {
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: 0.97rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ayuda-section p {
+        color: #475569;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .ayuda-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin: 0.5rem 0;
+    }
+
+    .ayuda-table th {
+        background: linear-gradient(90deg, #eff6ff, #eef2ff);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+        border-bottom: 2px solid #dbeafe;
+    }
+
+    .ayuda-table td {
+        padding: 0.4rem 0.7rem;
+        color: #475569;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
+    }
+
+    .ayuda-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .ayuda-tip {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        border-radius: 0 8px 8px 0;
+        padding: 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        color: #1e40af;
+        margin-top: 0.6rem;
+    }
+
+    .ayuda-tip-warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .ayuda-tip-success {
+        background: #f0fdf4;
+        border-left-color: #22c55e;
+        color: #166534;
+    }
+
+    .ayuda-section-faq p {
+        margin-bottom: 0.75rem;
+    }
+
+    .ayuda-modal-footer {
+        padding: 0.85rem 1.4rem;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        background: #f8fafc;
+    }
+
+    .ayuda-btn-cerrar {
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 0.4rem 1.3rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: opacity 0.2s;
+    }
+
+    .ayuda-btn-cerrar:hover {
+        opacity: 0.88;
     }
 </style>
 
@@ -143,6 +519,8 @@
     public bool permitirExportarExcel = false;
     public bool permitirExportarWord = false;
     public bool permitirExportarPDF = false;
+
+    public bool showHelp = false;
 
     List<int> listaBotones = new List<int>();
 

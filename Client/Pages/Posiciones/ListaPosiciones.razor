@@ -18,8 +18,13 @@
                     <h3>Tabla de Posiciones</h3>
                     <span>Consulta el rendimiento de los equipos del torneo seleccionado.</span>
                 </div>
-                <div class="catalogo-badge">
-                    <span>Catálogo</span>
+                <div class="catalogo-header-right">
+                    <div class="catalogo-badge">
+                        <span>Catálogo</span>
+                    </div>
+                    <button class="catalogo-help-btn" @onclick="() => showHelp = true" title="Ayuda">
+                        <span>?</span>
+                    </button>
                 </div>
             </div>
 
@@ -58,6 +63,159 @@
                 </div>
             }
         </section>
+
+        @* ── MODAL DE AYUDA ── *@
+        @if (showHelp)
+        {
+            <div class="ayuda-overlay" @onclick="() => showHelp = false">
+                <div class="ayuda-modal" @onclick:stopPropagation="true">
+
+                    <div class="ayuda-modal-header">
+                        <div>
+                            <span class="ayuda-kicker">Guía de uso</span>
+                            <h4>Tabla de Posiciones</h4>
+                        </div>
+                        <button class="ayuda-close-btn" @onclick="() => showHelp = false">✕</button>
+                    </div>
+
+                    <div class="ayuda-modal-body">
+
+                        <div class="ayuda-section">
+                            <h5>🏆 ¿Qué es esta pantalla?</h5>
+                            <p>
+                                La <strong>Tabla de Posiciones</strong> muestra el rendimiento acumulado
+                                de todos los equipos del torneo activo. Los equipos se ordenan
+                                automáticamente de mayor a menor según sus puntos totales.
+                                Es la pantalla de referencia para conocer en tiempo real quién va
+                                en primer lugar y cómo está la lucha por el campeonato.
+                            </p>
+                            <div class="ayuda-tip">
+                                📌 Esta pantalla es de <strong>solo consulta</strong>. Los datos se
+                                actualizan cada vez que se registra o edita el resultado de un juego
+                                en el módulo <em>Juegos</em>.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>📊 Significado de cada columna</h5>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Columna</th><th>Significado</th><th>Descripción</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><strong>EQUIPO</strong></td><td>Equipo</td><td>Nombre del equipo participante.</td></tr>
+                                    <tr><td><strong>JJ</strong></td><td>Juegos Jugados</td><td>Total de partidos disputados hasta el momento.</td></tr>
+                                    <tr><td><strong>JG</strong></td><td>Juegos Ganados</td><td>Partidos en los que el equipo obtuvo la victoria.</td></tr>
+                                    <tr><td><strong>JE</strong></td><td>Juegos Empatados</td><td>Partidos que terminaron en empate (sin tiros de penaltis).</td></tr>
+                                    <tr><td><strong>JEGP</strong></td><td>Juegos Empatados Ganados en Penaltis</td><td>Partidos que empataron en el marcador y se definieron en tanda de penaltis. El ganador recibe 2 pts y el perdedor 1 pt.</td></tr>
+                                    <tr><td><strong>JP</strong></td><td>Juegos Perdidos</td><td>Partidos en los que el equipo fue derrotado.</td></tr>
+                                    <tr><td><strong>GF</strong></td><td>Goles a Favor</td><td>Total de goles anotados por el equipo en todos sus partidos.</td></tr>
+                                    <tr><td><strong>GC</strong></td><td>Goles en Contra</td><td>Total de goles recibidos por el equipo.</td></tr>
+                                    <tr><td><strong>DG</strong></td><td>Diferencia de Goles</td><td>Resultado de restar GC a GF. Sirve como criterio de desempate.</td></tr>
+                                    <tr><td><strong>PE</strong></td><td>Puntos Extras</td><td>Puntos adicionales otorgados por disciplina, juego limpio, penaltis finales u otros criterios del torneo.</td></tr>
+                                    <tr><td><strong>PTOS</strong></td><td>Puntos Totales</td><td>Suma de todos los puntos obtenidos por resultados más los puntos extras.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🎯 ¿Cómo se calculan los puntos?</h5>
+                            <p>El sistema asigna puntos según el resultado de cada partido:</p>
+                            <table class="ayuda-table">
+                                <thead>
+                                    <tr><th>Resultado</th><th>Puntos que recibe</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>✅ Victoria (gana el partido)</td><td><strong>3 puntos</strong></td></tr>
+                                    <tr><td>🤝 Empate regular (sin penaltis)</td><td><strong>1 punto</strong> para cada equipo</td></tr>
+                                    <tr><td>⚽ Empate + gana en penaltis</td><td><strong>2 puntos</strong> al ganador en penaltis</td></tr>
+                                    <tr><td>⚽ Empate + pierde en penaltis</td><td><strong>1 punto</strong> al perdedor en penaltis</td></tr>
+                                    <tr><td>❌ Derrota</td><td><strong>0 puntos</strong></td></tr>
+                                    <tr><td>🌟 Puntos extras (PE)</td><td>Según criterio del torneo: disciplina, juego limpio, etc.</td></tr>
+                                </tbody>
+                            </table>
+                            <div class="ayuda-tip">
+                                💡 La columna <strong>PTOS</strong> ya incluye los puntos extras (PE).
+                                Si un equipo tiene PE = 2 y ganó 2 partidos, sus PTOS serán 6 + 2 = 8.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>⚽ ¿Qué son los penaltis de desempate (JEGP)?</h5>
+                            <p>
+                                Algunos torneos aplican la regla de que cuando un partido termina empatado,
+                                <strong>se tira una tanda de penaltis al finalizar</strong> para determinar
+                                un ganador extra. En este sistema:
+                            </p>
+                            <ul class="ayuda-ul">
+                                <li>El equipo que <strong>gana</strong> los penaltis recibe <strong>2 puntos</strong> en total (1 por el empate + 1 extra).</li>
+                                <li>El equipo que <strong>pierde</strong> los penaltis recibe <strong>1 punto</strong> (solo por el empate).</li>
+                                <li>Estos partidos se cuentan en la columna <strong>JEGP</strong>.</li>
+                            </ul>
+                            <div class="ayuda-tip ayuda-tip-warning">
+                                ⚠️ Esta modalidad se configura en el formulario del juego mediante las opciones
+                                <em>Cuenta para los PUNTOS</em> y el resultado de penaltis. No todos los torneos
+                                la utilizan.
+                            </div>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>🌟 ¿Qué son los Puntos Extras (PE)?</h5>
+                            <p>
+                                Los puntos extras son puntos adicionales que el administrador del torneo
+                                puede asignar a un equipo por criterios fuera del resultado del partido:
+                            </p>
+                            <ul class="ayuda-ul">
+                                <li><strong>Disciplina:</strong> equipo sin tarjetas rojas ni sanciones.</li>
+                                <li><strong>Juego limpio:</strong> reconocimiento al fair play.</li>
+                                <li><strong>Penaltis finales:</strong> si el torneo premia con un punto extra al ganador de una tanda al final del juego, independientemente del marcador.</li>
+                                <li><strong>Otros criterios</strong> definidos por la organización del torneo.</li>
+                            </ul>
+                            <p>
+                                Los PE se registran directamente en el módulo <strong>Juegos</strong>
+                                al capturar el resultado de cada partido.
+                            </p>
+                        </div>
+
+                        <div class="ayuda-section">
+                            <h5>📤 Exportar la tabla</h5>
+                            <p>
+                                Si tienes permiso, puedes exportar la tabla de posiciones completa en
+                                <strong>Excel</strong>, <strong>Word</strong> y <strong>PDF</strong>
+                                usando los botones que aparecen encima de la tabla.
+                                Útil para publicarla en redes sociales, grupos de WhatsApp o
+                                imprimir y colocarla en las instalaciones del torneo.
+                            </p>
+                        </div>
+
+                        <div class="ayuda-section ayuda-section-faq">
+                            <h5>❓ Preguntas frecuentes</h5>
+                            <p><strong>¿Por qué la tabla no muestra ningún equipo?</strong><br />
+                            Puede que aún no se hayan registrado resultados en el módulo <em>Juegos</em>,
+                            o que los juegos existentes no tengan marcada la opción
+                            <em>Cuenta para los PUNTOS</em>.</p>
+                            <p><strong>¿Cuándo se actualiza la tabla?</strong><br />
+                            Cada vez que entras a esta pantalla los datos se consultan en tiempo real.
+                            Si acabas de capturar un resultado, recarga la página para ver el cambio reflejado.</p>
+                            <p><strong>¿Cómo se rompe un empate en puntos entre dos equipos?</strong><br />
+                            El criterio principal es la <strong>Diferencia de Goles (DG)</strong>.
+                            Si también está empatada, se toman en cuenta los goles a favor, el resultado
+                            directo entre ambos u otros criterios definidos por el reglamento del torneo.</p>
+                            <p><strong>¿Por qué un equipo tiene puntos pero JJ = 0?</strong><br />
+                            Podría tener solo Puntos Extras (PE) asignados sin partidos jugados aún.
+                            Revisa los registros en el módulo <em>Juegos</em>.</p>
+                        </div>
+
+                    </div>
+
+                    <div class="ayuda-modal-footer">
+                        <button class="btn ayuda-btn-cerrar" @onclick="() => showHelp = false">Cerrar guía</button>
+                    </div>
+
+                </div>
+            </div>
+        }
+
     </Authorized>
 </AuthorizeView>
 
@@ -99,6 +257,12 @@
         font-size: 0.93rem;
     }
 
+    .catalogo-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
     .catalogo-badge span {
         display: inline-block;
         background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
@@ -108,6 +272,31 @@
         font-size: 0.78rem;
         font-weight: 700;
         box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+    }
+
+    .catalogo-help-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid #2563eb;
+        background: #fff;
+        color: #2563eb;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.18);
+        transition: background 0.2s, color 0.2s, transform 0.15s;
+        line-height: 1;
+        padding: 0;
+    }
+
+    .catalogo-help-btn:hover {
+        background: #2563eb;
+        color: #fff;
+        transform: scale(1.1);
     }
 
     .catalogo-list-card {
@@ -132,6 +321,196 @@
             flex-direction: column;
             align-items: flex-start;
         }
+
+        .catalogo-header-right {
+            align-self: flex-end;
+        }
+
+        .ayuda-modal {
+            max-height: 92vh;
+        }
+    }
+
+    /* ── MODAL DE AYUDA ── */
+    .ayuda-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .ayuda-modal {
+        background: #fff;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 720px;
+        max-height: 88vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 60px rgba(30, 64, 175, 0.18);
+        overflow: hidden;
+    }
+
+    .ayuda-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.1rem 1.4rem 0.9rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+        border-bottom: 1px solid #dbeafe;
+    }
+
+    .ayuda-kicker {
+        display: block;
+        color: #2563eb;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        margin-bottom: 0.15rem;
+    }
+
+    .ayuda-modal-header h4 {
+        margin: 0;
+        color: #1e3a8a;
+        font-weight: 800;
+        font-size: 1.15rem;
+    }
+
+    .ayuda-close-btn {
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .ayuda-close-btn:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .ayuda-modal-body {
+        overflow-y: auto;
+        padding: 1.2rem 1.4rem;
+        flex: 1;
+    }
+
+    .ayuda-section {
+        margin-bottom: 1.4rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .ayuda-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+
+    .ayuda-section h5 {
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: 0.97rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .ayuda-section p {
+        color: #475569;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .ayuda-ul {
+        color: #475569;
+        font-size: 0.9rem;
+        padding-left: 1.3rem;
+        margin-bottom: 0.6rem;
+        line-height: 1.8;
+    }
+
+    .ayuda-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin: 0.5rem 0;
+    }
+
+    .ayuda-table th {
+        background: linear-gradient(90deg, #eff6ff, #eef2ff);
+        color: #1e3a8a;
+        font-weight: 700;
+        padding: 0.45rem 0.7rem;
+        text-align: left;
+        border-bottom: 2px solid #dbeafe;
+    }
+
+    .ayuda-table td {
+        padding: 0.4rem 0.7rem;
+        color: #475569;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: top;
+    }
+
+    .ayuda-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .ayuda-tip {
+        background: #eff6ff;
+        border-left: 3px solid #2563eb;
+        border-radius: 0 8px 8px 0;
+        padding: 0.55rem 0.8rem;
+        font-size: 0.85rem;
+        color: #1e40af;
+        margin-top: 0.6rem;
+    }
+
+    .ayuda-tip-warning {
+        background: #fffbeb;
+        border-left-color: #f59e0b;
+        color: #92400e;
+    }
+
+    .ayuda-section-faq p {
+        margin-bottom: 0.75rem;
+    }
+
+    .ayuda-modal-footer {
+        padding: 0.85rem 1.4rem;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: flex-end;
+        background: #f8fafc;
+    }
+
+    .ayuda-btn-cerrar {
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 0.4rem 1.3rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: opacity 0.2s;
+    }
+
+    .ayuda-btn-cerrar:hover {
+        opacity: 0.88;
     }
 </style>
 
@@ -160,6 +539,8 @@
     public bool permitirExportarExcel = false;
     public bool permitirExportarWord = false;
     public bool permitirExportarPDF = false;
+
+    public bool showHelp = false;
 
     List<int> listaBotones = new List<int>();
 
