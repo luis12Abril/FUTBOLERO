@@ -27,6 +27,37 @@
                     </li>
                 }
 
+                <li class="nav-item px-2 nav-submenu-parent" @onclick:stopPropagation="true">
+                    <button class="@ClaseBotonDocumentos" @onclick="ToggleDocumentos" @onclick:stopPropagation="true">
+                        <span class="oi oi-document" aria-hidden="true"></span>
+                        <span class="nav-link-text">Documentos</span>
+                        <span class="@ClaseChevronDocumentos">&#9660;</span>
+                    </button>
+                    @if (documentosExpanded)
+                    {
+                        <ul class="nav flex-column submenu-list">
+                            <li class="nav-item">
+                                <NavLink class="nav-link submenu-link" href="documentos/credenciales" Match="NavLinkMatch.All">
+                                    <span class="oi oi-badge" aria-hidden="true"></span>
+                                    <span class="nav-link-text">Credenciales</span>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link submenu-link" href="documentos/lista-jugadores" Match="NavLinkMatch.All">
+                                    <span class="oi oi-list" aria-hidden="true"></span>
+                                    <span class="nav-link-text">Lista de Jugadores</span>
+                                </NavLink>
+                            </li>
+                            <li class="nav-item">
+                                <NavLink class="nav-link submenu-link" href="documentos/cedula-arbitral" Match="NavLinkMatch.All">
+                                    <span class="oi oi-clipboard" aria-hidden="true"></span>
+                                    <span class="nav-link-text">Cédula Arbitral</span>
+                                </NavLink>
+                            </li>
+                        </ul>
+                    }
+                </li>
+
                 <li class="nav-item px-2">
                     <NavLink class="nav-link" href="SimuladorProgramacion" Match="NavLinkMatch.All">
                         <span class="oi oi-calendar" aria-hidden="true"></span>
@@ -56,6 +87,15 @@
     public bool esAdminCartera = false;
 
     private bool collapseNavMenu = true;
+    private bool documentosExpanded = false;
+
+    private string ClaseBotonDocumentos => documentosExpanded
+        ? "nav-link nav-link-submenu-btn submenu-btn-active"
+        : "nav-link nav-link-submenu-btn";
+
+    private string ClaseChevronDocumentos => documentosExpanded
+        ? "submenu-chevron chevron-open"
+        : "submenu-chevron";
 
     public string rutaPrincipal;
 
@@ -70,6 +110,11 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void ToggleDocumentos()
+    {
+        documentosExpanded = !documentosExpanded;
     }
 
 

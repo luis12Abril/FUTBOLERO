@@ -1,0 +1,684 @@
+@page "/documentos/credenciales"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+<AuthorizeView>
+    <Authorized>
+        <section class="catalogo-page mt-3">
+
+            <div class="catalogo-header-card">
+                <div>
+                    <p class="catalogo-kicker">Panel de administración</p>
+                    <h3>Credenciales de Jugadores</h3>
+                    <span>Genera e imprime las credenciales de los jugadores del equipo seleccionado.</span>
+                </div>
+            </div>
+
+            @* ─── FILTROS ─── *@
+            <div class="cred-filtros-card">
+                <div class="cred-filtro-row">
+                    <div class="cred-filtro-item">
+                        <label class="cred-label">Seleccionar Equipo</label>
+                        <select class="cred-select" @onchange="CambiarEquipo">
+                            <option value="">-- Seleccione un equipo --</option>
+                            @if (listaEquipos != null)
+                            {
+                                @foreach (var eq in listaEquipos)
+                                {
+                                    <option value="@eq.idequipo">@eq.nombre</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="cred-filtro-item">
+                        <label class="cred-label">Tipo de Credencial</label>
+                        <div class="cred-tipo-toggle">
+                            <button class="@ClaseTipo1" @onclick="() => tipoCredencial = 1">Tipo 1</button>
+                            <button class="@ClaseTipo2" @onclick="() => tipoCredencial = 2">Tipo 2</button>
+                        </div>
+                    </div>
+
+                    @if (listaJugadores != null && listaJugadores.Length > 0)
+                    {
+                        <div class="cred-filtro-item cred-filtro-btn">
+                            <button class="btn-exportar-word" @onclick="ExportarWord">
+                                📄 Exportar a Word
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* ─── CONTENIDO ─── *@
+            @if (cargando)
+            {
+                <div class="catalogo-loading">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <span class="ml-2">Cargando jugadores...</span>
+                </div>
+            }
+            else if (equipoSeleccionado == 0)
+            {
+                <div class="cred-empty-msg">
+                    <span>⬆️ Seleccione un equipo para ver sus credenciales.</span>
+                </div>
+            }
+            else if (listaJugadores == null || listaJugadores.Length == 0)
+            {
+                <div class="cred-empty-msg cred-empty-warn">
+                    <span>⚠️ Este equipo no tiene jugadores dados de alta.</span>
+                </div>
+            }
+            else
+            {
+                <div class="cred-grid" id="contenedorCredenciales">
+                    @foreach (var jugador in listaJugadores)
+                    {
+                        @if (tipoCredencial == 1)
+                        {
+                            @* ══════ TIPO 1: Clásica horizontal ══════ *@
+                            <div class="credencial-tipo1">
+                                <div class="cred1-header">
+                                    <div class="cred1-header-info">
+                                        <div class="cred1-liga">@ligaNombre</div>
+                                        <div class="cred1-torneo">@torneoNombre</div>
+                                    </div>
+                                </div>
+                                <div class="cred1-body">
+                                    <div class="cred1-foto">
+                                        <span>FOTO</span>
+                                    </div>
+                                    <div class="cred1-datos">
+                                        <div class="cred1-equipo-nombre">@nombreEquipoSeleccionado</div>
+                                        <div class="cred1-fila">
+                                            <span class="cred1-etiqueta">JUGADOR:</span>
+                                            <span class="cred1-valor">@jugador.nombrecompleto</span>
+                                        </div>
+                                        <div class="cred1-fila">
+                                            <span class="cred1-etiqueta">FECHA NAC.:</span>
+                                            <span class="cred1-valor">@jugador.fnacimientocadena</span>
+                                        </div>
+                                        <div class="cred1-fila">
+                                            <span class="cred1-etiqueta">EDAD:</span>
+                                            <span class="cred1-valor">@jugador.años años</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="cred1-footer">
+                                    <div class="cred1-firma-bloque">
+                                        <div class="cred1-firma-linea"></div>
+                                        <span>Firma del Jugador</span>
+                                    </div>
+                                    <div class="cred1-firma-bloque">
+                                        <div class="cred1-firma-linea"></div>
+                                        <span>Firma de la Liga</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            @* ══════ TIPO 2: Carnet de jugador ══════ *@
+                            <div class="credencial-tipo2">
+                                <div class="cred2-header">
+                                    <div class="cred2-logo-circle">F</div>
+                                    <div class="cred2-header-text">
+                                        <div class="cred2-titulo">CARNET DE JUGADOR</div>
+                                        <div class="cred2-liga">@ligaNombre</div>
+                                    </div>
+                                    <div class="cred2-logo-circle cred2-logo-right">⚽</div>
+                                </div>
+                                <div class="cred2-body">
+                                    <div class="cred2-izquierda">
+                                        <div class="cred2-foto">FOTO</div>
+                                    </div>
+                                    <div class="cred2-derecha">
+                                        <div class="cred2-torneo-badge">@torneoNombre</div>
+                                        <table class="cred2-tabla">
+                                            <tr>
+                                                <td class="cred2-key">EQUIPO:</td>
+                                                <td class="cred2-val">@nombreEquipoSeleccionado</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="cred2-key">NOMBRE:</td>
+                                                <td class="cred2-val cred2-nombre">@jugador.nombrecompleto</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="cred2-key">FECHA NAC.:</td>
+                                                <td class="cred2-val">@jugador.fnacimientocadena</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="cred2-key">EDAD:</td>
+                                                <td class="cred2-val">@jugador.años años</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="cred2-footer">
+                                    <div class="cred2-firma-bloque">
+                                        <div class="cred2-firma-linea"></div>
+                                        <span>Firma del Jugador</span>
+                                    </div>
+                                    <div class="cred2-sello">⚽</div>
+                                    <div class="cred2-firma-bloque">
+                                        <div class="cred2-firma-linea"></div>
+                                        <span>Firma de la Liga</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+
+        </section>
+    </Authorized>
+</AuthorizeView>
+
+<style>
+    /* ── Filtros ── */
+    .cred-filtros-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(30,58,138,.08);
+        padding: 1.1rem 1.4rem;
+        margin-bottom: 1.4rem;
+    }
+
+    .cred-filtro-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+        align-items: flex-end;
+    }
+
+    .cred-filtro-item { display: flex; flex-direction: column; gap: 0.3rem; }
+    .cred-filtro-btn  { justify-content: flex-end; }
+
+    .cred-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .cred-select {
+        padding: 0.42rem 0.9rem;
+        border: 1.5px solid #c7d2e7;
+        border-radius: 8px;
+        font-size: 0.93rem;
+        min-width: 240px;
+        background: #f8fafc;
+        color: #1e293b;
+        cursor: pointer;
+    }
+
+    .cred-tipo-toggle { display: flex; gap: 0; border-radius: 8px; overflow: hidden; border: 1.5px solid #2563eb; }
+
+    .cred-tipo-btn {
+        padding: 0.38rem 1.1rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        background: #fff;
+        color: #2563eb;
+        transition: background .18s, color .18s;
+    }
+
+    .cred-tipo-btn.activo {
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .btn-exportar-word {
+        background: linear-gradient(90deg,#2563eb,#1d4ed8);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.45rem 1.2rem;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 3px 12px rgba(37,99,235,.25);
+        transition: opacity .2s;
+    }
+
+    .btn-exportar-word:hover { opacity: .87; }
+
+    /* ── Mensajes vacíos ── */
+    .cred-empty-msg {
+        background: #f0f5ff;
+        border-radius: 10px;
+        padding: 1.4rem 2rem;
+        color: #475569;
+        font-size: 1rem;
+        text-align: center;
+        margin-top: .5rem;
+    }
+
+    .cred-empty-warn { background: #fff7ed; color: #92400e; }
+
+    /* ── Grid de credenciales ── */
+    .cred-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.4rem;
+        justify-content: flex-start;
+    }
+
+    /* ════════════════════════════════
+       TIPO 1: Clásica Horizontal
+    ════════════════════════════════ */
+    .credencial-tipo1 {
+        width: 340px;
+        border: 2px solid #1e3a8a;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 4px 18px rgba(30,58,138,.13);
+        font-family: Arial, sans-serif;
+        page-break-inside: avoid;
+    }
+
+    .cred1-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: .7rem;
+        padding: .55rem .8rem;
+    }
+
+    .cred1-liga   { font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .cred1-torneo { font-size: .75rem; opacity: .85; }
+
+    .cred1-body {
+        display: flex;
+        gap: .8rem;
+        padding: .8rem;
+        align-items: flex-start;
+    }
+
+    .cred1-foto {
+        width: 72px;
+        height: 88px;
+        border: 1.5px solid #c7d2e7;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        flex-shrink: 0;
+        background: #f8fafc;
+    }
+
+    .cred1-datos { flex: 1; display: flex; flex-direction: column; gap: .28rem; }
+
+    .cred1-equipo-nombre {
+        color: #1e293b;
+        font-size: .95rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        margin-bottom: .25rem;
+    }
+
+    .cred1-fila { display: flex; gap: .3rem; align-items: baseline; }
+    .cred1-etiqueta { font-size: .68rem; font-weight: 700; color: #64748b; text-transform: uppercase; white-space: nowrap; }
+    .cred1-valor    { font-size: .78rem; color: #1e293b; font-weight: 600; }
+
+    .cred1-footer {
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-around;
+        padding: .5rem .8rem .6rem;
+        gap: .5rem;
+    }
+
+    .cred1-firma-bloque {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .15rem;
+        flex: 1;
+    }
+
+    .cred1-firma-linea {
+        width: 100%;
+        border-bottom: 1.5px solid #1e3a8a;
+        margin-bottom: .12rem;
+    }
+
+    .cred1-firma-bloque span { font-size: .62rem; color: #64748b; text-transform: uppercase; letter-spacing: .03em; }
+
+    /* ════════════════════════════════
+       TIPO 2: Carnet Moderno
+    ════════════════════════════════ */
+    .credencial-tipo2 {
+        width: 340px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 4px 18px rgba(16,185,129,.15);
+        border: 2px solid #059669;
+        font-family: Arial, sans-serif;
+        page-break-inside: avoid;
+    }
+
+    .cred2-header {
+        background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .5rem .8rem;
+        gap: .5rem;
+    }
+
+    .cred2-logo-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1rem;
+        border: 2px solid rgba(255,255,255,.5);
+        flex-shrink: 0;
+    }
+
+    .cred2-logo-right { font-size: .9rem; }
+
+    .cred2-header-text { text-align: center; flex: 1; }
+    .cred2-titulo { font-size: .88rem; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
+    .cred2-liga   { font-size: .7rem; opacity: .85; }
+
+    .cred2-body {
+        display: flex;
+        gap: .7rem;
+        padding: .75rem .8rem;
+    }
+
+    .cred2-izquierda { flex-shrink: 0; }
+
+    .cred2-foto {
+        width: 70px;
+        height: 85px;
+        border: 1.5px solid #a7f3d0;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        background: #f0fdf4;
+    }
+
+    .cred2-derecha { flex: 1; }
+
+    .cred2-torneo-badge {
+        background: #059669;
+        color: #fff;
+        border-radius: 5px;
+        padding: .1rem .5rem;
+        font-size: .7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        margin-bottom: .35rem;
+        display: inline-block;
+    }
+
+    .cred2-tabla { width: 100%; border-collapse: collapse; }
+    .cred2-tabla tr td { padding: .1rem .15rem; vertical-align: top; }
+    .cred2-key  { font-size: .68rem; font-weight: 700; color: #64748b; text-transform: uppercase; white-space: nowrap; padding-right: .3rem !important; }
+    .cred2-val  { font-size: .77rem; color: #1e293b; font-weight: 600; border-bottom: 1px solid #d1fae5; }
+    .cred2-nombre { font-weight: 800; color: #064e3b; }
+
+    .cred2-footer {
+        border-top: 1px solid #d1fae5;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: .45rem .8rem .55rem;
+        gap: .4rem;
+    }
+
+    .cred2-firma-bloque {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .12rem;
+        flex: 1;
+    }
+
+    .cred2-firma-linea {
+        width: 100%;
+        border-bottom: 1.5px solid #059669;
+        margin-bottom: .1rem;
+    }
+
+    .cred2-firma-bloque span { font-size: .6rem; color: #64748b; text-transform: uppercase; letter-spacing: .03em; }
+
+    .cred2-sello { font-size: 1.3rem; flex-shrink: 0; opacity: .4; }
+</style>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    private string idtorneoseleccionado = "";
+    private string torneoNombre = "";
+    private string ligaNombre = "";
+
+    private int equipoSeleccionado = 0;
+    private string nombreEquipoSeleccionado = "";
+
+    private int tipoCredencial = 1;
+
+    private bool cargando = false;
+
+    private List<EquipoCLS> listaEquipos = new();
+    private JugadorCLS[] listaJugadores = null;
+
+    private string ClaseTipo1 => tipoCredencial == 1 ? "cred-tipo-btn activo" : "cred-tipo-btn";
+    private string ClaseTipo2 => tipoCredencial == 2 ? "cred-tipo-btn activo" : "cred-tipo-btn";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            torneoNombre = claims[1].Value;
+            idtorneoseleccionado = claims[2].Value;
+
+            listaEquipos = await http.GetFromJsonAsync<List<EquipoCLS>>(
+                "api/Equipo/ListarEquipo/" + idtorneoseleccionado);
+
+            // Obtener nombre de la liga via torneo
+            try
+            {
+                var torneoCLS = await http.GetFromJsonAsync<TorneoCLS>(
+                    "api/Torneo/RecuperarInformacionTorneo/" + idtorneoseleccionado);
+
+                if (torneoCLS?.idliga != null)
+                {
+                    var ligaCLS = await http.GetFromJsonAsync<LigaCLS>(
+                        "api/Liga/RecuperarInformacionLiga/" + torneoCLS.idliga);
+                    ligaNombre = ligaCLS?.nombre ?? torneoNombre;
+                }
+            }
+            catch
+            {
+                ligaNombre = torneoNombre;
+            }
+        }
+    }
+
+    private async Task CambiarEquipo(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out int idEquipo) || idEquipo == 0)
+        {
+            equipoSeleccionado = 0;
+            nombreEquipoSeleccionado = "";
+            listaJugadores = null;
+            return;
+        }
+
+        equipoSeleccionado = idEquipo;
+        nombreEquipoSeleccionado = listaEquipos.FirstOrDefault(eq => eq.idequipo == idEquipo)?.nombre ?? "";
+        cargando = true;
+        listaJugadores = null;
+
+        listaJugadores = await http.GetFromJsonAsync<JugadorCLS[]>(
+            "api/Jugador/ListarJugadorEquipo/" + idEquipo);
+
+        cargando = false;
+    }
+
+    private async Task ExportarWord()
+    {
+        try
+        {
+            var sb = new System.Text.StringBuilder();
+
+            sb.AppendLine("<!DOCTYPE html>");
+            sb.AppendLine("<html xmlns:o='urn:schemas-microsoft-com:office:office'");
+            sb.AppendLine("      xmlns:w='urn:schemas-microsoft-com:office:word'");
+            sb.AppendLine("      xmlns='http://www.w3.org/TR/REC-html40'>");
+            sb.AppendLine("<head><meta charset='utf-8'><title>Credenciales</title>");
+            sb.AppendLine("<style>");
+            // Márgenes de hoja y tipografía base
+            sb.AppendLine("@page Section1 { size:21.0cm 29.7cm; margin:1.8cm 2.5cm; mso-header-margin:.5cm; mso-footer-margin:.5cm; mso-paper-source:0; }");
+            sb.AppendLine("div.Section1 { page:Section1; }");
+            sb.AppendLine("body { font-family:Arial,sans-serif; font-size:8pt; }");
+            // Evitar que la tabla de credencial se corte entre páginas
+            sb.AppendLine("table.credencial { page-break-inside:avoid; }");
+            sb.AppendLine("tr.credencial-row { page-break-inside:avoid; }");
+            sb.AppendLine("</style>");
+            sb.AppendLine("</head>");
+            sb.AppendLine("<body>");
+            sb.AppendLine("<div class='Section1'>");
+
+            // ── Tabla externa que centra todas las credenciales ──
+            sb.AppendLine("<table border='0' cellpadding='0' cellspacing='0' width='100%'>");
+
+            var jugadores = listaJugadores;
+
+            for (int i = 0; i < jugadores.Length; i++)
+            {
+                var j = jugadores[i];
+
+                // ── Fila contenedora de 1 credencial, centrada, sin corte ──
+                sb.AppendLine("<tr class='credencial-row'>");
+                sb.AppendLine("<td align='center' style='padding:0 0 1.0cm 0;'>");
+
+                // ═══════════════════════════════════════════════
+                //  CREDENCIAL: tabla única 10cm × ~6cm
+                // ═══════════════════════════════════════════════
+                sb.AppendLine("<table class='credencial' border='0' cellpadding='0' cellspacing='0'");
+                sb.AppendLine("  style='width:10cm; border:2px solid #1e3a8a; border-collapse:collapse; font-family:Arial,sans-serif;'>");
+
+                // ── Encabezado azul: 2 filas, span completo ──
+                sb.AppendLine("<tr>");
+                sb.AppendLine($"  <td colspan='2' style='background:#1e3a8a; color:#ffffff; font-size:9.5pt; font-weight:bold; text-transform:uppercase; padding:5px 10px 2px; letter-spacing:.05em;'>{ligaNombre}</td>");
+                sb.AppendLine("</tr>");
+                sb.AppendLine("<tr>");
+                sb.AppendLine($"  <td colspan='2' style='background:#1e3a8a; color:#c7d2e7; font-size:8pt; padding:0 10px 6px;'>{torneoNombre}</td>");
+                sb.AppendLine("</tr>");
+
+                // ── Separador delgado entre header y cuerpo ──
+                sb.AppendLine("<tr>");
+                sb.AppendLine("  <td colspan='2' style='height:1px; background:#c7d2e7; font-size:1pt; line-height:1px;'>&nbsp;</td>");
+                sb.AppendLine("</tr>");
+
+                // ── CUERPO: Foto (rowspan) + Datos ──
+                // Fila 1: nombre del equipo
+                sb.AppendLine("<tr>");
+                // Foto con rowspan=5 (equipo + jugador + fecha + edad + espacio)
+                sb.AppendLine("  <td rowspan='5' style='width:2.6cm; vertical-align:middle; padding:8px 6px 8px 8px;'>");
+                sb.AppendLine("    <table border='1' cellpadding='0' cellspacing='0'");
+                sb.AppendLine("      style='width:2.4cm; height:3.5cm; border-collapse:collapse; border-color:#94a3b8;'>");
+                sb.AppendLine("      <tr><td style='text-align:center; vertical-align:middle; color:#94a3b8; font-size:7pt; font-weight:bold; background:#f8fafc;'>FOTO</td></tr>");
+                sb.AppendLine("    </table>");
+                sb.AppendLine("  </td>");
+                sb.AppendLine($"  <td style='padding:8px 10px 3px; font-size:10pt; font-weight:900; text-transform:uppercase; color:#1e293b;'>{nombreEquipoSeleccionado}</td>");
+                sb.AppendLine("</tr>");
+
+                // Fila 2: jugador
+                sb.AppendLine("<tr>");
+                sb.AppendLine($"  <td style='padding:2px 10px;'><span style='font-size:6.5pt; font-weight:bold; color:#475569; text-transform:uppercase;'>JUGADOR:&nbsp;</span><span style='font-size:8pt; font-weight:700; color:#1e293b;'>{j.nombrecompleto}</span></td>");
+                sb.AppendLine("</tr>");
+
+                // Fila 3: fecha nac
+                sb.AppendLine("<tr>");
+                sb.AppendLine($"  <td style='padding:2px 10px;'><span style='font-size:6.5pt; font-weight:bold; color:#475569; text-transform:uppercase;'>FECHA NAC.:&nbsp;</span><span style='font-size:8pt; color:#1e293b;'>{j.fnacimientocadena}</span></td>");
+                sb.AppendLine("</tr>");
+
+                // Fila 4: edad
+                sb.AppendLine("<tr>");
+                sb.AppendLine($"  <td style='padding:2px 10px;'><span style='font-size:6.5pt; font-weight:bold; color:#475569; text-transform:uppercase;'>EDAD:&nbsp;</span><span style='font-size:8pt; color:#1e293b;'>{j.años} a&ntilde;os</span></td>");
+                sb.AppendLine("</tr>");
+
+                // Fila 5: espacio inferior antes de firmas
+                sb.AppendLine("<tr>");
+                sb.AppendLine("  <td style='height:0.8cm; padding:0;'>&nbsp;</td>");
+                sb.AppendLine("</tr>");
+
+                // ── PIE: líneas de firma ──
+                sb.AppendLine("<tr>");
+                sb.AppendLine("  <td colspan='2' style='border-top:1px solid #c7d2e7; padding:0;'>");
+                sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%'>");
+                sb.AppendLine("      <tr>");
+                sb.AppendLine("        <td width='50%' style='text-align:center; padding:8px 14px 7px;'>");
+                sb.AppendLine("          <div style='border-bottom:1.5px solid #1e3a8a; margin-bottom:4px;'>&nbsp;</div>");
+                sb.AppendLine("          <span style='font-size:6pt; color:#64748b; text-transform:uppercase; letter-spacing:.05em;'>Firma del Jugador</span>");
+                sb.AppendLine("        </td>");
+                sb.AppendLine("        <td width='50%' style='text-align:center; padding:8px 14px 7px; border-left:1px solid #e2e8f0;'>");
+                sb.AppendLine("          <div style='border-bottom:1.5px solid #1e3a8a; margin-bottom:4px;'>&nbsp;</div>");
+                sb.AppendLine("          <span style='font-size:6pt; color:#64748b; text-transform:uppercase; letter-spacing:.05em;'>Firma de la Liga</span>");
+                sb.AppendLine("        </td>");
+                sb.AppendLine("      </tr>");
+                sb.AppendLine("    </table>");
+                sb.AppendLine("  </td>");
+                sb.AppendLine("</tr>");
+
+                sb.AppendLine("</table>"); // fin tabla credencial
+                sb.AppendLine("</td>");
+                sb.AppendLine("</tr>"); // fin fila centra-credencial
+
+            } // fin foreach
+
+            sb.AppendLine("</table>"); // fin tabla externa
+            sb.AppendLine("</div>");   // fin Section1
+            sb.AppendLine("</body></html>");
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+
+            await ijsruntime.InvokeVoidAsync("descargarArchivo",
+                base64,
+                $"Credenciales_{nombreEquipoSeleccionado.Replace(" ", "_")}_{DateTime.Now:ddMMyyyy}.doc",
+                "application/msword");
+        }
+        catch (Exception ex)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta",
+                "ERROR AL EXPORTAR: " + ex.Message, "error");
+        }
+    }
+}

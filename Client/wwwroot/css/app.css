@@ -250,3 +250,63 @@ app {
         display: block;
     }
 }
+
+/* ===== MENÚ DOCUMENTOS - SUBMENÚ ACORDEÓN ===== */
+.nav-link-submenu-btn {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: inherit;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.nav-link-submenu-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.submenu-btn-active {
+    background: rgba(255, 255, 255, 0.18) !important;
+}
+
+.submenu-chevron {
+    margin-left: auto;
+    font-size: 0.6rem;
+    display: inline-block;
+    transition: transform 0.25s ease;
+}
+
+.chevron-open {
+    transform: rotate(180deg);
+}
+
+.submenu-list {
+    padding-left: 1rem;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    border-left: 2px solid rgba(255,255,255,0.2);
+    margin-left: 1.1rem;
+}
+
+.submenu-link {
+    font-size: 0.87rem !important;
+    padding: 0.3rem 0.6rem !important;
+    opacity: 0.88;
+    border-radius: 5px;
+}
+
+.submenu-link:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.1);
+}
+
+.submenu-link.active {
+    opacity: 1;
+    background: rgba(255,255,255,0.2);
+}
