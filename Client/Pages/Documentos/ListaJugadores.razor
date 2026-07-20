@@ -1,4 +1,878 @@
 @page "/documentos/lista-jugadores"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
 
-<h3>Lista de Jugadores</h3>
-<p>Página en construcción.</p>
+<AuthorizeView>
+    <Authorized>
+        <section class="catalogo-page mt-3">
+
+            <div class="catalogo-header-card">
+                <div>
+                    <p class="catalogo-kicker">Panel de administración</p>
+                    <h3>Lista de Jugadores</h3>
+                    <span>Genera e imprime la lista oficial de jugadores del equipo seleccionado.</span>
+                </div>
+            </div>
+
+            @* ─── FILTROS ─── *@
+            <div class="cred-filtros-card">
+                <div class="cred-filtro-row">
+                    <div class="cred-filtro-item">
+                        <label class="cred-label">Seleccionar Equipo</label>
+                        <select class="cred-select" @onchange="CambiarEquipo">
+                            <option value="">-- Seleccione un equipo --</option>
+                            @if (listaEquipos != null)
+                            {
+                                @foreach (var eq in listaEquipos)
+                                {
+                                    <option value="@eq.idequipo">@eq.nombre</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="cred-filtro-item">
+                        <label class="cred-label">Tipo de Lista</label>
+                        <div class="cred-tipo-toggle">
+                            <button class="@ClaseTipo1" @onclick="() => tipoLista = 1">Tipo 1</button>
+                            <button class="@ClaseTipo2" @onclick="() => tipoLista = 2">Tipo 2</button>
+                        </div>
+                    </div>
+
+                    @if (listaJugadores != null && listaJugadores.Length > 0)
+                    {
+                        <div class="cred-filtro-item cred-filtro-btn">
+                            <button class="btn-exportar-word" @onclick="ExportarWord">
+                                📄 Exportar a Word
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* ─── CONTENIDO ─── *@
+            @if (cargando)
+            {
+                <div class="catalogo-loading">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <span class="ml-2">Cargando jugadores...</span>
+                </div>
+            }
+            else if (equipoSeleccionado == 0)
+            {
+                <div class="cred-empty-msg">
+                    <span>⬆️ Seleccione un equipo para ver su lista de jugadores.</span>
+                </div>
+            }
+            else if (listaJugadores == null || listaJugadores.Length == 0)
+            {
+                <div class="cred-empty-msg cred-empty-warn">
+                    <span>⚠️ Este equipo no tiene jugadores dados de alta.</span>
+                </div>
+            }
+            else
+            {
+                @if (tipoLista == 1)
+                {
+                    @* ══════ TIPO 1: Lista oficial clásica azul ══════ *@
+                    <div class="lista-preview-wrap">
+                        <div class="lista-tipo1">
+
+                            @* Encabezado *@
+                            <div class="lt1-header">
+                                <div class="lt1-logo">
+                                    @if (!string.IsNullOrEmpty(equipoActual?.fotoequipo))
+                                    {
+                                        <img src="@equipoActual.fotoequipo" alt="Logo" class="lt1-logo-img" />
+                                    }
+                                    else
+                                    {
+                                        <div class="lt1-logo-placeholder">⚽</div>
+                                    }
+                                </div>
+                                <div class="lt1-header-info">
+                                    <div class="lt1-liga">@ligaNombre</div>
+                                    <div class="lt1-torneo">@torneoNombre</div>
+                                    <div class="lt1-equipo">@nombreEquipoSeleccionado</div>
+                                </div>
+                            </div>
+
+                            @* Tabla de jugadores *@
+                            <table class="lt1-tabla">
+                                <thead>
+                                    <tr>
+                                        <th class="lt1-th lt1-th-num">#</th>
+                                        <th class="lt1-th lt1-th-nombre">Jugador</th>
+                                        <th class="lt1-th lt1-th-check">Titular</th>
+                                        <th class="lt1-th lt1-th-check">Suplente</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < 25; i++)
+                                    {
+                                        var jugador = i < listaJugadores.Length ? listaJugadores[i] : null;
+                                        var num = i + 1;
+                                        <tr class="lt1-tr @(i % 2 == 0 ? "lt1-par" : "lt1-impar")">
+                                            <td class="lt1-td lt1-td-num">@num</td>
+                                            <td class="lt1-td lt1-td-nombre">@(jugador?.nombrecompleto ?? "")</td>
+                                            <td class="lt1-td lt1-td-check"></td>
+                                            <td class="lt1-td lt1-td-check"></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+
+                            @* Firmas *@
+                            <div class="lt1-footer">
+                                <div class="lt1-firma-bloque">
+                                    <div class="lt1-firma-linea"></div>
+                                    <span>Firma del Representante</span>
+                                </div>
+                                <div class="lt1-firma-bloque">
+                                    <div class="lt1-firma-linea"></div>
+                                    <span>Firma del Árbitro</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @* ══════ TIPO 2: Lista compacta verde ══════ *@
+                    <div class="lista-preview-wrap">
+                        <div class="lista-tipo2">
+
+                            @* Encabezado verde *@
+                            <div class="lt2-header">
+                                <div class="lt2-logo">
+                                    @if (!string.IsNullOrEmpty(equipoActual?.fotoequipo))
+                                    {
+                                        <img src="@equipoActual.fotoequipo" alt="Logo" class="lt2-logo-img" />
+                                    }
+                                    else
+                                    {
+                                        <div class="lt2-logo-placeholder">⚽</div>
+                                    }
+                                </div>
+                                <div class="lt2-header-info">
+                                    <div class="lt2-titulo">LISTA OFICIAL DE JUGADORES</div>
+                                    <div class="lt2-liga">@ligaNombre</div>
+                                    <div class="lt2-torneo">@torneoNombre</div>
+                                    <div class="lt2-equipo">@nombreEquipoSeleccionado</div>
+                                </div>
+                            </div>
+
+                            @* Dos columnas de jugadores *@
+                            <div class="lt2-body">
+                                @{
+                                    int mitad = (int)Math.Ceiling(25.0 / 2);
+                                }
+                                @* Columna izquierda (1-13) *@
+                                <table class="lt2-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th class="lt2-th lt2-th-num">#</th>
+                                            <th class="lt2-th lt2-th-nombre">Jugador</th>
+                                            <th class="lt2-th lt2-th-check">T</th>
+                                            <th class="lt2-th lt2-th-check">S</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < mitad; i++)
+                                        {
+                                            var jugador = i < listaJugadores.Length ? listaJugadores[i] : null;
+                                            <tr class="lt2-tr @(i % 2 == 0 ? "lt2-par" : "lt2-impar")">
+                                                <td class="lt2-td lt2-td-num">@(i + 1)</td>
+                                                <td class="lt2-td lt2-td-nombre">@(jugador?.nombrecompleto ?? "")</td>
+                                                <td class="lt2-td lt2-td-check"></td>
+                                                <td class="lt2-td lt2-td-check"></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                                @* Columna derecha (14-25) *@
+                                <table class="lt2-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th class="lt2-th lt2-th-num">#</th>
+                                            <th class="lt2-th lt2-th-nombre">Jugador</th>
+                                            <th class="lt2-th lt2-th-check">T</th>
+                                            <th class="lt2-th lt2-th-check">S</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = mitad; i < 25; i++)
+                                        {
+                                            var jugador = i < listaJugadores.Length ? listaJugadores[i] : null;
+                                            <tr class="lt2-tr @(i % 2 == 0 ? "lt2-par" : "lt2-impar")">
+                                                <td class="lt2-td lt2-td-num">@(i + 1)</td>
+                                                <td class="lt2-td lt2-td-nombre">@(jugador?.nombrecompleto ?? "")</td>
+                                                <td class="lt2-td lt2-td-check"></td>
+                                                <td class="lt2-td lt2-td-check"></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            @* Firmas *@
+                            <div class="lt2-footer">
+                                <div class="lt2-firma-bloque">
+                                    <div class="lt2-firma-linea"></div>
+                                    <span>Firma del Representante</span>
+                                </div>
+                                <div class="lt2-firma-bloque">
+                                    <div class="lt2-firma-linea"></div>
+                                    <span>Firma del Árbitro</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                }
+            }
+
+        </section>
+    </Authorized>
+</AuthorizeView>
+
+<style>
+    /* ── Reutilizados de Credenciales ── */
+    .cred-filtros-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(30,58,138,.08);
+        padding: 1.1rem 1.4rem;
+        margin-bottom: 1.4rem;
+    }
+
+    .cred-filtro-row { display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: flex-end; }
+    .cred-filtro-item { display: flex; flex-direction: column; gap: 0.3rem; }
+    .cred-filtro-btn  { justify-content: flex-end; }
+
+    .cred-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .cred-select {
+        padding: 0.42rem 0.9rem;
+        border: 1.5px solid #c7d2e7;
+        border-radius: 8px;
+        font-size: 0.93rem;
+        min-width: 240px;
+        background: #f8fafc;
+        color: #1e293b;
+        cursor: pointer;
+    }
+
+    .cred-tipo-toggle { display: flex; gap: 0; border-radius: 8px; overflow: hidden; border: 1.5px solid #2563eb; }
+
+    .cred-tipo-btn {
+        padding: 0.38rem 1.1rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        background: #fff;
+        color: #2563eb;
+        transition: background .18s, color .18s;
+    }
+
+    .cred-tipo-btn.activo { background: #2563eb; color: #fff; }
+
+    .btn-exportar-word {
+        background: linear-gradient(90deg,#2563eb,#1d4ed8);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.45rem 1.2rem;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 3px 12px rgba(37,99,235,.25);
+        transition: opacity .2s;
+    }
+
+    .btn-exportar-word:hover { opacity: .87; }
+
+    .cred-empty-msg {
+        background: #f0f5ff;
+        border-radius: 10px;
+        padding: 1.4rem 2rem;
+        color: #475569;
+        font-size: 1rem;
+        text-align: center;
+        margin-top: .5rem;
+    }
+
+    .cred-empty-warn { background: #fff7ed; color: #92400e; }
+
+    /* ── Contenedor preview ── */
+    .lista-preview-wrap {
+        display: flex;
+        justify-content: center;
+        padding: 1rem 0 2rem;
+    }
+
+    /* ══════════════════════════════════════
+       TIPO 1: Lista clásica azul
+    ══════════════════════════════════════ */
+    .lista-tipo1 {
+        width: 700px;
+        background: #fff;
+        border: 2px solid #1e3a8a;
+        border-radius: 8px;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 20px rgba(30,58,138,.12);
+    }
+
+    .lt1-header {
+        display: flex;
+        align-items: center;
+        background: #1e3a8a;
+        padding: .7rem 1rem;
+        gap: 1rem;
+    }
+
+    .lt1-logo {
+        flex-shrink: 0;
+        width: 90px;
+        height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .lt1-logo-img {
+        width: 88px;
+        height: 88px;
+        object-fit: contain;
+        border-radius: 6px;
+        border: 2px solid rgba(255,255,255,.4);
+    }
+
+    .lt1-logo-placeholder {
+        width: 88px;
+        height: 88px;
+        background: rgba(255,255,255,.15);
+        border: 2px dashed rgba(255,255,255,.4);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+    }
+
+    .lt1-header-info { flex: 1; text-align: center; }
+    .lt1-liga  { color: #fff; font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
+    .lt1-torneo { color: #c7d2e7; font-size: .82rem; margin-top: .1rem; }
+    .lt1-equipo { color: #fbbf24; font-size: .9rem; font-weight: 800; text-transform: uppercase; margin-top: .3rem; letter-spacing: .04em; }
+
+    .lt1-tabla {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: .82rem;
+    }
+
+    .lt1-th {
+        background: #1e3a8a;
+        color: #fff;
+        padding: .35rem .5rem;
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        border: 1px solid #2d4ea8;
+    }
+
+    .lt1-th-num   { width: 36px; text-align: center; }
+    .lt1-th-nombre { text-align: left; }
+    .lt1-th-check { width: 60px; text-align: center; }
+
+    .lt1-tr { height: 24px; }
+    .lt1-par  { background: #f8fafc; }
+    .lt1-impar { background: #fff; }
+
+    .lt1-td {
+        padding: .2rem .5rem;
+        border: 1px solid #e2e8f0;
+        color: #1e293b;
+        font-size: .78rem;
+    }
+
+    .lt1-td-num  { text-align: center; color: #64748b; font-weight: 700; }
+    .lt1-td-nombre { }
+    .lt1-td-check { text-align: center; }
+
+    .lt1-footer {
+        display: flex;
+        justify-content: space-around;
+        padding: 1.2rem 2rem .8rem;
+        border-top: 1px solid #e2e8f0;
+        gap: 2rem;
+    }
+
+    .lt1-firma-bloque {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .2rem;
+        flex: 1;
+    }
+
+    .lt1-firma-linea {
+        width: 100%;
+        border-bottom: 1.5px solid #1e3a8a;
+        margin-bottom: .15rem;
+    }
+
+    .lt1-firma-bloque span { font-size: .65rem; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+
+    /* ══════════════════════════════════════
+       TIPO 2: Lista compacta verde
+    ══════════════════════════════════════ */
+    .lista-tipo2 {
+        width: 750px;
+        background: #fff;
+        border: 2px solid #059669;
+        border-radius: 8px;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 20px rgba(5,150,105,.12);
+    }
+
+    .lt2-header {
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+        padding: .7rem 1rem;
+        gap: 1rem;
+    }
+
+    .lt2-logo { flex-shrink: 0; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; }
+
+    .lt2-logo-img {
+        width: 88px;
+        height: 88px;
+        object-fit: contain;
+        border-radius: 6px;
+        border: 2px solid rgba(255,255,255,.4);
+    }
+
+    .lt2-logo-placeholder {
+        width: 88px;
+        height: 88px;
+        background: rgba(255,255,255,.15);
+        border: 2px dashed rgba(255,255,255,.4);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+    }
+
+    .lt2-header-info { flex: 1; text-align: center; }
+    .lt2-titulo { color: #fff; font-size: .95rem; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; }
+    .lt2-liga   { color: rgba(255,255,255,.9); font-size: .82rem; margin-top: .15rem; font-weight: 700; }
+    .lt2-torneo { color: rgba(255,255,255,.75); font-size: .76rem; margin-top: .05rem; }
+    .lt2-equipo { color: #fbbf24; font-size: .88rem; font-weight: 800; text-transform: uppercase; margin-top: .25rem; letter-spacing: .04em; }
+
+    .lt2-body {
+        display: flex;
+        gap: 0;
+        padding: .6rem;
+        gap: .6rem;
+    }
+
+    .lt2-tabla {
+        flex: 1;
+        width: 100%;
+        border-collapse: collapse;
+        font-size: .78rem;
+    }
+
+    .lt2-th {
+        background: #059669;
+        color: #fff;
+        padding: .28rem .4rem;
+        font-size: .68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        border: 1px solid #047857;
+    }
+
+    .lt2-th-num   { width: 28px; text-align: center; }
+    .lt2-th-nombre { text-align: left; }
+    .lt2-th-check { width: 24px; text-align: center; }
+
+    .lt2-tr { height: 20px; }
+    .lt2-par  { background: #f0fdf4; }
+    .lt2-impar { background: #fff; }
+
+    .lt2-td {
+        padding: .15rem .4rem;
+        border: 1px solid #d1fae5;
+        color: #1e293b;
+        font-size: .74rem;
+    }
+
+    .lt2-td-num  { text-align: center; color: #059669; font-weight: 700; }
+    .lt2-td-check { text-align: center; }
+
+    .lt2-footer {
+        display: flex;
+        justify-content: space-around;
+        padding: 1rem 2rem .7rem;
+        border-top: 1px solid #d1fae5;
+        gap: 2rem;
+    }
+
+    .lt2-firma-bloque {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .2rem;
+        flex: 1;
+    }
+
+    .lt2-firma-linea {
+        width: 100%;
+        border-bottom: 1.5px solid #059669;
+        margin-bottom: .12rem;
+    }
+
+    .lt2-firma-bloque span { font-size: .62rem; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+</style>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    private string idtorneoseleccionado = "";
+    private string torneoNombre = "";
+    private string ligaNombre = "";
+
+    private int equipoSeleccionado = 0;
+    private string nombreEquipoSeleccionado = "";
+    private EquipoCLS equipoActual = null;
+
+    private int tipoLista = 1;
+    private bool cargando = false;
+
+    private List<EquipoCLS> listaEquipos = new();
+    private JugadorCLS[] listaJugadores = null;
+
+    private string ClaseTipo1 => tipoLista == 1 ? "cred-tipo-btn activo" : "cred-tipo-btn";
+    private string ClaseTipo2 => tipoLista == 2 ? "cred-tipo-btn activo" : "cred-tipo-btn";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            torneoNombre = claims[1].Value;
+            idtorneoseleccionado = claims[2].Value;
+
+            listaEquipos = await http.GetFromJsonAsync<List<EquipoCLS>>(
+                "api/Equipo/ListarEquipo/" + idtorneoseleccionado);
+
+            try
+            {
+                var torneoCLS = await http.GetFromJsonAsync<TorneoCLS>(
+                    "api/Torneo/RecuperarInformacionTorneo/" + idtorneoseleccionado);
+
+                if (torneoCLS?.idliga != null)
+                {
+                    var ligaCLS = await http.GetFromJsonAsync<LigaCLS>(
+                        "api/Liga/RecuperarInformacionLiga/" + torneoCLS.idliga);
+                    ligaNombre = ligaCLS?.nombre ?? torneoNombre;
+                }
+            }
+            catch
+            {
+                ligaNombre = torneoNombre;
+            }
+        }
+    }
+
+    private async Task CambiarEquipo(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out int idEquipo) || idEquipo == 0)
+        {
+            equipoSeleccionado = 0;
+            nombreEquipoSeleccionado = "";
+            equipoActual = null;
+            listaJugadores = null;
+            return;
+        }
+
+        equipoSeleccionado = idEquipo;
+        nombreEquipoSeleccionado = listaEquipos.FirstOrDefault(eq => eq.idequipo == idEquipo)?.nombre ?? "";
+        cargando = true;
+        listaJugadores = null;
+        equipoActual = null;
+
+        // Cargar jugadores y datos del equipo (foto) en paralelo
+        var taskJugadores = http.GetFromJsonAsync<JugadorCLS[]>("api/Jugador/ListarJugadorEquipo/" + idEquipo);
+        var taskEquipo    = http.GetFromJsonAsync<EquipoCLS>("api/Equipo/RecuperarInformacionEquipo/" + idEquipo);
+
+        await System.Threading.Tasks.Task.WhenAll(taskJugadores, taskEquipo);
+
+        listaJugadores = taskJugadores.Result;
+        equipoActual   = taskEquipo.Result;
+
+        cargando = false;
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    //  EXPORTAR A WORD
+    // ────────────────────────────────────────────────────────────────
+    private async Task ExportarWord()
+    {
+        try
+        {
+            var sb = new System.Text.StringBuilder();
+
+            sb.AppendLine("<!DOCTYPE html>");
+            sb.AppendLine("<html xmlns:o='urn:schemas-microsoft-com:office:office'");
+            sb.AppendLine("      xmlns:w='urn:schemas-microsoft-com:office:word'");
+            sb.AppendLine("      xmlns='http://www.w3.org/TR/REC-html40'>");
+            sb.AppendLine("<head><meta charset='utf-8'><title>Lista de Jugadores</title>");
+            sb.AppendLine("<style>");
+            sb.AppendLine("@page Section1 { size:21.0cm 29.7cm; margin:1.5cm 2cm; mso-header-margin:.5cm; mso-footer-margin:.5cm; mso-paper-source:0; }");
+            sb.AppendLine("div.Section1 { page:Section1; }");
+            sb.AppendLine("body { font-family:Arial,sans-serif; font-size:9pt; }");
+            sb.AppendLine("table.lista { page-break-inside:avoid; width:100%; border-collapse:collapse; }");
+            sb.AppendLine("</style>");
+            sb.AppendLine("</head>");
+            sb.AppendLine("<body><div class='Section1'>");
+
+            if (tipoLista == 1)
+                GenerarHtmlTipo1(sb);
+            else
+                GenerarHtmlTipo2(sb);
+
+            sb.AppendLine("</div></body></html>");
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+
+            await ijsruntime.InvokeVoidAsync("descargarArchivo",
+                base64,
+                $"ListaJugadores_{nombreEquipoSeleccionado.Replace(" ", "_")}_{DateTime.Now:ddMMyyyy}.doc",
+                "application/msword");
+        }
+        catch (Exception ex)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta",
+                "ERROR AL EXPORTAR: " + ex.Message, "error");
+        }
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    //  HTML WORD — TIPO 1
+    // ────────────────────────────────────────────────────────────────
+    private void GenerarHtmlTipo1(System.Text.StringBuilder sb)
+    {
+        string fotoSrc = !string.IsNullOrEmpty(equipoActual?.fotoequipo)
+            ? equipoActual.fotoequipo
+            : "";
+
+        sb.AppendLine("<table class='lista' border='0' cellpadding='0' cellspacing='0'");
+        sb.AppendLine("  style='width:17cm; border:2px solid #1e3a8a; border-collapse:collapse; font-family:Arial,sans-serif; margin:0 auto;'>");
+
+        // ── Encabezado azul ──
+        sb.AppendLine("<tr>");
+        sb.AppendLine("  <td style='background:#1e3a8a; padding:8px 10px;'>");
+        sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%'><tr>");
+
+        // Logo (columna izquierda)
+        sb.AppendLine("      <td width='90' style='vertical-align:middle; padding-right:10px;'>");
+        if (!string.IsNullOrEmpty(fotoSrc))
+            sb.AppendLine($"        <img src='{fotoSrc}' width='80' height='80' style='width:2.1cm; height:2.1cm; max-width:2.1cm; max-height:2.1cm; border:2px solid rgba(255,255,255,.4); border-radius:4px; display:block;' />");
+        else
+            sb.AppendLine("        <div style='width:2.1cm; height:2.1cm; background:rgba(255,255,255,.15); border:2px dashed rgba(255,255,255,.4); border-radius:4px; text-align:center; vertical-align:middle; font-size:14pt; color:#fff; line-height:2.1cm;'>&#9917;</div>");
+        sb.AppendLine("      </td>");
+
+        // Textos (columna central)
+        sb.AppendLine("      <td style='text-align:center; vertical-align:middle;'>");
+        sb.AppendLine($"        <div style='color:#fff; font-size:12pt; font-weight:900; text-transform:uppercase; letter-spacing:.05em;'>{ligaNombre}</div>");
+        sb.AppendLine($"        <div style='color:#c7d2e7; font-size:9pt; margin-top:2px;'>{torneoNombre}</div>");
+        sb.AppendLine($"        <div style='color:#fbbf24; font-size:10pt; font-weight:800; text-transform:uppercase; margin-top:4px;'>{nombreEquipoSeleccionado}</div>");
+        sb.AppendLine("      </td>");
+
+        sb.AppendLine("    </tr></table>");
+        sb.AppendLine("  </td>");
+        sb.AppendLine("</tr>");
+
+        // ── Encabezado de columnas ──
+        sb.AppendLine("<tr>");
+        sb.AppendLine("  <td style='padding:0;'>");
+        sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse:collapse;'>");
+        sb.AppendLine("      <tr>");
+        sb.AppendLine("        <td width='32' style='background:#1e3a8a; color:#fff; font-size:7.5pt; font-weight:700; text-align:center; padding:4px 3px; border:1px solid #2d4ea8;'>#</td>");
+        sb.AppendLine("        <td style='background:#1e3a8a; color:#fff; font-size:7.5pt; font-weight:700; text-align:left; padding:4px 6px; border:1px solid #2d4ea8;'>JUGADOR</td>");
+        sb.AppendLine("        <td width='60' style='background:#1e3a8a; color:#fff; font-size:7.5pt; font-weight:700; text-align:center; padding:4px 3px; border:1px solid #2d4ea8;'>TITULAR</td>");
+        sb.AppendLine("        <td width='60' style='background:#1e3a8a; color:#fff; font-size:7.5pt; font-weight:700; text-align:center; padding:4px 3px; border:1px solid #2d4ea8;'>SUPLENTE</td>");
+        sb.AppendLine("      </tr>");
+
+        // ── Filas de jugadores (siempre 25) ──
+        for (int i = 0; i < 25; i++)
+        {
+            var j = i < listaJugadores.Length ? listaJugadores[i] : null;
+            string bg = i % 2 == 0 ? "#f8fafc" : "#ffffff";
+            sb.AppendLine($"      <tr style='background:{bg}; height:22px;'>");
+            sb.AppendLine($"        <td style='text-align:center; color:#64748b; font-weight:700; font-size:8pt; padding:2px 3px; border:1px solid #e2e8f0;'>{i + 1}</td>");
+            sb.AppendLine($"        <td style='font-size:8.5pt; color:#1e293b; padding:2px 6px; border:1px solid #e2e8f0;'>{j?.nombrecompleto ?? "&nbsp;"}</td>");
+            sb.AppendLine($"        <td style='text-align:center; border:1px solid #e2e8f0;'>&nbsp;</td>");
+            sb.AppendLine($"        <td style='text-align:center; border:1px solid #e2e8f0;'>&nbsp;</td>");
+            sb.AppendLine("      </tr>");
+        }
+
+        sb.AppendLine("    </table>");
+        sb.AppendLine("  </td>");
+        sb.AppendLine("</tr>");
+
+        // ── Pie con firmas ──
+        sb.AppendLine("<tr>");
+        sb.AppendLine("  <td style='padding:0;'>");
+        sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%'><tr>");
+        sb.AppendLine("      <td width='50%' style='text-align:center; padding:28px 20px 12px;'>");
+        sb.AppendLine("        <div style='border-bottom:1.5px solid #1e3a8a; margin-bottom:5px;'>&nbsp;</div>");
+        sb.AppendLine("        <span style='font-size:7pt; color:#64748b; text-transform:uppercase; letter-spacing:.05em;'>Firma del Representante</span>");
+        sb.AppendLine("      </td>");
+        sb.AppendLine("      <td width='50%' style='text-align:center; padding:28px 20px 12px;'>");
+        sb.AppendLine("        <div style='border-bottom:1.5px solid #1e3a8a; margin-bottom:5px;'>&nbsp;</div>");
+        sb.AppendLine("        <span style='font-size:7pt; color:#64748b; text-transform:uppercase; letter-spacing:.05em;'>Firma del Árbitro</span>");
+        sb.AppendLine("      </td>");
+        sb.AppendLine("    </tr></table>");
+        sb.AppendLine("  </td>");
+        sb.AppendLine("</tr>");
+
+        sb.AppendLine("</table>");
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    //  HTML WORD — TIPO 2
+    // ────────────────────────────────────────────────────────────────
+    private void GenerarHtmlTipo2(System.Text.StringBuilder sb)
+    {
+        string fotoSrc = !string.IsNullOrEmpty(equipoActual?.fotoequipo)
+            ? equipoActual.fotoequipo
+            : "";
+
+        int mitad = (int)Math.Ceiling(25.0 / 2);
+
+        sb.AppendLine("<table class='lista' border='0' cellpadding='0' cellspacing='0'");
+        sb.AppendLine("  style='width:17cm; border:2px solid #059669; border-collapse:collapse; font-family:Arial,sans-serif; margin:0 auto;'>");
+
+        // ── Encabezado verde ──
+        sb.AppendLine("<tr>");
+        sb.AppendLine("  <td style='background:#064e3b; padding:8px 10px;'>");
+        sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%'><tr>");
+
+        // Logo
+        sb.AppendLine("      <td width='90' style='vertical-align:middle; padding-right:10px;'>");
+        if (!string.IsNullOrEmpty(fotoSrc))
+            sb.AppendLine($"        <img src='{fotoSrc}' width='80' height='80' style='width:2.1cm; height:2.1cm; max-width:2.1cm; max-height:2.1cm; border:2px solid rgba(255,255,255,.4); border-radius:4px; display:block;' />");
+        else
+            sb.AppendLine("        <div style='width:2.1cm; height:2.1cm; background:rgba(255,255,255,.15); border:2px dashed rgba(255,255,255,.4); border-radius:4px; text-align:center; vertical-align:middle; font-size:14pt; color:#fff; line-height:2.1cm;'>&#9917;</div>");
+        sb.AppendLine("      </td>");
+
+        // Textos
+        sb.AppendLine("      <td style='text-align:center; vertical-align:middle;'>");
+        sb.AppendLine("        <div style='color:#fff; font-size:10pt; font-weight:900; text-transform:uppercase; letter-spacing:.06em;'>LISTA OFICIAL DE JUGADORES</div>");
+        sb.AppendLine($"        <div style='color:rgba(255,255,255,.9); font-size:9.5pt; font-weight:700; margin-top:3px;'>{ligaNombre}</div>");
+        sb.AppendLine($"        <div style='color:rgba(255,255,255,.75); font-size:8pt; margin-top:1px;'>{torneoNombre}</div>");
+        sb.AppendLine($"        <div style='color:#fbbf24; font-size:9.5pt; font-weight:800; text-transform:uppercase; margin-top:3px;'>{nombreEquipoSeleccionado}</div>");
+        sb.AppendLine("      </td>");
+
+        sb.AppendLine("    </tr></table>");
+        sb.AppendLine("  </td>");
+        sb.AppendLine("</tr>");
+
+        // ── Dos columnas de jugadores ──
+        sb.AppendLine("<tr>");
+        sb.AppendLine("  <td style='padding:6px;'>");
+        sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%'><tr>");
+
+        // Columna izquierda
+        sb.AppendLine("      <td width='50%' style='vertical-align:top; padding-right:4px;'>");
+        sb.AppendLine("        <table border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse:collapse;'>");
+        sb.AppendLine("          <tr>");
+        sb.AppendLine("            <td width='24' style='background:#059669; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #047857;'>#</td>");
+        sb.AppendLine("            <td style='background:#059669; color:#fff; font-size:6.5pt; font-weight:700; text-align:left; padding:3px 5px; border:1px solid #047857;'>JUGADOR</td>");
+        sb.AppendLine("            <td width='20' style='background:#059669; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #047857;'>T</td>");
+        sb.AppendLine("            <td width='20' style='background:#059669; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #047857;'>S</td>");
+        sb.AppendLine("          </tr>");
+        for (int i = 0; i < mitad; i++)
+        {
+            var j = i < listaJugadores.Length ? listaJugadores[i] : null;
+            string bg = i % 2 == 0 ? "#f0fdf4" : "#ffffff";
+            sb.AppendLine($"          <tr style='background:{bg}; height:20px;'>");
+            sb.AppendLine($"            <td style='text-align:center; color:#059669; font-weight:700; font-size:7.5pt; padding:1px 2px; border:1px solid #d1fae5;'>{i + 1}</td>");
+            sb.AppendLine($"            <td style='font-size:7.5pt; color:#1e293b; padding:1px 5px; border:1px solid #d1fae5;'>{j?.nombrecompleto ?? "&nbsp;"}</td>");
+            sb.AppendLine($"            <td style='border:1px solid #d1fae5;'>&nbsp;</td>");
+            sb.AppendLine($"            <td style='border:1px solid #d1fae5;'>&nbsp;</td>");
+            sb.AppendLine("          </tr>");
+        }
+        sb.AppendLine("        </table>");
+        sb.AppendLine("      </td>");
+
+        // Columna derecha
+        sb.AppendLine("      <td width='50%' style='vertical-align:top; padding-left:4px;'>");
+        sb.AppendLine("        <table border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse:collapse;'>");
+        sb.AppendLine("          <tr>");
+        sb.AppendLine("            <td width='24' style='background:#059669; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #047857;'>#</td>");
+        sb.AppendLine("            <td style='background:#059669; color:#fff; font-size:6.5pt; font-weight:700; text-align:left; padding:3px 5px; border:1px solid #047857;'>JUGADOR</td>");
+        sb.AppendLine("            <td width='20' style='background:#059669; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #047857;'>T</td>");
+        sb.AppendLine("            <td width='20' style='background:#059669; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #047857;'>S</td>");
+        sb.AppendLine("          </tr>");
+        for (int i = mitad; i < 25; i++)
+        {
+            var j = i < listaJugadores.Length ? listaJugadores[i] : null;
+            string bg = i % 2 == 0 ? "#f0fdf4" : "#ffffff";
+            sb.AppendLine($"          <tr style='background:{bg}; height:20px;'>");
+            sb.AppendLine($"            <td style='text-align:center; color:#059669; font-weight:700; font-size:7.5pt; padding:1px 2px; border:1px solid #d1fae5;'>{i + 1}</td>");
+            sb.AppendLine($"            <td style='font-size:7.5pt; color:#1e293b; padding:1px 5px; border:1px solid #d1fae5;'>{j?.nombrecompleto ?? "&nbsp;"}</td>");
+            sb.AppendLine($"            <td style='border:1px solid #d1fae5;'>&nbsp;</td>");
+            sb.AppendLine($"            <td style='border:1px solid #d1fae5;'>&nbsp;</td>");
+            sb.AppendLine("          </tr>");
+        }
+        sb.AppendLine("        </table>");
+        sb.AppendLine("      </td>");
+
+        sb.AppendLine("    </tr></table>");
+        sb.AppendLine("  </td>");
+        sb.AppendLine("</tr>");
+
+        // ── Pie con firmas ──
+        sb.AppendLine("<tr>");
+        sb.AppendLine("  <td style='border-top:1px solid #d1fae5; padding:0;'>");
+        sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%'><tr>");
+        sb.AppendLine("      <td width='50%' style='text-align:center; padding:28px 20px 12px;'>");
+        sb.AppendLine("        <div style='border-bottom:1.5px solid #059669; margin-bottom:5px;'>&nbsp;</div>");
+        sb.AppendLine("        <span style='font-size:7pt; color:#64748b; text-transform:uppercase; letter-spacing:.05em;'>Firma del Representante</span>");
+        sb.AppendLine("      </td>");
+        sb.AppendLine("      <td width='50%' style='text-align:center; padding:28px 20px 12px;'>");
+        sb.AppendLine("        <div style='border-bottom:1.5px solid #059669; margin-bottom:5px;'>&nbsp;</div>");
+        sb.AppendLine("        <span style='font-size:7pt; color:#64748b; text-transform:uppercase; letter-spacing:.05em;'>Firma del Árbitro</span>");
+        sb.AppendLine("      </td>");
+        sb.AppendLine("    </tr></table>");
+        sb.AppendLine("  </td>");
+        sb.AppendLine("</tr>");
+
+        sb.AppendLine("</table>");
+    }
+}

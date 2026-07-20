@@ -454,15 +454,18 @@ namespace FUTBOLERO.Server.Controllers
                 listaJugador = (from jugador in baseDatos.Jugador
                                 join equipo in baseDatos.Equipo
                                  on jugador.Idequipo equals equipo.Idequipo
-                                orderby jugador.Fnacimiento, equipo.Nombre
+                                orderby jugador.Appaterno, jugador.Apmaterno, jugador.Nombre
                                 where jugador.Habilitado == 1 && jugador.Idequipo == int.Parse(idequipo) && !jugador.Nombre.Contains("GOL A FAVOR")
                                 select new JugadorCLS
                                 {
-                                    idjugador = jugador.Idjugador,
-                                    nombrecompleto = jugador.Nombre + " " + jugador.Appaterno + " " + jugador.Apmaterno,
-                                    equipo = equipo.Nombre,
-                                    fnacimientocadena = regfechanacimientojugador(jugador.Fnacimiento),                //jugador.Fnacimiento.Value.ToLongDateString(),
-                                    años = regresaños(jugador.Fnacimiento)
+                                    idjugador    = jugador.Idjugador,
+                                    nombre       = jugador.Nombre,
+                                    appaterno    = jugador.Appaterno,
+                                    apmaterno    = jugador.Apmaterno ?? "",
+                                    nombrecompleto = (jugador.Appaterno + " " + (jugador.Apmaterno ?? "") + " " + jugador.Nombre).Replace("  ", " ").Trim(),
+                                    equipo       = equipo.Nombre,
+                                    fnacimientocadena = regfechanacimientojugador(jugador.Fnacimiento),
+                                    años         = regresaños(jugador.Fnacimiento)
                                 }).ToList();
             }
             return listaJugador;
