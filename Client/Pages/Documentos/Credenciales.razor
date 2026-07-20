@@ -590,6 +590,8 @@
                 // ═══════════════════════════════════════════════
                 //  CREDENCIAL: tabla única 10cm × ~6cm
                 // ═══════════════════════════════════════════════
+                if (tipoCredencial == 1)
+                {
                 sb.AppendLine("<table class='credencial' border='0' cellpadding='0' cellspacing='0'");
                 sb.AppendLine("  style='width:10cm; border:2px solid #1e3a8a; border-collapse:collapse; font-family:Arial,sans-serif;'>");
 
@@ -611,8 +613,8 @@
                 sb.AppendLine("<tr>");
                 // Foto con rowspan=5 (equipo + jugador + fecha + edad + espacio)
                 sb.AppendLine("  <td rowspan='5' style='width:2.6cm; vertical-align:middle; padding:8px 6px 8px 8px;'>");
-                sb.AppendLine("    <table border='1' cellpadding='0' cellspacing='0'");
-                sb.AppendLine("      style='width:2.4cm; height:3.5cm; border-collapse:collapse; border-color:#94a3b8;'>");
+                sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0'");
+                sb.AppendLine("      style='width:2.4cm; height:3.5cm; border-collapse:collapse;'>");
                 sb.AppendLine("      <tr><td style='text-align:center; vertical-align:middle; color:#94a3b8; font-size:7pt; font-weight:bold; background:#f8fafc;'>FOTO</td></tr>");
                 sb.AppendLine("    </table>");
                 sb.AppendLine("  </td>");
@@ -641,14 +643,14 @@
 
                 // ── PIE: líneas de firma ──
                 sb.AppendLine("<tr>");
-                sb.AppendLine("  <td colspan='2' style='border-top:1px solid #c7d2e7; padding:0;'>");
+                sb.AppendLine("  <td colspan='2' style='padding:0;'>");
                 sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%'>");
                 sb.AppendLine("      <tr>");
                 sb.AppendLine("        <td width='50%' style='text-align:center; padding:8px 14px 7px;'>");
                 sb.AppendLine("          <div style='border-bottom:1.5px solid #1e3a8a; margin-bottom:4px;'>&nbsp;</div>");
                 sb.AppendLine("          <span style='font-size:6pt; color:#64748b; text-transform:uppercase; letter-spacing:.05em;'>Firma del Jugador</span>");
                 sb.AppendLine("        </td>");
-                sb.AppendLine("        <td width='50%' style='text-align:center; padding:8px 14px 7px; border-left:1px solid #e2e8f0;'>");
+                sb.AppendLine("        <td width='50%' style='text-align:center; padding:8px 14px 7px;'>");
                 sb.AppendLine("          <div style='border-bottom:1.5px solid #1e3a8a; margin-bottom:4px;'>&nbsp;</div>");
                 sb.AppendLine("          <span style='font-size:6pt; color:#64748b; text-transform:uppercase; letter-spacing:.05em;'>Firma de la Liga</span>");
                 sb.AppendLine("        </td>");
@@ -657,7 +659,78 @@
                 sb.AppendLine("  </td>");
                 sb.AppendLine("</tr>");
 
-                sb.AppendLine("</table>"); // fin tabla credencial
+                sb.AppendLine("</table>"); // fin tabla credencial tipo 1
+                } // fin if tipoCredencial == 1
+                else
+                {
+                    // TIPO 2: Carnet de jugador — verde esmeralda
+                    sb.AppendLine("<table class='credencial' border='0' cellpadding='0' cellspacing='0'");
+                    sb.AppendLine("  style='width:10cm; border:2px solid #059669; border-collapse:collapse; font-family:Arial,sans-serif;'>");
+
+                    // Header verde con titulo, liga y circulos decorativos
+                    sb.AppendLine("<tr>");
+                    sb.AppendLine("  <td style='background:#064e3b; padding:0;'>");
+                    sb.AppendLine("      <div style='text-align:center; padding:6px 8px;'>");
+                    sb.AppendLine("        <div style='font-size:9pt; font-weight:900; color:#ffffff; text-transform:uppercase; letter-spacing:.06em;'>CARNET DE JUGADOR</div>");
+                    sb.AppendLine($"        <div style='font-size:7.5pt; color:rgba(255,255,255,.82);'>{ligaNombre}</div>");
+                    sb.AppendLine("      </div>");
+                    sb.AppendLine("  </td>");
+                    sb.AppendLine("</tr>");
+
+                    // Cuerpo: foto izquierda + datos derecha
+                    sb.AppendLine("<tr>");
+                    sb.AppendLine("  <td style='padding:0; background:#fff;'>");
+                    sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%'><tr>");
+                    sb.AppendLine("      <td width='75' style='vertical-align:middle; padding:8px 6px 8px 8px;'>");
+                    sb.AppendLine("        <table border='0' cellpadding='0' cellspacing='0'");
+                    sb.AppendLine("          style='width:2.4cm; height:3.2cm; border-collapse:collapse; background:#f0fdf4;'>");
+                    sb.AppendLine("          <tr><td style='text-align:center; vertical-align:middle; color:#94a3b8; font-size:7pt; font-weight:bold;'>FOTO</td></tr>");
+                    sb.AppendLine("        </table>");
+                    sb.AppendLine("      </td>");
+                    sb.AppendLine("      <td style='vertical-align:top; padding:8px 10px 6px 4px;'>");
+                    sb.AppendLine($"        <div style='font-size:7pt; font-weight:900; color:#000000; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px;'>{torneoNombre}</div>");
+                    sb.AppendLine("        <table border='0' cellpadding='0' cellspacing='0' width='100%'>");
+                    sb.AppendLine("          <tr>");
+                    sb.AppendLine("            <td style='font-size:6.5pt; font-weight:700; color:#64748b; text-transform:uppercase; white-space:nowrap; padding:1px 4px 1px 0;'>EQUIPO:</td>");
+                    sb.AppendLine($"            <td style='font-size:7.5pt; color:#1e293b; font-weight:600; border-bottom:1px solid #d1fae5; padding:1px 0;'>{nombreEquipoSeleccionado}</td>");
+                    sb.AppendLine("          </tr>");
+                    sb.AppendLine("          <tr>");
+                    sb.AppendLine("            <td style='font-size:6.5pt; font-weight:700; color:#64748b; text-transform:uppercase; white-space:nowrap; padding:2px 4px 1px 0;'>NOMBRE:</td>");
+                    sb.AppendLine($"            <td style='font-size:7.5pt; color:#064e3b; font-weight:800; border-bottom:1px solid #d1fae5; padding:2px 0;'>{j.nombrecompleto}</td>");
+                    sb.AppendLine("          </tr>");
+                    sb.AppendLine("          <tr>");
+                    sb.AppendLine("            <td style='font-size:6.5pt; font-weight:700; color:#64748b; text-transform:uppercase; white-space:nowrap; padding:2px 4px 1px 0;'>FECHA NAC.:</td>");
+                    sb.AppendLine($"            <td style='font-size:7.5pt; color:#1e293b; font-weight:600; border-bottom:1px solid #d1fae5; padding:2px 0;'>{j.fnacimientocadena}</td>");
+                    sb.AppendLine("          </tr>");
+                    sb.AppendLine("          <tr>");
+                    sb.AppendLine("            <td style='font-size:6.5pt; font-weight:700; color:#64748b; text-transform:uppercase; white-space:nowrap; padding:2px 4px 1px 0;'>EDAD:</td>");
+                    sb.AppendLine($"            <td style='font-size:7.5pt; color:#1e293b; font-weight:600; padding:2px 0;'>{j.años} a&ntilde;os</td>");
+                    sb.AppendLine("          </tr>");
+                    sb.AppendLine("        </table>");
+                    sb.AppendLine("      </td>");
+                    sb.AppendLine("    </tr></table>");
+                    sb.AppendLine("  </td>");
+                    sb.AppendLine("</tr>");
+
+                    // Pie: firmas con sello central
+                    sb.AppendLine("<tr>");
+                    sb.AppendLine("  <td style='border-top:1px solid #d1fae5; padding:0; background:#fff;'>");
+                    sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%'><tr>");
+                    sb.AppendLine("      <td width='40%' style='text-align:center; padding:7px 12px 6px;'>");
+                    sb.AppendLine("        <div style='border-bottom:1.5px solid #059669; margin-bottom:4px;'>&nbsp;</div>");
+                    sb.AppendLine("        <span style='font-size:6pt; color:#64748b; text-transform:uppercase; letter-spacing:.04em;'>Firma del Jugador</span>");
+                    sb.AppendLine("      </td>");
+                    sb.AppendLine("      <td width='20%' style='text-align:center; vertical-align:middle; font-size:14pt; color:#059669; padding:4px 0;'>&#9917;</td>");
+                    sb.AppendLine("      <td width='40%' style='text-align:center; padding:7px 12px 6px;'>");
+                    sb.AppendLine("        <div style='border-bottom:1.5px solid #059669; margin-bottom:4px;'>&nbsp;</div>");
+                    sb.AppendLine("        <span style='font-size:6pt; color:#64748b; text-transform:uppercase; letter-spacing:.04em;'>Firma de la Liga</span>");
+                    sb.AppendLine("      </td>");
+                    sb.AppendLine("    </tr></table>");
+                    sb.AppendLine("  </td>");
+                    sb.AppendLine("</tr>");
+
+                    sb.AppendLine("</table>"); // fin tabla credencial tipo 2
+                } // fin else tipo 2
                 sb.AppendLine("</td>");
                 sb.AppendLine("</tr>"); // fin fila centra-credencial
 
