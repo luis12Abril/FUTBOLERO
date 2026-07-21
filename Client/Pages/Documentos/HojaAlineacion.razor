@@ -1,0 +1,717 @@
+@page "/documentos/hoja-alineacion"
+@using FUTBOLERO.Shared
+@inject HttpClient http
+@inject IJSRuntime ijsruntime
+
+<AuthorizeView>
+    <Authorized>
+        <section class="catalogo-page mt-3">
+
+            <div class="catalogo-header-card">
+                <div>
+                    <p class="catalogo-kicker">Panel de administración</p>
+                    <h3>Hoja de Alineación</h3>
+                    <span>Genera e imprime la hoja de alineación del equipo seleccionado.</span>
+                </div>
+            </div>
+
+            @* ─── FILTROS ─── *@
+            <div class="cred-filtros-card">
+                <div class="cred-filtro-row">
+                    <div class="cred-filtro-item">
+                        <label class="cred-label">Tipo de Hoja</label>
+                        <select class="cred-select" @bind="tipoHoja">
+                            <option value="1">Tipo 1</option>
+                        </select>
+                    </div>
+
+                    <div class="cred-filtro-item">
+                        <label class="cred-label">Seleccionar Equipo</label>
+                        <select class="cred-select" @onchange="CambiarEquipo">
+                            <option value="">-- Seleccione un equipo --</option>
+                            @if (listaEquipos != null)
+                            {
+                                @foreach (var eq in listaEquipos)
+                                {
+                                    <option value="@eq.idequipo">@eq.nombre</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    @if (equipoSeleccionado > 0)
+                    {
+                        <div class="cred-filtro-item cred-filtro-btn">
+                            <button class="btn-exportar-word" @onclick="ExportarWord">
+                                📄 Exportar a Word
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* ─── CONTENIDO ─── *@
+            @if (cargando)
+            {
+                <div class="catalogo-loading">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <span class="ml-2">Cargando...</span>
+                </div>
+            }
+            else if (equipoSeleccionado == 0)
+            {
+                <div class="cred-empty-msg">
+                    <span>⬆️ Seleccione un equipo para ver la hoja de alineación.</span>
+                </div>
+            }
+            else
+            {
+                <div class="ha-preview-wrap">
+                    <div class="ha-hoja">
+
+                        @* ══ ENCABEZADO ══ *@
+                        <div class="ha-header">
+                            <div class="ha-header-logo">
+                                @if (!string.IsNullOrEmpty(equipoActual?.fotoequipo))
+                                {
+                                    <img src="@equipoActual.fotoequipo" alt="Logo" class="ha-logo-img" />
+                                }
+                                else
+                                {
+                                    <div class="ha-logo-placeholder">⚽</div>
+                                }
+                            </div>
+                            <div class="ha-header-info">
+                                <div class="ha-liga">@ligaNombre</div>
+                                <div class="ha-torneo">@torneoNombre</div>
+                            </div>
+                            <div class="ha-header-logo">
+                                @if (!string.IsNullOrEmpty(equipoActual?.fotoequipo))
+                                {
+                                    <img src="@equipoActual.fotoequipo" alt="Logo" class="ha-logo-img" />
+                                }
+                                else
+                                {
+                                    <div class="ha-logo-placeholder">⚽</div>
+                                }
+                            </div>
+                        </div>
+
+                        @* ══ SECCIÓN AMARILLA: datos del partido ══ *@
+                        <div class="ha-datos">
+                            <div class="ha-titulo-hoja">HOJA DE ALINEACIÓN</div>
+                            <div class="ha-equipo-row">
+                                <span class="ha-label">NOMBRE DEL EQUIPO:</span>
+                                <span class="ha-equipo-val">@nombreEquipoSeleccionado</span>
+                            </div>
+                            <div class="ha-campo-row">
+                                <span class="ha-label">CAMPO:</span>
+                                <input class="ha-input ha-input-campo" @bind="campo" placeholder="___________________________" />
+                                <span class="ha-label ha-label-fecha">FECHA:</span>
+                                <input class="ha-input ha-input-fecha" @bind="fecha" placeholder="___________________________" />
+                            </div>
+                        </div>
+
+                        @* ══ SECCIÓN VERDE: jugadores ══ *@
+                        <div class="ha-jugadores">
+
+                            <div class="ha-lista-titulo">LISTA DE JUGADORES</div>
+
+                            @* Titulares *@
+                            <div class="ha-subtitulo">TITULARES</div>
+                            <table class="ha-tabla">
+                                <thead>
+                                    <tr>
+                                        <th class="ha-th ha-th-num"></th>
+                                        <th class="ha-th ha-th-playera"># PLAYERA</th>
+                                        <th class="ha-th ha-th-nombre">NOMBRE</th>
+                                        <th class="ha-th ha-th-cat">GOLES</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < 11; i++)
+                                    {
+                                        var idx = i;
+                                        <tr class="ha-tr">
+                                            <td class="ha-td ha-td-num">@(i + 1).</td>
+                                            <td class="ha-td ha-td-playera">
+                                                <input class="ha-cell-input" @bind="titulares[idx].Playera" />
+                                            </td>
+                                            <td class="ha-td ha-td-nombre">
+                                                <input class="ha-cell-input" @bind="titulares[idx].Nombre" />
+                                            </td>
+                                            <td class="ha-td ha-td-cat">
+                                                <input class="ha-cell-input" @bind="titulares[idx].Categoria" />
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+
+                            @* Suplentes *@
+                            <div class="ha-subtitulo ha-subtitulo-mt">SUPLENTES</div>
+                            <table class="ha-tabla">
+                                <thead>
+                                    <tr>
+                                        <th class="ha-th ha-th-num"></th>
+                                        <th class="ha-th ha-th-playera"># PLAYERA</th>
+                                        <th class="ha-th ha-th-nombre">NOMBRE</th>
+                                        <th class="ha-th ha-th-cat">GOLES</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < 10; i++)
+                                    {
+                                        var idx = i;
+                                        <tr class="ha-tr">
+                                            <td class="ha-td ha-td-num">@(i + 12).</td>
+                                            <td class="ha-td ha-td-playera">
+                                                <input class="ha-cell-input" @bind="suplentes[idx].Playera" />
+                                            </td>
+                                            <td class="ha-td ha-td-nombre">
+                                                <input class="ha-cell-input" @bind="suplentes[idx].Nombre" />
+                                            </td>
+                                            <td class="ha-td ha-td-cat">
+                                                <input class="ha-cell-input" @bind="suplentes[idx].Categoria" />
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+
+                            @* Cuerpo Técnico *@
+                            <div class="ha-subtitulo ha-subtitulo-mt">CUERPO TÉCNICO</div>
+                            <table class="ha-tabla ha-tabla-ct">
+                                <tbody>
+                                    @for (int i = 0; i < cuerpoTecnicoLabels.Length; i++)
+                                    {
+                                        var idx = i;
+                                        <tr class="ha-tr">
+                                            <td class="ha-td ha-td-ct-label">@cuerpoTecnicoLabels[idx]</td>
+                                            <td class="ha-td ha-td-ct-nombre">
+                                                <input class="ha-cell-input" @bind="cuerpoTecnico[idx]" />
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </section>
+    </Authorized>
+</AuthorizeView>
+
+<style>
+    /* ── Reutilizados ── */
+    .cred-filtros-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(30,58,138,.08);
+        padding: 1.1rem 1.4rem;
+        margin-bottom: 1.4rem;
+    }
+
+    .cred-filtro-row { display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: flex-end; }
+    .cred-filtro-item { display: flex; flex-direction: column; gap: 0.3rem; }
+    .cred-filtro-btn  { justify-content: flex-end; }
+
+    .cred-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .cred-select {
+        padding: 0.42rem 0.9rem;
+        border: 1.5px solid #c7d2e7;
+        border-radius: 8px;
+        font-size: 0.93rem;
+        min-width: 240px;
+        background: #f8fafc;
+        color: #1e293b;
+        cursor: pointer;
+    }
+
+    .btn-exportar-word {
+        background: linear-gradient(90deg,#2563eb,#1d4ed8);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.45rem 1.2rem;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 3px 12px rgba(37,99,235,.25);
+        transition: opacity .2s;
+    }
+
+    .btn-exportar-word:hover { opacity: .87; }
+
+    .cred-empty-msg {
+        background: #f0f5ff;
+        border-radius: 10px;
+        padding: 1.4rem 2rem;
+        color: #475569;
+        font-size: 1rem;
+        text-align: center;
+    }
+
+    /* ── Preview ── */
+    .ha-preview-wrap {
+        display: flex;
+        justify-content: center;
+        padding: 1rem 0 2rem;
+    }
+
+    .ha-hoja {
+        width: 720px;
+        background: #fff;
+        border: 2px solid #1e3a8a;
+        border-radius: 8px;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 20px rgba(30,58,138,.12);
+    }
+
+    /* ── Encabezado azul ── */
+    .ha-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #1e3a8a;
+        padding: .65rem 1rem;
+        gap: .8rem;
+    }
+
+    .ha-header-logo {
+        flex-shrink: 0;
+        width: 90px;
+        height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ha-logo-img {
+        width: 88px;
+        height: 88px;
+        object-fit: contain;
+        border-radius: 6px;
+        border: 2px solid rgba(255,255,255,.4);
+    }
+
+    .ha-logo-placeholder {
+        width: 88px;
+        height: 88px;
+        background: rgba(255,255,255,.15);
+        border: 2px dashed rgba(255,255,255,.4);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+
+    .ha-header-info { flex: 1; text-align: center; }
+    .ha-liga   { color: #fff; font-size: 1rem; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; }
+    .ha-torneo { color: #c7d2e7; font-size: .82rem; margin-top: .2rem; }
+
+    /* ── Sección amarilla ── */
+    .ha-datos {
+        background: #fffde7;
+        border-top: 3px solid #f59e0b;
+        border-bottom: 3px solid #f59e0b;
+        padding: .6rem 1rem;
+    }
+
+    .ha-titulo-hoja {
+        text-align: center;
+        font-size: .92rem;
+        font-weight: 900;
+        color: #1e293b;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin-bottom: .35rem;
+    }
+
+    .ha-equipo-row {
+        display: flex;
+        align-items: baseline;
+        gap: .4rem;
+        margin-bottom: .25rem;
+        font-size: .82rem;
+    }
+
+    .ha-equipo-val {
+        font-weight: 700;
+        color: #1e3a8a;
+        text-transform: uppercase;
+        border-bottom: 1px solid #94a3b8;
+        flex: 1;
+    }
+
+    .ha-campo-row {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .82rem;
+    }
+
+    .ha-label { font-weight: 700; color: #374151; white-space: nowrap; }
+    .ha-label-fecha { margin-left: .5rem; }
+
+    .ha-input {
+        border: none;
+        border-bottom: 1px solid #94a3b8;
+        background: transparent;
+        font-size: .82rem;
+        color: #1e293b;
+        outline: none;
+        flex: 1;
+    }
+
+    .ha-input-campo { min-width: 160px; }
+    .ha-input-fecha { min-width: 130px; }
+
+    /* ── Sección verde ── */
+    .ha-jugadores {
+        border: 2px solid #16a34a;
+        margin: .6rem;
+        border-radius: 5px;
+        padding: .5rem .6rem;
+        background: #f0fdf4;
+    }
+
+    .ha-lista-titulo {
+        text-align: center;
+        font-size: .85rem;
+        font-weight: 900;
+        color: #14532d;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        margin-bottom: .4rem;
+    }
+
+    .ha-subtitulo {
+        font-size: .78rem;
+        font-weight: 800;
+        color: #14532d;
+        text-decoration: underline;
+        margin-bottom: .2rem;
+        text-transform: uppercase;
+    }
+
+    .ha-subtitulo-mt { margin-top: .6rem; }
+
+    .ha-tabla {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: .76rem;
+        margin-bottom: .15rem;
+    }
+
+    .ha-th {
+        background: #15803d;
+        color: #fff;
+        padding: .25rem .4rem;
+        border: 1px solid #14532d;
+        font-size: .7rem;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .ha-th-num   { width: 28px; }
+    .ha-th-playera { width: 80px; }
+    .ha-th-nombre  { }
+    .ha-th-cat     { width: 100px; }
+
+    .ha-tr:nth-child(odd)  { background: #dcfce7; }
+    .ha-tr:nth-child(even) { background: #fff; }
+
+    .ha-td {
+        border: 1px solid #bbf7d0;
+        padding: .1rem .3rem;
+        height: 22px;
+    }
+
+    .ha-td-num      { text-align: right; font-weight: 700; color: #15803d; font-size: .74rem; width: 28px; }
+    .ha-td-playera  { width: 80px; }
+    .ha-td-nombre   { }
+    .ha-td-cat      { width: 100px; }
+    .ha-td-ct-label { width: 70px; font-weight: 700; color: #14532d; font-size: .76rem; }
+    .ha-td-ct-nombre { }
+
+    .ha-tabla-ct .ha-tr:nth-child(odd)  { background: #dcfce7; }
+    .ha-tabla-ct .ha-tr:nth-child(even) { background: #fff; }
+
+    .ha-cell-input {
+        width: 100%;
+        border: none;
+        background: transparent;
+        font-size: .76rem;
+        color: #1e293b;
+        outline: none;
+        padding: 0;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> auth { get; set; }
+
+    private string idtorneoseleccionado = "";
+    private string torneoNombre = "";
+    private string ligaNombre = "";
+
+    private int tipoHoja = 1;
+
+    private int equipoSeleccionado = 0;
+    private string nombreEquipoSeleccionado = "";
+    private EquipoCLS equipoActual = null;
+
+    private bool cargando = false;
+    private List<EquipoCLS> listaEquipos = new();
+    private JugadorCLS[] listaJugadores = null;
+
+    // Datos editables
+    private string campo = "";
+    private string fecha = "";
+
+    private FilaAlineacion[] titulares  = Enumerable.Range(0, 11).Select(_ => new FilaAlineacion()).ToArray();
+    private FilaAlineacion[] suplentes  = Enumerable.Range(0, 10).Select(_ => new FilaAlineacion()).ToArray();
+    private string[] cuerpoTecnico      = new string[4];
+    private readonly string[] cuerpoTecnicoLabels = { "D.T.", "AUX", "AUX 2", "DR." };
+
+    public class FilaAlineacion
+    {
+        public string Playera  { get; set; } = "";
+        public string Nombre   { get; set; } = "";
+        public string Categoria { get; set; } = "";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authuser = await auth;
+        var user = authuser.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims.ToList();
+            torneoNombre = claims[1].Value;
+            idtorneoseleccionado = claims[2].Value;
+
+            listaEquipos = await http.GetFromJsonAsync<List<EquipoCLS>>(
+                "api/Equipo/ListarEquipo/" + idtorneoseleccionado);
+
+            try
+            {
+                var torneoCLS = await http.GetFromJsonAsync<TorneoCLS>(
+                    "api/Torneo/RecuperarInformacionTorneo/" + idtorneoseleccionado);
+
+                if (torneoCLS?.idliga != null)
+                {
+                    var ligaCLS = await http.GetFromJsonAsync<LigaCLS>(
+                        "api/Liga/RecuperarInformacionLiga/" + torneoCLS.idliga);
+                    ligaNombre = ligaCLS?.nombre ?? torneoNombre;
+                }
+            }
+            catch
+            {
+                ligaNombre = torneoNombre;
+            }
+        }
+    }
+
+    private async Task CambiarEquipo(ChangeEventArgs e)
+    {
+        if (!int.TryParse(e.Value?.ToString(), out int idEquipo) || idEquipo == 0)
+        {
+            equipoSeleccionado = 0;
+            nombreEquipoSeleccionado = "";
+            equipoActual = null;
+            listaJugadores = null;
+            ResetearFilas();
+            return;
+        }
+
+        equipoSeleccionado = idEquipo;
+        nombreEquipoSeleccionado = listaEquipos.FirstOrDefault(eq => eq.idequipo == idEquipo)?.nombre ?? "";
+        cargando = true;
+        ResetearFilas();
+
+        var taskJugadores = http.GetFromJsonAsync<JugadorCLS[]>("api/Jugador/ListarJugadorEquipo/" + idEquipo);
+        var taskEquipo    = http.GetFromJsonAsync<EquipoCLS>("api/Equipo/RecuperarInformacionEquipo/" + idEquipo);
+        await System.Threading.Tasks.Task.WhenAll(taskJugadores, taskEquipo);
+
+        listaJugadores = taskJugadores.Result;
+        equipoActual   = taskEquipo.Result;
+
+        cargando = false;
+    }
+
+    private void ResetearFilas()
+    {
+        titulares  = Enumerable.Range(0, 11).Select(_ => new FilaAlineacion()).ToArray();
+        suplentes  = Enumerable.Range(0, 10).Select(_ => new FilaAlineacion()).ToArray();
+        cuerpoTecnico = new string[4];
+        campo = "";
+        fecha = "";
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    //  EXPORTAR A WORD
+    // ──────────────────────────────────────────────────────────────
+    private async Task ExportarWord()
+    {
+        try
+        {
+            string fotoSrc = !string.IsNullOrEmpty(equipoActual?.fotoequipo)
+                ? equipoActual.fotoequipo : "";
+
+            var sb = new System.Text.StringBuilder();
+
+            sb.AppendLine("<!DOCTYPE html>");
+            sb.AppendLine("<html xmlns:o='urn:schemas-microsoft-com:office:office'");
+            sb.AppendLine("      xmlns:w='urn:schemas-microsoft-com:office:word'");
+            sb.AppendLine("      xmlns='http://www.w3.org/TR/REC-html40'>");
+            sb.AppendLine("<head><meta charset='utf-8'><title>Hoja de Alineación</title>");
+            sb.AppendLine("<style>");
+            sb.AppendLine("@page Section1 { size:21.0cm 29.7cm; margin:1.2cm 1.5cm; mso-header-margin:.5cm; mso-footer-margin:.5cm; mso-paper-source:0; }");
+            sb.AppendLine("div.Section1 { page:Section1; }");
+            sb.AppendLine("body { font-family:Arial,sans-serif; font-size:8pt; }");
+            sb.AppendLine("</style>");
+            sb.AppendLine("</head><body><div class='Section1'>");
+
+            // ── Tabla principal ──
+            sb.AppendLine("<table border='0' cellpadding='0' cellspacing='0'");
+            sb.AppendLine("  style='width:18cm; border:2px solid #1e3a8a; border-collapse:collapse; font-family:Arial,sans-serif; margin:0 auto;'>");
+
+            // ── ENCABEZADO azul ──
+            sb.AppendLine("<tr>");
+            sb.AppendLine("  <td style='background:#1e3a8a; padding:8px 10px;'>");
+            sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%'><tr>");
+
+            // Logo izquierdo
+            sb.AppendLine("      <td width='90' style='vertical-align:middle;'>");
+            if (!string.IsNullOrEmpty(fotoSrc))
+                sb.AppendLine($"        <img src='{fotoSrc}' width='80' height='80' style='width:2.1cm; height:2.1cm; max-width:2.1cm; max-height:2.1cm; border:2px solid rgba(255,255,255,.4); border-radius:4px; display:block;' />");
+            else
+                sb.AppendLine("        <div style='width:2.1cm; height:2.1cm; background:rgba(255,255,255,.15); border:2px dashed rgba(255,255,255,.4); border-radius:4px; text-align:center; line-height:2.1cm; color:#fff; font-size:14pt;'>&#9917;</div>");
+            sb.AppendLine("      </td>");
+
+            // Centro
+            sb.AppendLine("      <td style='text-align:center; vertical-align:middle; padding:0 8px;'>");
+            sb.AppendLine($"        <div style='color:#fff; font-size:12pt; font-weight:900; text-transform:uppercase; letter-spacing:.05em;'>{ligaNombre}</div>");
+            sb.AppendLine($"        <div style='color:#c7d2e7; font-size:9pt; margin-top:3px;'>{torneoNombre}</div>");
+            sb.AppendLine("      </td>");
+
+            // Logo derecho
+            sb.AppendLine("      <td width='90' style='vertical-align:middle;'>");
+            if (!string.IsNullOrEmpty(fotoSrc))
+                sb.AppendLine($"        <img src='{fotoSrc}' width='80' height='80' style='width:2.1cm; height:2.1cm; max-width:2.1cm; max-height:2.1cm; border:2px solid rgba(255,255,255,.4); border-radius:4px; display:block;' />");
+            else
+                sb.AppendLine("        <div style='width:2.1cm; height:2.1cm; background:rgba(255,255,255,.15); border:2px dashed rgba(255,255,255,.4); border-radius:4px; text-align:center; line-height:2.1cm; color:#fff; font-size:14pt;'>&#9917;</div>");
+            sb.AppendLine("      </td>");
+
+            sb.AppendLine("    </tr></table>");
+            sb.AppendLine("  </td>");
+            sb.AppendLine("</tr>");
+
+            // ── SECCIÓN AMARILLA ──
+            sb.AppendLine("<tr>");
+            sb.AppendLine("  <td style='background:#fffde7; border-top:3px solid #f59e0b; border-bottom:3px solid #f59e0b; padding:6px 10px;'>");
+            sb.AppendLine("    <div style='text-align:center; font-size:10pt; font-weight:900; text-transform:uppercase; letter-spacing:.06em; margin-bottom:5px;'>HOJA DE ALINEACIÓN</div>");
+            sb.AppendLine($"    <div style='font-size:8.5pt; margin-bottom:4px;'><b>NOMBRE DEL EQUIPO:</b> <span style='font-weight:700; color:#1e3a8a; text-transform:uppercase; border-bottom:1px solid #94a3b8; display:inline-block; min-width:10cm;'>{nombreEquipoSeleccionado}</span></div>");
+            sb.AppendLine($"    <div style='font-size:8.5pt;'><b>CAMPO:</b>&nbsp;<span style='border-bottom:1px solid #94a3b8; display:inline-block; min-width:5cm;'>{campo}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>FECHA:</b>&nbsp;<span style='border-bottom:1px solid #94a3b8; display:inline-block; min-width:4cm;'>{fecha}</span></div>");
+            sb.AppendLine("  </td>");
+            sb.AppendLine("</tr>");
+
+            // ── SECCIÓN VERDE: jugadores ──
+            sb.AppendLine("<tr>");
+            sb.AppendLine("  <td style='padding:6px 8px; border:2px solid #16a34a; background:#f0fdf4;'>");
+
+            // Título
+            sb.AppendLine("    <div style='text-align:center; font-size:9pt; font-weight:900; text-transform:uppercase; letter-spacing:.05em; color:#14532d; margin-bottom:5px;'>LISTA DE JUGADORES</div>");
+
+            // Titulares
+            sb.AppendLine("    <div style='font-size:8pt; font-weight:800; color:#14532d; text-decoration:underline; text-transform:uppercase; margin-bottom:3px;'>TITULARES</div>");
+            sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse:collapse; margin-bottom:8px;'>");
+            sb.AppendLine("      <tr>");
+            sb.AppendLine("        <td width='28' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'></td>");
+            sb.AppendLine("        <td width='70' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'># PLAYERA</td>");
+            sb.AppendLine("        <td style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 5px; border:1px solid #14532d;'>NOMBRE</td>");
+            sb.AppendLine("        <td width='90' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'>GOLES</td>");
+            sb.AppendLine("      </tr>");
+            for (int i = 0; i < 11; i++)
+            {
+                string bg = i % 2 == 0 ? "#dcfce7" : "#fff";
+                sb.AppendLine($"      <tr style='background:{bg}; height:20px;'>");
+                sb.AppendLine($"        <td style='text-align:right; font-weight:700; color:#15803d; font-size:7.5pt; padding:1px 4px 1px 2px; border:1px solid #bbf7d0;'>{i + 1}.</td>");
+                sb.AppendLine($"        <td style='font-size:7.5pt; padding:1px 3px; border:1px solid #bbf7d0;'>{titulares[i].Playera}</td>");
+                sb.AppendLine($"        <td style='font-size:7.5pt; padding:1px 5px; border:1px solid #bbf7d0;'>{titulares[i].Nombre}</td>");
+                sb.AppendLine($"        <td style='font-size:7.5pt; padding:1px 3px; border:1px solid #bbf7d0;'>{titulares[i].Categoria}</td>");
+                sb.AppendLine("      </tr>");
+            }
+            sb.AppendLine("    </table>");
+
+            // Suplentes
+            sb.AppendLine("    <div style='font-size:8pt; font-weight:800; color:#14532d; text-decoration:underline; text-transform:uppercase; margin-top:10px; margin-bottom:3px;'>SUPLENTES</div>");
+            sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse:collapse; margin-bottom:8px;'>");
+            sb.AppendLine("      <tr>");
+            sb.AppendLine("        <td width='28' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'></td>");
+            sb.AppendLine("        <td width='70' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'># PLAYERA</td>");
+            sb.AppendLine("        <td style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 5px; border:1px solid #14532d;'>NOMBRE</td>");
+            sb.AppendLine("        <td width='90' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'>GOLES</td>");
+            sb.AppendLine("      </tr>");
+            for (int i = 0; i < 10; i++)
+            {
+                string bg = i % 2 == 0 ? "#dcfce7" : "#fff";
+                sb.AppendLine($"      <tr style='background:{bg}; height:20px;'>");
+                sb.AppendLine($"        <td style='text-align:right; font-weight:700; color:#15803d; font-size:7.5pt; padding:1px 4px 1px 2px; border:1px solid #bbf7d0;'>{i + 12}.</td>");
+                sb.AppendLine($"        <td style='font-size:7.5pt; padding:1px 3px; border:1px solid #bbf7d0;'>{suplentes[i].Playera}</td>");
+                sb.AppendLine($"        <td style='font-size:7.5pt; padding:1px 5px; border:1px solid #bbf7d0;'>{suplentes[i].Nombre}</td>");
+                sb.AppendLine($"        <td style='font-size:7.5pt; padding:1px 3px; border:1px solid #bbf7d0;'>{suplentes[i].Categoria}</td>");
+                sb.AppendLine("      </tr>");
+            }
+            sb.AppendLine("    </table>");
+
+            // Cuerpo Técnico
+            sb.AppendLine("    <div style='font-size:8pt; font-weight:800; color:#14532d; text-transform:uppercase; margin-top:10px; margin-bottom:3px;'>CUERPO TÉCNICO</div>");
+            sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse:collapse;'>");
+            for (int i = 0; i < cuerpoTecnicoLabels.Length; i++)
+            {
+                string bg = i % 2 == 0 ? "#dcfce7" : "#fff";
+                sb.AppendLine($"      <tr style='background:{bg}; height:20px;'>");
+                sb.AppendLine($"        <td width='50' style='font-weight:700; color:#14532d; font-size:7.5pt; padding:1px 5px; border:1px solid #bbf7d0;'>{cuerpoTecnicoLabels[i]}</td>");
+                sb.AppendLine($"        <td style='font-size:7.5pt; padding:1px 5px; border:1px solid #bbf7d0;'>{cuerpoTecnico[i] ?? ""}</td>");
+                sb.AppendLine("      </tr>");
+            }
+            sb.AppendLine("    </table>");
+
+            sb.AppendLine("  </td>");
+            sb.AppendLine("</tr>");
+
+            sb.AppendLine("</table>");
+            sb.AppendLine("</div></body></html>");
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+
+            await ijsruntime.InvokeVoidAsync("descargarArchivo",
+                base64,
+                $"HojaAlineacion_{nombreEquipoSeleccionado.Replace(" ", "_")}_{DateTime.Now:ddMMyyyy}.doc",
+                "application/msword");
+        }
+        catch (Exception ex)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta",
+                "ERROR AL EXPORTAR: " + ex.Message, "error");
+        }
+    }
+}
