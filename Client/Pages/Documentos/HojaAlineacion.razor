@@ -122,7 +122,7 @@
                             <table class="ha-tabla">
                                 <thead>
                                     <tr>
-                                        <th class="ha-th ha-th-num"></th>
+                                        <th class="ha-th ha-th-num">#</th>
                                         <th class="ha-th ha-th-playera"># PLAYERA</th>
                                         <th class="ha-th ha-th-nombre">NOMBRE</th>
                                         <th class="ha-th ha-th-cat">GOLES</th>
@@ -153,7 +153,7 @@
                             <table class="ha-tabla">
                                 <thead>
                                     <tr>
-                                        <th class="ha-th ha-th-num"></th>
+                                        <th class="ha-th ha-th-num">#</th>
                                         <th class="ha-th ha-th-playera"># PLAYERA</th>
                                         <th class="ha-th ha-th-nombre">NOMBRE</th>
                                         <th class="ha-th ha-th-cat">GOLES</th>
@@ -486,7 +486,7 @@
     private FilaAlineacion[] titulares  = Enumerable.Range(0, 11).Select(_ => new FilaAlineacion()).ToArray();
     private FilaAlineacion[] suplentes  = Enumerable.Range(0, 10).Select(_ => new FilaAlineacion()).ToArray();
     private string[] cuerpoTecnico      = new string[4];
-    private readonly string[] cuerpoTecnicoLabels = { "D.T.", "AUX", "AUX 2", "DR." };
+    private readonly string[] cuerpoTecnicoLabels = { "D.T.", "AUX 1", "AUX 2", "DR." };
 
     public class FilaAlineacion
     {
@@ -628,7 +628,12 @@
             sb.AppendLine("  <td style='background:#fffde7; border-top:3px solid #f59e0b; border-bottom:3px solid #f59e0b; padding:6px 10px;'>");
             sb.AppendLine("    <div style='text-align:center; font-size:10pt; font-weight:900; text-transform:uppercase; letter-spacing:.06em; margin-bottom:5px;'>HOJA DE ALINEACIÓN</div>");
             sb.AppendLine($"    <div style='font-size:8.5pt; margin-bottom:4px;'><b>NOMBRE DEL EQUIPO:</b> <span style='font-weight:700; color:#1e3a8a; text-transform:uppercase; border-bottom:1px solid #94a3b8; display:inline-block; min-width:10cm;'>{nombreEquipoSeleccionado}</span></div>");
-            sb.AppendLine($"    <div style='font-size:8.5pt;'><b>CAMPO:</b>&nbsp;<span style='border-bottom:1px solid #94a3b8; display:inline-block; min-width:5cm;'>{campo}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>FECHA:</b>&nbsp;<span style='border-bottom:1px solid #94a3b8; display:inline-block; min-width:4cm;'>{fecha}</span></div>");
+            sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse:collapse;'><tr>");
+            sb.AppendLine("      <td width='45' style='font-size:8.5pt; font-weight:700; white-space:nowrap;'>CAMPO:</td>");
+            sb.AppendLine($"      <td style='font-size:8.5pt; border-bottom:1px solid #94a3b8;'>{campo}</td>");
+            sb.AppendLine("      <td width='50' style='font-size:8.5pt; font-weight:700; white-space:nowrap; padding-left:20px;'>FECHA:</td>");
+            sb.AppendLine($"      <td style='font-size:8.5pt; border-bottom:1px solid #94a3b8;'>{fecha}</td>");
+            sb.AppendLine("    </tr></table>");
             sb.AppendLine("  </td>");
             sb.AppendLine("</tr>");
 
@@ -643,7 +648,7 @@
             sb.AppendLine("    <div style='font-size:8pt; font-weight:800; color:#14532d; text-decoration:underline; text-transform:uppercase; margin-bottom:3px;'>TITULARES</div>");
             sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse:collapse; margin-bottom:8px;'>");
             sb.AppendLine("      <tr>");
-            sb.AppendLine("        <td width='28' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'></td>");
+            sb.AppendLine("        <td width='28' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'>#</td>");
             sb.AppendLine("        <td width='70' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'># PLAYERA</td>");
             sb.AppendLine("        <td style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 5px; border:1px solid #14532d;'>NOMBRE</td>");
             sb.AppendLine("        <td width='90' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'>GOLES</td>");
@@ -664,7 +669,7 @@
             sb.AppendLine("    <div style='font-size:8pt; font-weight:800; color:#14532d; text-decoration:underline; text-transform:uppercase; margin-top:10px; margin-bottom:3px;'>SUPLENTES</div>");
             sb.AppendLine("    <table border='0' cellpadding='0' cellspacing='0' width='100%' style='border-collapse:collapse; margin-bottom:8px;'>");
             sb.AppendLine("      <tr>");
-            sb.AppendLine("        <td width='28' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'></td>");
+            sb.AppendLine("        <td width='28' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'>#</td>");
             sb.AppendLine("        <td width='70' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'># PLAYERA</td>");
             sb.AppendLine("        <td style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 5px; border:1px solid #14532d;'>NOMBRE</td>");
             sb.AppendLine("        <td width='90' style='background:#15803d; color:#fff; font-size:6.5pt; font-weight:700; text-align:center; padding:3px 2px; border:1px solid #14532d;'>GOLES</td>");
