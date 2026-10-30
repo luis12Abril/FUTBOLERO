@@ -1,4 +1,5 @@
 ﻿@using FUTBOLERO.Shared
+@using System.Linq
 @inject HttpClient http
 @inject NavigationManager navigation
 @inject IJSRuntime ijsruntime
@@ -36,14 +37,23 @@ else
 
                     <div class="col-md-6">
                         <label class="modern-label">Ligas *</label>
+
                         <InputSelect @bind-Value="oTorneoCLS.idliga" class="form-control modern-input">
                             <option value="">--- Seleccione ---</option>
-                            @foreach (LigaCLS oLigaCLS in listaLigas)
+                            @foreach (LigaCLS oLigaCLS in listaLigasOrdenadas)
                             {
                                 <option value="@oLigaCLS.idliga">@oLigaCLS.nombre</option>
                             }
                         </InputSelect>
                         <ValidationMessage For="@(()=>oTorneoCLS.idliga)" />
+
+                        <div class="modern-order-inline">
+                            <span class="modern-order-text">Orden del combo:</span>
+                            <select class="form-control form-control-sm modern-order-select" value="@ordenLigasSeleccionado" @onchange="CambiarOrdenLigas">
+                                <option value="recientes">Más recientes</option>
+                                <option value="nombre">Alfabético</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="col-md-4">
@@ -100,6 +110,26 @@ else
         color: #2f3e46;
         margin-bottom: 0.35rem;
         display: inline-block;
+    }
+
+    .modern-order-inline {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.7rem;
+        margin-top: 0.45rem;
+    }
+
+    .modern-order-text {
+        font-size: 0.82rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .modern-order-select {
+        max-width: 180px;
+        border-radius: 0.55rem;
+        min-height: 34px;
     }
 
     .modern-input {
@@ -183,6 +213,8 @@ else
     public List<LigaCLS> listaLigas { get; set; }
 
     public string ruta { get; set; }
+    public string ordenLigasSeleccionado { get; set; } = "recientes";
+    public List<LigaCLS> listaLigasOrdenadas { get; set; } = new List<LigaCLS>();
 
     [CascadingParameter]
     private Task<AuthenticationState> auth { get; set; }
@@ -192,6 +224,28 @@ else
         string paginaEnviar = "ListaTorneo";
         int idPag = await http.GetFromJsonAsync<int>("api/Pagina/RecuperarIdPagina/" + paginaEnviar);
         ruta = paginaEnviar + "/" + idPag;
+        AplicarOrdenLigas();
+    }
+
+    public void CambiarOrdenLigas(ChangeEventArgs e)
+    {
+        ordenLigasSeleccionado = e.Value?.ToString() ?? "recientes";
+        AplicarOrdenLigas();
+    }
+
+    public void AplicarOrdenLigas()
+    {
+        if (listaLigas == null || listaLigas.Count == 0)
+        {
+            listaLigasOrdenadas = new List<LigaCLS>();
+            return;
+        }
+
+        listaLigasOrdenadas = ordenLigasSeleccionado switch
+        {
+            "nombre" => listaLigas.OrderBy(x => x.nombre).ToList(),
+            _ => listaLigas.OrderByDescending(x => x.idliga).ToList()
+        };
     }
 
 
