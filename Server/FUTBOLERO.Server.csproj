@@ -32,5 +32,9 @@
     <ProjectReference Include="..\Shared\FUTBOLERO.Shared.csproj" />
   </ItemGroup>
 
+  <Target Name="KillStaleServerProcess" BeforeTargets="Build" Condition="'$(Configuration)' == 'Debug' and '$(OS)' == 'Windows_NT'">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; { $root = [System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)'); Get-Process -Name 'FUTBOLERO.Server' -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($root, [System.StringComparison]::OrdinalIgnoreCase) } | Stop-Process -Force -ErrorAction SilentlyContinue }&quot;" IgnoreExitCode="true" />
+  </Target>
+
 
 </Project>

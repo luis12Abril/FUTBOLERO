@@ -36,17 +36,24 @@
             }
             else
             {
-                <div class="catalogo-list-card">
+                <div class="catalogo-list-card goleadores-modern-list">
+                    @if (permitirExportarWord)
+                    {
+                        <div class="mb-2 d-flex" style="gap: 0.5rem;">
+                            <button class="btn btn-info" @onclick="ExportarWordGoleadores">📄 Exportar a Word</button>
+                        </div>
+                    }
+
                     <Listados cabeceras=cabeceras
                               nombrePropiedadesMostrar=propiedades
                               lista=listadoGoleadores
                               type="combobox" button=false label="Seleccione un equipo"
                               combobox="oEquipoCLS" displayMember="nombre" valueMember="idequipo"
                               eventBusqueda="BuscarListaJugador"
-                              permitirExportarExcel=@permitirExportarExcel
-                              permitirExportarWord=@permitirExportarWord
+                              permitirExportarExcel=false
+                              permitirExportarWord=false
                               permitirExportarPdf=@permitirExportarPDF
-                              tituloReporte="Listado de Campos" />
+                              tituloReporte="Tabla de Goleadores" />
                 </div>
             }
         </section>
@@ -181,7 +188,7 @@
                             <h5>📤 Exportar el listado</h5>
                             <p>
                                 Si tienes permiso, puedes exportar la tabla de goleadores en
-                                <strong>Excel</strong>, <strong>Word</strong> y <strong>PDF</strong>.
+                                <strong>Word</strong> y <strong>PDF</strong>.
                                 Útil para publicarla en redes sociales de la liga, grupos de WhatsApp
                                 o imprimirla para colocarla en las instalaciones del torneo.
                             </p>
@@ -316,6 +323,72 @@
         justify-content: center;
         color: #1e3a8a;
         font-weight: 600;
+    }
+
+    .goleadores-modern-list {
+        border: 1px solid #e8eef8;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .goleadores-modern-list .btn-info {
+        border: 1px solid #1d4ed8;
+        border-radius: 10px;
+        background: linear-gradient(120deg, #1d4ed8 0%, #2563eb 100%);
+        color: #fff;
+        font-weight: 700;
+        padding: 0.45rem 1rem;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+        transition: transform 0.15s ease, box-shadow 0.2s ease;
+        text-decoration: none;
+    }
+
+    .goleadores-modern-list .btn-info::before {
+        content: "📄 ";
+    }
+
+    .goleadores-modern-list .btn-info:hover {
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.34);
+    }
+
+    .goleadores-modern-list .table {
+        border: 1px solid #d7e3f8;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+
+    .goleadores-modern-list .thead-dark th {
+        background: linear-gradient(90deg, #1e3a8a 0%, #1d4ed8 100%) !important;
+        color: #fff;
+        border-color: #3159aa;
+        font-weight: 700;
+        letter-spacing: .02em;
+    }
+
+    .goleadores-modern-list .table td {
+        border-color: #e6edf8;
+    }
+
+    .goleadores-modern-list .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f8fbff;
+    }
+
+    .goleadores-modern-list select.form-control {
+        border-radius: 10px;
+        border: 1px solid #cfdcf2;
+        min-height: 40px;
+    }
+
+    .goleadores-modern-list label {
+        color: #334155;
+        font-weight: 700;
+    }
+
+    .goleadores-modern-list .dataTables_paginate .paginate_button {
+        border-radius: 8px;
+        margin: 0 2px;
     }
 
     @@media (max-width: 768px) {
@@ -576,8 +649,7 @@
                     if (listaBotones.Contains(1)) permitirAgregar = true;
                     if (listaBotones.Contains(2)) permitirEditar = true;
                     if (listaBotones.Contains(3)) permitirEliminar = true;
-                    if (listaBotones.Contains(4)) permitirExportarExcel = true;
-                    if (listaBotones.Contains(5)) permitirExportarWord = true;
+                    if (listaBotones.Contains(4) || listaBotones.Contains(5)) permitirExportarWord = true;
                     if (listaBotones.Contains(6)) permitirExportarPDF = true;
                 }
             }
@@ -594,6 +666,77 @@
         else
         {
             listadoGoleadores = await http.GetFromJsonAsync<GoleadoresCLS[]>("api/Goleadores/ListarGoleadores/" + buscarGoleadoresEquipo + "/" + idtorneoseleccionado);
+        }
+    }
+
+    public async Task ExportarWordGoleadores()
+    {
+        try
+        {
+            if (listadoGoleadores == null || listadoGoleadores.Length == 0)
+            {
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "No hay goleadores para exportar", "warning");
+                return;
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>");
+            sb.AppendLine("<head><meta charset='utf-8'><title>Tabla de Goleadores</title>");
+            sb.AppendLine("<style>");
+            sb.AppendLine("body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; margin: 30px; }");
+            sb.AppendLine("h1 { color: #1e3a8a; font-size: 17pt; margin-bottom: 4px; }");
+            sb.AppendLine("p { color: #475569; font-size: 10pt; margin: 4px 0 14px 0; }");
+            sb.AppendLine("table { width: 100%; border-collapse: collapse; margin-top: 8px; }");
+            sb.AppendLine("th { background-color: #1e3a8a; color: #ffffff; padding: 7px 10px; font-size: 10pt; text-align: center; border: 1px solid #1e3a8a; }");
+            sb.AppendLine("td { padding: 5px 10px; border: 1px solid #dde3ee; font-size: 10pt; }");
+            sb.AppendLine(".td-nombre { text-align: left; font-weight: 700; color: #1e293b; }");
+            sb.AppendLine(".td-equipo { text-align: left; color: #334155; }");
+            sb.AppendLine(".td-goles { text-align: center; font-weight: 700; color: #1d4ed8; width: 80px; }");
+            sb.AppendLine(".fila-par { background-color: #f0f5ff; }");
+            sb.AppendLine(".fila-impar { background-color: #ffffff; }");
+            sb.AppendLine("</style></head><body>");
+
+            string fechaReporte = DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-MX"));
+            string nombreTorneo = string.IsNullOrWhiteSpace(torneoMensaje) ? "Torneo" : torneoMensaje;
+
+            sb.AppendLine($"<h1>&#9917; Tabla de Goleadores &ndash; {System.Net.WebUtility.HtmlEncode(nombreTorneo)}</h1>");
+            sb.AppendLine($"<p>{listadoGoleadores.Length} jugadores &nbsp;&middot;&nbsp; Generado el {fechaReporte}</p>");
+            sb.AppendLine("<hr style='border:none; border-top:2px solid #1e3a8a; margin-bottom:10px;'/>");
+
+            sb.AppendLine("<table>");
+            sb.AppendLine("<thead><tr>");
+            sb.AppendLine("<th>#</th><th>NOMBRE</th><th>EQUIPO</th><th>GOLES</th>");
+            sb.AppendLine("</tr></thead><tbody>");
+
+            int posicion = 1;
+            foreach (var jugador in listadoGoleadores)
+            {
+                string filaCss = posicion % 2 == 0 ? "fila-par" : "fila-impar";
+                sb.AppendLine($"<tr class='{filaCss}'>");
+                sb.AppendLine($"<td style='text-align:center; font-weight:700; width:40px;'>{posicion}</td>");
+                sb.AppendLine($"<td class='td-nombre'>{System.Net.WebUtility.HtmlEncode(jugador.nombre)}</td>");
+                sb.AppendLine($"<td class='td-equipo'>{System.Net.WebUtility.HtmlEncode(jugador.equipo)}</td>");
+                sb.AppendLine($"<td class='td-goles'>{jugador.goles}</td>");
+                sb.AppendLine("</tr>");
+                posicion++;
+            }
+
+            sb.AppendLine("</tbody></table>");
+            sb.AppendLine("<hr style='border:none; border-top:1px solid #cbd5e1; margin-top:14px;'/>");
+            sb.AppendLine("<p><em>Reporte generado autom&aacute;ticamente por el sistema Futboleando.</em></p>");
+            sb.AppendLine("</body></html>");
+
+            var htmlBytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var base64 = Convert.ToBase64String(htmlBytes);
+
+            await ijsruntime.InvokeVoidAsync("descargarArchivo",
+                base64,
+                $"TablaGoleadores_{nombreTorneo.Replace(" ", "_")}_{DateTime.Now:ddMMyyyy}.doc",
+                "application/msword");
+        }
+        catch (Exception ex)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR AL EXPORTAR WORD: " + ex.Message, "error");
         }
     }
 }
