@@ -16,19 +16,186 @@
 
 <AuthorizeView>
     <Authorized>
-        <Listados cabeceras=cabeceras
-                  nombrePropiedadesMostrar=propiedades
-                  lista=listadoJugador
+        <section class="catalogo-page mt-3">
+            <div class="catalogo-header-card">
+                <div>
+                    <p class="catalogo-kicker">Panel de administración</p>
+                    <h3>Jugadores del Equipo</h3>
+                    <span>Consulta y administra los jugadores del equipo asignado.</span>
+                </div>
+                <div class="catalogo-badge">
+                    <span>Catálogo</span>
+                </div>
+            </div>
 
-                  permitirAgregar=@permitirAgregar rutaAgregar="AgregarJugadorEA"
-                  permitirEditar=@permitirEditar rutaEditar="EditarJugadorEA"
-                  permitirEliminar=@permitirEliminar eventEliminar="EliminarListaJugador"
-                  permitirExportarExcel=@permitirExportarExcel
-                  permitirExportarWord=@permitirExportarWord
-                  permitirExportarPdf=@permitirExportarPDF
-                  tituloReporte="Listado de Jugadores" />
+            @if (listadoJugador == null)
+            {
+                <div class="catalogo-loading">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <span class="ml-2">Cargando jugadores...</span>
+                </div>
+            }
+            else
+            {
+                <div class="catalogo-list-card jugadores-equipo-modern-list">
+                    @if (permitirExportarWord)
+                    {
+                        <div class="mb-2 d-flex" style="gap: 0.5rem;">
+                            <button class="btn btn-info" @onclick="ExportarWordJugadoresEquipo">📄 Exportar a Word</button>
+                        </div>
+                    }
+
+                    <Listados cabeceras=cabeceras
+                              nombrePropiedadesMostrar=propiedades
+                              lista=listadoJugador
+                              permitirAgregar=@permitirAgregar rutaAgregar="AgregarJugadorEA"
+                              permitirEditar=@permitirEditar rutaEditar="EditarJugadorEA"
+                              permitirEliminar=@permitirEliminar eventEliminar="EliminarListaJugador"
+                              permitirExportarExcel=@permitirExportarExcel
+                              permitirExportarWord=false
+                              permitirExportarPdf=@permitirExportarPDF
+                              tituloReporte="Listado de Jugadores" />
+                </div>
+            }
+        </section>
     </Authorized>
 </AuthorizeView>
+
+<style>
+    .catalogo-page {
+        padding: 0.25rem 0;
+    }
+
+    .catalogo-header-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 45%, #f8fafc 100%);
+        border: 1px solid #dbeafe;
+        border-radius: 16px;
+        padding: 1.1rem 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 14px 28px rgba(30, 64, 175, 0.08);
+    }
+
+    .catalogo-kicker {
+        margin: 0;
+        color: #2563eb;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+
+    .catalogo-header-card h3 {
+        margin: 0.15rem 0 0.25rem;
+        color: #1e3a8a;
+        font-weight: 800;
+    }
+
+    .catalogo-header-card span {
+        color: #475569;
+        font-size: 0.93rem;
+    }
+
+    .catalogo-badge span {
+        display: inline-block;
+        background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border-radius: 999px;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+    }
+
+    .catalogo-list-card {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 0.75rem;
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .catalogo-loading {
+        margin: 1.5rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #1e3a8a;
+        font-weight: 600;
+    }
+
+    .jugadores-equipo-modern-list {
+        border: 1px solid #e8eef8;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    }
+
+    .jugadores-equipo-modern-list .btn-info {
+        border: 1px solid #1d4ed8;
+        border-radius: 10px;
+        background: linear-gradient(120deg, #1d4ed8 0%, #2563eb 100%);
+        color: #fff;
+        font-weight: 700;
+        padding: 0.45rem 1rem;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+        transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .jugadores-equipo-modern-list .btn-info:hover {
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.34);
+    }
+
+    .jugadores-equipo-modern-list .table {
+        border: 1px solid #d7e3f8;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+
+    .jugadores-equipo-modern-list .thead-dark th {
+        background: linear-gradient(90deg, #1e3a8a 0%, #1d4ed8 100%) !important;
+        color: #fff;
+        border-color: #3159aa;
+        font-weight: 700;
+        letter-spacing: .02em;
+    }
+
+    .jugadores-equipo-modern-list .table td {
+        border-color: #e6edf8;
+    }
+
+    .jugadores-equipo-modern-list .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f8fbff;
+    }
+
+    .jugadores-equipo-modern-list select.form-control,
+    .jugadores-equipo-modern-list input.form-control {
+        border-radius: 10px;
+        border: 1px solid #cfdcf2;
+        min-height: 40px;
+    }
+
+    .jugadores-equipo-modern-list label {
+        color: #334155;
+        font-weight: 700;
+    }
+
+    .jugadores-equipo-modern-list .dataTables_paginate .paginate_button {
+        border-radius: 8px;
+        margin: 0 2px;
+    }
+
+    @@media (max-width: 768px) {
+        .catalogo-header-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
 
 @code {
 
@@ -155,6 +322,78 @@
             }
 
             
+        }
+    }
+
+
+    public async Task ExportarWordJugadoresEquipo()
+    {
+        try
+        {
+            if (listadoJugador == null || listadoJugador.Length == 0)
+            {
+                await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "No hay jugadores para exportar", "warning");
+                return;
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>");
+            sb.AppendLine("<head><meta charset='utf-8'><title>Listado de Jugadores</title>");
+            sb.AppendLine("<style>");
+            sb.AppendLine("body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; margin: 30px; }");
+            sb.AppendLine("h1 { color: #1e3a8a; font-size: 17pt; margin-bottom: 4px; }");
+            sb.AppendLine("p { color: #475569; font-size: 10pt; margin: 4px 0 14px 0; }");
+            sb.AppendLine("table { width: 100%; border-collapse: collapse; margin-top: 8px; }");
+            sb.AppendLine("th { background-color: #1e3a8a; color: #ffffff; padding: 7px 10px; font-size: 10pt; text-align: center; border: 1px solid #1e3a8a; }");
+            sb.AppendLine("td { padding: 5px 10px; border: 1px solid #dde3ee; font-size: 10pt; }");
+            sb.AppendLine(".td-nombre { text-align: left; font-weight: 700; color: #1e293b; }");
+            sb.AppendLine(".td-equipo { text-align: left; color: #334155; }");
+            sb.AppendLine(".td-fecha, .td-anios { text-align: center; }");
+            sb.AppendLine(".td-anios { font-weight: 700; color: #1d4ed8; width: 70px; }");
+            sb.AppendLine(".fila-par { background-color: #f0f5ff; }");
+            sb.AppendLine(".fila-impar { background-color: #ffffff; }");
+            sb.AppendLine("</style></head><body>");
+
+            string fechaReporte = DateTime.Now.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-MX"));
+            string nombreTorneo = string.IsNullOrWhiteSpace(torneoMensaje) ? "Torneo" : torneoMensaje;
+
+            sb.AppendLine($"<h1>&#9917; Listado de Jugadores &ndash; {System.Net.WebUtility.HtmlEncode(nombreTorneo)}</h1>");
+            sb.AppendLine($"<p>{listadoJugador.Length} jugadores &nbsp;&middot;&nbsp; Generado el {fechaReporte}</p>");
+            sb.AppendLine("<hr style='border:none; border-top:2px solid #1e3a8a; margin-bottom:10px;'/>");
+
+            sb.AppendLine("<table>");
+            sb.AppendLine("<thead><tr><th>#</th><th>NOMBRE</th><th>EQUIPO</th><th>FECHA NACIMIENTO</th><th>AÑOS</th></tr></thead><tbody>");
+
+            int posicion = 1;
+            foreach (var jugador in listadoJugador)
+            {
+                string filaCss = posicion % 2 == 0 ? "fila-par" : "fila-impar";
+                sb.AppendLine($"<tr class='{filaCss}'>");
+                sb.AppendLine($"<td style='text-align:center; font-weight:700; width:40px;'>{posicion}</td>");
+                sb.AppendLine($"<td class='td-nombre'>{System.Net.WebUtility.HtmlEncode(jugador.nombrecompleto)}</td>");
+                sb.AppendLine($"<td class='td-equipo'>{System.Net.WebUtility.HtmlEncode(jugador.equipo)}</td>");
+                sb.AppendLine($"<td class='td-fecha'>{System.Net.WebUtility.HtmlEncode(jugador.fnacimientocadena)}</td>");
+                sb.AppendLine($"<td class='td-anios'>{jugador.años}</td>");
+                sb.AppendLine("</tr>");
+                posicion++;
+            }
+
+            sb.AppendLine("</tbody></table>");
+            sb.AppendLine("<hr style='border:none; border-top:1px solid #cbd5e1; margin-top:14px;'/>");
+            sb.AppendLine("<p><em>Reporte generado autom&aacute;ticamente por el sistema Futboleando.</em></p>");
+            sb.AppendLine("</body></html>");
+
+            var htmlBytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            var base64 = Convert.ToBase64String(htmlBytes);
+
+            await ijsruntime.InvokeVoidAsync("descargarArchivo",
+                base64,
+                $"ListadoJugadoresEquipo_{nombreTorneo.Replace(" ", "_")}_{DateTime.Now:ddMMyyyy}.doc",
+                "application/msword");
+        }
+        catch (Exception ex)
+        {
+            await ijsruntime.InvokeVoidAsync("MostrarMensajeAlerta", "ERROR AL EXPORTAR WORD: " + ex.Message, "error");
         }
     }
 
